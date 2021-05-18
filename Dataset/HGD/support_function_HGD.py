@@ -22,7 +22,8 @@ def downloadDataset(idx):
     for i in range(2): 
         # i = 0 ----> Train set
         # i = 1 ----> Test  set
-        print("Set: ", i)
+        tmp_dict = {0:'Train', 1:'Test'}
+        print("Set: ", tmp_dict[i])
         
         dataset = a.datasets[i]
         
