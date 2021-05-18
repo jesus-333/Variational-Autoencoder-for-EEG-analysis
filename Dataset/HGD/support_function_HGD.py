@@ -41,14 +41,39 @@ def downloadDataset(idx):
         
 #%% 
 
-def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, min_length = -1):
+def trialLengthDensity(idx, type_dataset): 
+    # Retrieve trial start vector
+    tmp_mat = loadmat(type_dataset +'/' + str(idx) + '.mat')
+    trials_start_vet = tmp_mat['events'][:, 0]
+    
+    # Free memory
+    del tmp_mat
+    
+    # Compute trials length
+    trials_length_vet = np.zeros(len(trials_start_vet) - 1) 
+    for i in range(len(trials_length_vet)):
+        trials_length_vet[i] = trials_start_vet[i + 1] - trials_start_vet[i]
+    
+    # Find unique values and how much they appear
+    tmp_unique_length = np.unique(trials_length_vet)
+    trials_length_mat = np.zeros((len(tmp_unique_length), 2))
+    trials_length_mat[:, 0] = tmp_unique_length
+    for i in range(len(tmp_unique_length)):
+        trials_length_mat[i, 1] = len(trials_length_vet[trials_length_vet == tmp_unique_length[i]])
+        
+    # Plot histogram
+    plt.plot(trials_length_mat[:, 0], trials_length_mat[:, 1], 'o')
+    plt.xlabel('# of samples')
+    plt.ylabel('# of trials')
+
+
+def computeTrialsHGD(idx, type_dataset, resampling = False, min_length = -1):
     
     tmp_mat = loadmat(type_dataset +'/' + str(idx) + '.mat')
     
     # Recover trials and delete first row (time) and last row (empty)
     trials = tmp_mat['trial'].T
     trials = np.delete(trials, [0, -1], 0)
-    
     
     # Retrieve events matrix
     events = tmp_mat['events']
@@ -66,7 +91,7 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, mi
         length_trial = start_trial_2 - start_trial_1
         
         if(length_trial > 6000): 
-            # Some trials have length around 7000 so I will ignore them
+            # Some trials have length of 7000 or more so I will ignore them
             ignore_trial[i] = 0
         else:
             # Update min trial length
@@ -86,7 +111,7 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, mi
     for i in range(len(events)):
         if(ignore_trial[i] != 0):
             # Compute trial
-            if(resampling):
+            if(resampling): # Resample all trials to have min length
                 start_trial_1 = events[i, 0]
                 
                 if(i != len(events) - 1): start_trial_2 = events[(i + 1), 0]
@@ -95,7 +120,7 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, mi
                 # Extract trial
                 tmp_trial = trials[:, start_trial_1:start_trial_2]
                 
-                # Matrix for the resampling trial
+                # Matrix for the resampled trial
                 resample_trial = np.zeros((tmp_trial.shape[0], min_length))
                 
                 # Resample to min length
@@ -106,14 +131,11 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, mi
                     
                 # Substitute the matrix
                 tmp_trial = resample_trial
-                
-            else:
+                       
+            else: # Cut all trial to have the same length
                 start_trial = events[i, 0]
                 tmp_trial = trials[:, start_trial:(start_trial + min_length)]
-                
-            if(envelope):
-                a = 1
-            
+                            
             # Extract label
             tmp_label = events[i, 2]  
             
@@ -124,7 +146,7 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, envelope = False, mi
             
             counter += 1
             
-    return min_length
+    # return min_length
             
 def computeEnvelope(x, downsampling = 1):
     if(downsampling != 1): tmp_envelope = np.zeros([x.shape[0], int(x.shape[1]/downsampling)])
