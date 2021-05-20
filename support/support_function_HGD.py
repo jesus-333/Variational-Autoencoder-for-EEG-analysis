@@ -13,7 +13,7 @@ from braindecode.datautil.windowers import create_windows_from_events, create_fi
 
 #%%
 
-def downloadDataset(idx):
+def downloadDataset(idx, path_save):
     
     # Download
     a = HGD(idx)
@@ -35,15 +35,15 @@ def downloadDataset(idx):
        
         tmp_dict = {'trial': numpy_version, 'events':events}
         
-        if(i == 0): savemat('Train/' + str(idx) + '.mat', tmp_dict)
-        if(i == 1): savemat('Test/' + str(idx) + '.mat', tmp_dict)
+        if(i == 0): savemat(path_save + 'Train/' + str(idx) + '.mat', tmp_dict)
+        if(i == 1): savemat(path_save + 'Test/' + str(idx) + '.mat', tmp_dict)
         
         
 #%% 
 
-def trialLengthDensity(idx, type_dataset): 
+def trialLengthDensity(idx, path_dataset): 
     # Retrieve trial start vector
-    tmp_mat = loadmat(type_dataset +'/' + str(idx) + '.mat')
+    tmp_mat = loadmat(path_dataset +'/' + str(idx) + '.mat')
     trials_start_vet = tmp_mat['events'][:, 0]
     
     # Free memory
