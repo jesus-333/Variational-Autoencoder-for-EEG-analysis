@@ -67,9 +67,9 @@ def trialLengthDensity(idx, type_dataset):
     plt.ylabel('# of trials')
 
 
-def computeTrialsHGD(idx, type_dataset, resampling = False, min_length = -1):
+def computeTrialsHGD(idx, path_dataset, resampling = False, min_length = -1):
     
-    tmp_mat = loadmat(type_dataset +'/' + str(idx) + '.mat')
+    tmp_mat = loadmat(path_dataset + str(idx) + '.mat')
     
     # Recover trials and delete first row (time) and last row (empty)
     trials = tmp_mat['trial'].T
@@ -103,7 +103,7 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, min_length = -1):
     counter = 0
     
     # Create path for the subject
-    path = type_dataset + str(idx) + '/'
+    path = path_dataset + str(idx) + '/'
     if not os.path.exists(path):
         os.mkdir(path)
     
@@ -146,7 +146,6 @@ def computeTrialsHGD(idx, type_dataset, resampling = False, min_length = -1):
             
             counter += 1
             
-    # return min_length
             
 def computeEnvelope(x, downsampling = 1):
     if(downsampling != 1): tmp_envelope = np.zeros([x.shape[0], int(x.shape[1]/downsampling)])
