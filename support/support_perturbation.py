@@ -141,7 +141,7 @@ def powerEvaluation(x):
     tmp_sum = 0
     for i in range(len(x)): tmp_sum += abs(x[i])**2
     
-    return (1/(2 * len(x))) * tmp_sum
+    return (1/len(x)) * tmp_sum
 
 
 def calculateSingleTrialAveragePower(trial):
