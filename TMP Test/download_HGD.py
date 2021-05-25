@@ -5,13 +5,30 @@ import os
 
 from braindecode.datasets.bbci import  BBCIDataset
 from braindecode.datasets.moabb import HGD
+import mne
 from braindecode.datautil.windowers import create_windows_from_events, create_fixed_length_windows
-
+import h5py
 
 #%%
-idx = 3
+idx = 5
+path = 'tmp_data/'
 
 a = HGD(idx)
+
+#%%
+
+# cnt = BBCIDataset(filename='5_train.mat', load_sensor_names=None).load()
+# data = cnt.load()
+
+file_name = '5_test.h5'
+f1 = h5py.File(file_name,'r+')
+f1_keys = list(f1.keys())
+f1_special_key = [obj for obj in f1_keys if 'ch' not in obj and 'obj' not in obj]
+
+for key in f1_special_key: print(f1[key].keys())
+#%%
+print(f1['mnt']['y'][:])
+
 
 #%%
 # windows_ds_1 = create_windows_from_events(a, trial_start_offset_samples=0, trial_stop_offset_samples=100,
@@ -53,3 +70,12 @@ for i in range(2):
     
     if(i == 0): savemat('Train/' + str(idx) + '.mat', tmp_dict)
     if(i == 1): savemat('Test/' + str(idx) + '.mat', tmp_dict)
+    
+    
+    
+#%%
+
+from moabb.datasets import BNCI2014001 as HGD
+test_HGD = HGD()
+
+test_HGD.data_path(1, 'tmp_data')

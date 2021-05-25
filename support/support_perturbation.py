@@ -99,7 +99,7 @@ def perturbateInputV2(trials_matrix, labels, false_freq_list, snr = 3, average_p
 
 #%% Perturbation input function (HGD)
 
-def perturbSingleChannelHGD(x, fs, snr = 3, perturb_freq = 50):
+def perturbSingleChannelHGDWithImpulse(x, fs, snr = 3, perturb_freq = 50):
     average_ch_power = powerEvaluation(x)
             
     # Calculate the necessary input to obtain the snr required 
@@ -111,13 +111,24 @@ def perturbSingleChannelHGD(x, fs, snr = 3, perturb_freq = 50):
     x = x + perturbation_signal
     
     return x
+
+def perturbSingleChannelHGDWithGaussianNoise(x, fs, snr = 3, low_f = 10, high_f = 20):
     
+    p_x = powerEvaluation(x)
+    p_n = p_x * 10 ** (- snr / 10)
+    std = np.sqrt(p_n)
+    
+    noise = np.random.normal(0, std, x.shape[0])
+    filtered_noise = filterSignal(noise, fs, low_f, high_f)
+    filtered_noise = (filtered_noise - np.mean(filtered_noise))/(np.std(filtered_noise)) * std 
+        
+    return x + noise, x + filtered_noise
 
 def perturbateHGDTrial(x, fs, snr = 3, perturb_freq = 50, channel_wise = False):
     perturb_x = np.zeros(x.shape)
     if(channel_wise):
         for i in range(x.shape[0]):
-           perturb_x[i] = perturbSingleChannelHGD(x[i, :])
+           perturb_x[i] = perturbSingleChannelHGDWithImpulse(x[i, :])
     else:
         # Compute average power of the trial
         average_trial_power = calculateSingleTrialAveragePower(x)
@@ -298,6 +309,12 @@ def filterSignal(data, fs, low_f, high_f, filter_order = 3):
     
     filtered_data = signal.filtfilt(b, a, data.T)
     return filtered_data.T
+
+
+def rescale(x, b = 1, a = 0):
+    x_norm = (x - np.min(x)) / (np.max(x) - np.min(x)) * (b - a) + a
+    
+    return x_norm
 
 def cleanWorkspace():
     try:
