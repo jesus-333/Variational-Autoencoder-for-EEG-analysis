@@ -2,3 +2,5 @@
 *.mat
 
 TMP Test/tmp_data/
+
+*.pyc

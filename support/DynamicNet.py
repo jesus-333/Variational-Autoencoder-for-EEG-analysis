@@ -16,7 +16,7 @@ import os
 
 #%% DynamicNet class
 
-class DynamicCNN(nn.Module):
+class DynamicNet(nn.Module):
     
     def __init__(self, parameters, print_var = False, tracking_input_dimension = False):
         super().__init__()
@@ -247,7 +247,7 @@ class DynamicCNN(nn.Module):
         # Temporary variable used to track the change in dimensions of the input
         tmp_input = torch.ones((1, filters_list[0][0], parameters["h"], parameters["w"]))
         if(tracking_input_dimension): 
-            print("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
+            print("# # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
             print(tmp_input.shape, "\n")
         
         # Temporay list to store the layer
@@ -260,7 +260,8 @@ class DynamicCNN(nn.Module):
         for kernel, n_filter, stride, padding, pool, activation, normalization, p_dropout, groups, bias in zip(kernel_list, filters_list, stride_list, padding_list, pooling_list, activation_list_cnn, CNN_normalization_list, dropout_list_cnn, groups_list, bias_list_cnn):
             
             # Create the convolutional layer and add to the list
-            if(kernel[0] < 0 or kernel[1] < 0):
+            if(kernel[0] < 0 and kernel[1] < 0):
+                kernel = (-kernel[0], -kernel[1])
                 if(groups == 1): tmp_cnn_layer = nn.ConvTranspose2d(in_channels = int(n_filter[0]), out_channels = int(n_filter[1]), kernel_size = kernel, stride = stride, padding = padding, bias = bias)
                 else: tmp_cnn_layer = nn.ConvTranspose2d(in_channels = int(n_filter[0]), out_channels = int(n_filter[1]), kernel_size = kernel, stride = stride, padding = padding, groups = groups, bias = bias)
             else: 
@@ -301,7 +302,7 @@ class DynamicCNN(nn.Module):
                 
                 # Print the input dimensions at this step (if tracking_input_dimension is True)
                 if(tracking_input_dimension): 
-                    print(tmp_pooling_layer)
+                    print("\n", tmp_pooling_layer)
                     print(tmp_input.shape, "\n")
                 
             # (OPTIONAL) Dropout
@@ -320,9 +321,11 @@ class DynamicCNN(nn.Module):
             self.cnn = nn.Sequential(*tmp_block_list)
         else:
             self.cnn = nn.Sequential(*tmp_list)
+            
+        self.output_shape = tmp_input.shape
         
         # Plot a separator
-        if(tracking_input_dimension): print("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
+        if(tracking_input_dimension): print("# # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
         
         #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Flatten layer
