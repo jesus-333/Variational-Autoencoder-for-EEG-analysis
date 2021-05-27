@@ -20,7 +20,8 @@ class EEGNetVAE(nn.Module):
         self.encoder = EEGNetEncoder(C, T, hidden_space_dimension, print_var, tracking_input_dimension)
         output_shape_conv_encoder = self.encoder.conv_encoder.output_shape
         
-        self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder)
+        shape_original_input = (C, T)
+        self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder, shape_original_input, print_var, tracking_input_dimension)
         
     def forward(self, x):
         z = self.encoder(x)
@@ -44,6 +45,7 @@ class EEGNetEncoder(nn.Module):
         self.flatten_neurons = self.conv_encoder.output_shape[1] * self.conv_encoder.output_shape[2] * self.conv_encoder.output_shape[3]
         self.fc_encoder = nn.Linear(self.flatten_neurons, hidden_space_dimension)
         
+        
     def forward(self, x):
         x = self.conv_encoder(x)
         x = x.view([x.shape[0], -1])
@@ -55,49 +57,30 @@ class EEGNetEncoder(nn.Module):
 
 class EEGNetDecoder(nn.Module):
     
-    def __init__(self, hidden_space_dimension, flatten_layer_dimension, conv_shape):
+    def __init__(self, hidden_space_dimension, flatten_layer_dimension, conv_shape, shape_original_input, print_var = False, tracking_input_dimension = False):
         super().__init__()
         
-        # Fully connect section
-        self.fc_decoder = nn.Linear(hidden_space_dimension, flatten_layer_dimension)
-        self.input_shape_conv_decoder = list(conv_shape)
-        self.input_shape_conv_decoder[0] = -1
-        
-        # Convolutional section
-        self.conv_1 = nn.ConvTranspose2d(16, 16, kernel_size= (1,1))
-        self.act_1 = nn.SELU()
-        
-        self.conv_2 = nn.ConvTranspose2d(16, 16, kernel_size = (1, 16), groups = 16, stride = (1, 2))
-        
-    def forward(self, z):
-        x = self.fc_decoder(z)
-        x = torch.reshape(x, self.input_shape_conv_decoder)
-        
-        x = self.act_1(self.conv_1(x))
-        print(x.shape)
-        
-        x = self.conv_2(x)
-        print(x.shape)
-        
-        return x
-
-class EEGNetDecoderOLD(nn.Module):
-    
-    def __init__(self, hidden_space_dimension, flatten_layer_dimension, conv_shape, print_var = False, tracking_input_dimension = False):
-        super().__init__()
-        
+        # Fully connect layer
         self.fc_decoder = nn.Linear(hidden_space_dimension, flatten_layer_dimension)
         
+        # Convolutional layer
         parameters = getParametersDecoder(C = conv_shape[2], T = conv_shape[3])
         self.decoder = DynamicNet(parameters, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
-        self.input_shape_conv_decoder = list(conv_shape)
-        self.input_shape_conv_decoder[0] = -1
+        self.shape_input_conv_decoder = list(conv_shape)
+        self.shape_input_conv_decoder[0] = -1
+        
+        # Upsample layer
+        self.upsample_layer = nn.Upsample(size = shape_original_input)
+        
         
     def forward(self, z):
         x = self.fc_decoder(z)
-        x = torch.reshape(x, self.input_shape_conv_decoder)
+        x = torch.reshape(x, self.shape_input_conv_decoder)
         
         x = self.decoder(x)
+        
+        x = self.upsample_layer(x)
+        
         return x
 
 

@@ -54,7 +54,7 @@ def getParameters(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 
 
 def getParametersEncoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
     
-    kernel_1 = (1, 33)
+    kernel_1 = (1, 32)
     kernel_2 = (C, 1)
     kernel_3 = (1, 16)
     kernel_4 = (1, 1)
@@ -94,9 +94,9 @@ def getParametersEncoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 
 
 def getParametersDecoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
     
-    kernel_1 = (-1, -33)
+    kernel_1 = (-1, -64)
     kernel_2 = (-128, -1)
-    kernel_3 = (-1, -16)
+    kernel_3 = (-1, -32)
     kernel_4 = (-1, -1)
     
     parameters = {}
@@ -117,8 +117,7 @@ def getParametersDecoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 
     parameters["filters_list"].reverse()
     parameters["filters_list"] = convertArrayInTupleList(parameters["filters_list"])
     
-    parameters["padding_list"] = [(0, abs(int(kernel_1[1]/2))), [0,0], (0, abs(int(kernel_3[1]/2))), [0,0]]
-    parameters["padding_list"].reverse()
+    parameters["stride_list"] = [(1,1), (1,4), (1,1), (1,4)]
     
     parameters["CNN_normalization_list"] = [True, True, False, True]
     parameters["CNN_normalization_list"].reverse()

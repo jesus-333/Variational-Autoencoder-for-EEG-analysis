@@ -59,6 +59,6 @@ vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, t
 
 x_r = vae(x)
 
-print(x_r.shape)
+# print(x_r.shape)
 
 
