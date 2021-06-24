@@ -43,22 +43,24 @@ T = x.shape[3]
 
 #%% Encoder (creation and test)
 
-parameters_encoder = getParametersEncoder(C = x.shape[2], T = x.shape[3])
+# parameters_encoder = getParametersEncoder(C = x.shape[2], T = x.shape[3])
 
-encoder = DynamicNet(parameters_encoder, print_var = False, tracking_input_dimension = False)
+# encoder = DynamicNet(parameters_encoder, print_var = False, tracking_input_dimension = False)
 
-z = encoder(x)
+# z = encoder(x)
 
-print("x.shape = ", x.shape)
-print("z.shape = ", z.shape)
+# print("x.shape = ", x.shape)
+# print("z.shape = ", z.shape)
 
 #%% Complete VAE (creation and test)
 
 vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, tracking_input_dimension = True)
-
+a = vae.encoder.conv_encoder.tracking_input_dimension_list
 
 x_r = vae(x)
 
-# print(x_r.shape)
+# print(vae.encoder.conv_encoder.cnn)
+print(x.shape)
+print(x_r.shape)
 
 

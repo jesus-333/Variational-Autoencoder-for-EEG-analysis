@@ -20,8 +20,11 @@ class EEGNetVAE(nn.Module):
         self.encoder = EEGNetEncoder(C, T, hidden_space_dimension, print_var, tracking_input_dimension)
         output_shape_conv_encoder = self.encoder.conv_encoder.output_shape
         
-        shape_original_input = (C, T)
-        self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder, shape_original_input, print_var, tracking_input_dimension)
+        # shape_original_input = (C, T)
+        # self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder, shape_original_input, print_var, tracking_input_dimension)
+        
+        tracking_input_dimension_list = self.encoder.conv_encoder.tracking_input_dimension_list
+        self.decoder = EEGNetDecoderV2(hidden_space_dimension, self.encoder.flatten_neurons, tracking_input_dimension_list)
         
     def forward(self, x):
         z = self.encoder(x)
@@ -53,7 +56,7 @@ class EEGNetEncoder(nn.Module):
         
         return z
     
-#%% EEGNet Decoder class
+#%% EEGNet Decoder class (with DynamicNet)
 
 class EEGNetDecoder(nn.Module):
     
@@ -83,4 +86,67 @@ class EEGNetDecoder(nn.Module):
         
         return x
 
+#%% EEGNet Decoder class (classical implementation)
+
+class EEGNetDecoderV2(nn.Module):
+    
+    def __init__(self, hidden_space_dimension, flatten_layer_dimension, tracking_input_dimension_list):
+        super().__init__()
+        
+        # Fully connect layer
+        self.fc_decoder = nn.Linear(hidden_space_dimension, flatten_layer_dimension)
+    
+        self.shape_input_conv_decoder = list(tracking_input_dimension_list[-1][1])
+        self.shape_input_conv_decoder[0] = -1
+        
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Convolutional section of the decoder 
+        drop_1 = nn.Dropout(p = 0.5)
+        upsample_layer_1 = nn.Upsample(size = tracking_input_dimension_list[-2][1][2:4])
+        act_1 = nn.SELU()
+        batch_norm_1 = nn.BatchNorm2d(num_features = 16)
+        cnn_layer_1 = nn.ConvTranspose2d(in_channels = 16, out_channels = 16, kernel_size = (1,1), bias = False)
+        
+        cnn_layer_2 = nn.ConvTranspose2d(in_channels = 16, out_channels = 16, kernel_size = (1,32), padding=(0, 16), groups = 16, bias = False)
+        
+        drop_3 = nn.Dropout(p = 0.5)
+        upsample_layer_3 = nn.Upsample(size = tracking_input_dimension_list[1][1][2:4])
+        act_3 = nn.SELU()
+        batch_norm_3 = nn.BatchNorm2d(num_features = 16)
+        cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (128, 1), groups = 8, bias = False)
+        
+        batch_norm_4 = nn.BatchNorm2d(num_features = 8)
+        cnn_layer_4 = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
+        
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # List of module (use for debugging)
+        module_list = nn.ModuleList()
+        module_list.append(drop_1)
+        module_list.append(upsample_layer_1)
+        module_list.append(act_1)
+        module_list.append(batch_norm_1)
+        module_list.append(cnn_layer_1)
+        
+        module_list.append(cnn_layer_2)
+        
+        module_list.append(drop_3)
+        module_list.append(upsample_layer_3)
+        module_list.append(act_3)
+        module_list.append(batch_norm_3)
+        module_list.append(cnn_layer_3)
+
+        module_list.append(batch_norm_4)
+        module_list.append(cnn_layer_4)
+        
+        self.conv_decoder = nn.Sequential(*module_list)
+        
+        
+    def forward(self, z):
+        x = self.fc_decoder(z)
+        x = torch.reshape(x, self.shape_input_conv_decoder)
+        
+        x = self.conv_decoder(x)
+        
+        return x
+        
 

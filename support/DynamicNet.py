@@ -23,6 +23,7 @@ class DynamicNet(nn.Module):
         
         self.print_var = print_var
         self.tracking_input_dimension = tracking_input_dimension
+        self.tracking_input_dimension_list = []
         self.count_block = 0
         self.parameters_creation = parameters
         
@@ -272,6 +273,7 @@ class DynamicNet(nn.Module):
             
             # Keep track of the outupt dimension
             tmp_input = tmp_cnn_layer(tmp_input)
+            self.tracking_input_dimension_list.append(('conv', tmp_input.shape))
             
             # Print the input dimensions at this step (if tracking_input_dimension is True)
             if(tracking_input_dimension): 
@@ -299,6 +301,7 @@ class DynamicNet(nn.Module):
 
                 # Keep track of the output dimension
                 tmp_input = tmp_pooling_layer(tmp_input)
+                self.tracking_input_dimension_list.append(('pool', tmp_input.shape))
                 
                 # Print the input dimensions at this step (if tracking_input_dimension is True)
                 if(tracking_input_dimension): 
