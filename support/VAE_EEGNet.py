@@ -17,7 +17,7 @@ class EEGNetVAE(nn.Module):
     def __init__(self, C, T, hidden_space_dimension, print_var = False, tracking_input_dimension = False):
         super().__init__()
         
-        self.encoder = EEGNetEncoder(C, T, hidden_space_dimension, print_var, tracking_input_dimension)
+        self.encoder = EEGNetEncoder(C, T, hidden_space_dimension, False, tracking_input_dimension)
         output_shape_conv_encoder = self.encoder.conv_encoder.output_shape
         
         # shape_original_input = (C, T)
@@ -26,12 +26,25 @@ class EEGNetVAE(nn.Module):
         tracking_input_dimension_list = self.encoder.conv_encoder.tracking_input_dimension_list
         self.decoder = EEGNetDecoderV2(hidden_space_dimension, self.encoder.flatten_neurons, tracking_input_dimension_list)
         
+        if(print_var): print("Number of trainable parameters = ", sum(p.numel() for p in self.parameters() if p.requires_grad), "\n")
+        
     def forward(self, x):
-        z = self.encoder(x)
+        mu, log_var = self.encoder(x)
+        
+        z = self.reparametrize(mu, log_var)
         
         x = self.decoder(z)
         
-        return x
+        return x, mu, log_var
+    
+    def reparametrize(self,mu,log_var):
+        #Reparametrization Trick to allow gradients to backpropagate from the stochastic part of the model
+        
+        sigma = torch.exp(0.5*log_var)
+        z = torch.randn(size = (mu.size(0),mu.size(1)))
+        z= z.type_as(mu) # Setting z to be .cuda when using GPU training 
+        
+        return mu + sigma*z
     
 #%% EEGNet Encoder class
     
@@ -46,15 +59,18 @@ class EEGNetEncoder(nn.Module):
         
         # Fully connect section
         self.flatten_neurons = self.conv_encoder.output_shape[1] * self.conv_encoder.output_shape[2] * self.conv_encoder.output_shape[3]
-        self.fc_encoder = nn.Linear(self.flatten_neurons, hidden_space_dimension)
+        self.fc_encoder = nn.Linear(self.flatten_neurons, 2 * hidden_space_dimension)
         
         
     def forward(self, x):
         x = self.conv_encoder(x)
         x = x.view([x.shape[0], -1])
-        z = self.fc_encoder(x)
+        x = self.fc_encoder(x)
         
-        return z
+        mu = x[:, 0:int((x.shape[1]/2))]
+        log_var = x[:, int((x.shape[1]/2)):]
+        
+        return mu, log_var
     
 #%% EEGNet Decoder class (with DynamicNet)
 

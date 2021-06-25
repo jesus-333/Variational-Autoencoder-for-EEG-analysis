@@ -57,10 +57,11 @@ T = x.shape[3]
 vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, tracking_input_dimension = True)
 a = vae.encoder.conv_encoder.tracking_input_dimension_list
 
-x_r = vae(x)
+x_r, mu, log_var = vae(x)
 
-# print(vae.encoder.conv_encoder.cnn)
-print(x.shape)
-print(x_r.shape)
+# print(x.shape)
+# print(x_r.shape)
+print(mu)
+print(log_var)
 
 
