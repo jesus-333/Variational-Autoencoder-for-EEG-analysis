@@ -21,7 +21,7 @@ class EEGNetVAE(nn.Module):
         output_shape_conv_encoder = self.encoder.conv_encoder.output_shape
         
         # shape_original_input = (C, T)
-        # self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder, shape_original_input, print_var, tracking_input_dimension)
+        # self.decoder = EEGNetDecoder(hidden_space_dimension, self.encoder.flatten_neurons, output_shape_conv_encoder, shape_original_input, False, tracking_input_dimension)
         
         tracking_input_dimension_list = self.encoder.conv_encoder.tracking_input_dimension_list
         self.decoder = EEGNetDecoderV2(hidden_space_dimension, self.encoder.flatten_neurons, tracking_input_dimension_list)
@@ -133,6 +133,7 @@ class EEGNetDecoderV2(nn.Module):
         
         batch_norm_4 = nn.BatchNorm2d(num_features = 8)
         cnn_layer_4 = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
+        act_4 = nn.Sigmoid()
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # List of module (use for debugging)
@@ -153,6 +154,7 @@ class EEGNetDecoderV2(nn.Module):
 
         module_list.append(batch_norm_4)
         module_list.append(cnn_layer_4)
+        # module_list.append(act_4)
         
         self.conv_decoder = nn.Sequential(*module_list)
         
