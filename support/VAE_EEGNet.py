@@ -40,7 +40,7 @@ class EEGNetVAE(nn.Module):
     def reparametrize(self,mu,log_var):
         #Reparametrization Trick to allow gradients to backpropagate from the stochastic part of the model
         
-        sigma = torch.exp(0.5*log_var)
+        sigma = torch.exp(0.5 * log_var)
         z = torch.randn(size = (mu.size(0),mu.size(1)))
         z= z.type_as(mu) # Setting z to be .cuda when using GPU training 
         
@@ -168,3 +168,30 @@ class EEGNetDecoderV2(nn.Module):
         return x
         
 
+#%% VAE + Classifier
+
+class EEGFramework(nn.Module):
+    
+    def __init__(self, C, T, hidden_space_dimension, print_var = False, tracking_input_dimension = False):
+        super().__init__()
+        
+        # VAE Definition
+        self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+        
+        # Classifier definition
+        self.classifier = nn.Sequential(
+            nn.Linear(hidden_space_dimension * 2, 64),
+            nn.SELU(),
+            nn.Linear(64, 4),
+            nn.LogSoftmax(dim = 1)
+        )
+        
+    def forward(self, x):
+        x_r, mu, log_var = self.vae(x)
+        
+        # z = self.vae.reparametrize(mu, log_var)
+        z = torch.cat((mu, log_var), dim = 1)
+        
+        label = self.classifier(z)
+        
+        return x_r, mu, log_var, label

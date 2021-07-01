@@ -49,6 +49,6 @@ rescale = True
 use_log_scale = False
 filter_signal = True
 
-# Path for the file
+# Path for the dataset
 path_dataset = 'Dataset/' + name_dataset + '/' + type_dataset + '/' + str(idx_subj) + '/' + str(n)
 

@@ -18,12 +18,12 @@ from scipy.io import loadmat
 import torch
 from torch.utils.data import DataLoader
 
-from support.VAE_EEGNet import EEGNetVAE
-from support.support_training import VAE_loss, advanceEpoch, Pytorch_Dataset_HGD
+from support.VAE_EEGNet import EEGFramework
+from support.support_training import VAE_loss, advanceEpochV2, Pytorch_Dataset_HGD
 
 #%% Settings
 
-hidden_space_dimension = 2
+hidden_space_dimension = 64
 
 print_var = True
 tracking_input_dimension = True
@@ -66,27 +66,54 @@ for rep in range(repetition):
         # Network creation
         C = train_dataset[0][0].shape[1]
         T = train_dataset[0][0].shape[2]
-        vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+        eeg_framework = EEGFramework(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
         if(print_var): print("VAE created")
         
         # Optimizer
         # optimizer = torch.optim.Adam(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
-        optimizer = torch.optim.AdamW(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
         # optimizer = torch.optim.SGD(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
-        # Loss tracking variable
+        # Loss tracking variables (TRAIN)
         total_loss_train = []
+        reconstruction_loss_train = []
+        kl_loss_train = []
+        discriminator_loss_train = []
+        
+         # Loss tracking variables (TEST)
         total_loss_test = []
+        reconstruction_loss_test = []
+        kl_loss_test = []
+        discriminator_loss_test = []
+        
         best_loss_test = sys.maxsize
         
         for epoch in range(epochs):
             # Training phase
-            tmp_loss_train_total, tmp_loss_train_recon, tmp_loss_train_kl = advanceEpoch(vae, device, train_dataloader, loss_fn, optimizer, is_train = True, alpha = alpha)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, alpha = alpha)
+            tmp_loss_train_total = tmp_loss_train[0]
+            tmp_loss_train_recon = tmp_loss_train[1]
+            tmp_loss_train_kl = tmp_loss_train[2]
+            tmp_loss_train_discriminator = tmp_loss_train[3]
+            
+            # Save train losses
             total_loss_train.append(float(tmp_loss_train_total))
+            reconstruction_loss_train.append(float(tmp_loss_train_recon))
+            kl_loss_train.append(float(tmp_loss_train_kl))
+            discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # Testing phase
-            tmp_loss_test_total, tmp_loss_test_recon, tmp_loss_test_kl = advanceEpoch(vae, device, test_dataloader, loss_fn, is_train = False, alpha = alpha)
+            tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, alpha = alpha)
+            tmp_loss_test_total = tmp_loss_test[0]
+            tmp_loss_test_recon = tmp_loss_test[1] 
+            tmp_loss_test_kl = tmp_loss_test[2]
+            tmp_loss_test_discriminator = tmp_loss_test[3]
+            
+            # Save tet losses
             total_loss_test.append(float(tmp_loss_test_total))
+            reconstruction_loss_test.append(float(tmp_loss_test_recon))
+            kl_loss_test.append(float(tmp_loss_test_kl))
+            discriminator_loss_test.append(float(tmp_loss_test_discriminator))
             
             if(tmp_loss_test_total < best_loss_test):
                 # Update loss
@@ -101,12 +128,14 @@ for rep in range(repetition):
                 print("Epoch: {} ({:.2f}%) - Subject: {} - Repetition: {}".format(epoch, epoch/epochs * 100, idx, rep))
                 
                 print("\tLoss (TRAIN)\t: ", float(tmp_loss_train_total))
-                print("\t\tReconstr (TRAIN)\t: ", float(tmp_loss_train_recon))
-                print("\t\tKullback (TRAIN)\t: ", float(tmp_loss_train_kl), "\n")
+                print("\t\tReconstr (TRAIN)\t\t: ", float(tmp_loss_train_recon))
+                print("\t\tKullback (TRAIN)\t\t: ", float(tmp_loss_train_kl))
+                print("\t\tDiscriminator (TRAIN)\t: ", float(tmp_loss_train_discriminator), "\n")
                 
                 print("\tLoss (TEST)\t\t: ", float(tmp_loss_test_total))
-                print("\t\tReconstr (TEST)\t: ", float(tmp_loss_test_recon))
-                print("\t\tKullback (TEST)\t: ", float(tmp_loss_test_kl), "\n")
+                print("\t\tReconstr (TEST)\t\t\t: ", float(tmp_loss_test_recon))
+                print("\t\tKullback (TEST)\t\t\t: ", float(tmp_loss_test_kl))
+                print("\t\tDiscriminator (TEST)\t: ", float(tmp_loss_test_discriminator), "\n")
                 
                 print("\tBest loss test\t: ", float(best_loss_test))
                 print("\tNo Improvement\t: ", int(epoch_with_no_improvent))
@@ -115,69 +144,30 @@ for rep in range(repetition):
                 
             if(epoch_with_no_improvent > 50 and early_stop): 
                 if(print_var): print("     JUMP\n\n")
-                break;
-
-#%% Test (Temporary)
-idx_ch = np.random.randint(0, 127)
-
-vae.cpu()
-x = train_dataset[np.random.randint(0, 158)][0]
-x_r = vae(x.unsqueeze(0))[0].squeeze()
-
-# print("MSE LOSS (torch):\t\t", float(torch.nn.MSELoss()(x.squeeze(), x_r)))
-
-x = x.squeeze().numpy()
-x_r = x_r.detach().squeeze().numpy()
-
-plt.plot(x[idx_ch])
-plt.plot(x_r[idx_ch])
-# plt.xlim([0, 1000])
-
-# tot_mse = 0
-# for ch in range(x.shape[0]):
-#     for i in range(x.shape[1]):
-#         tot_mse += (x[ch][i] - x_r[ch][i]) ** 2
-        
-# print("MSE loss (handamade):\t", tot_mse / (x.shape[0] * x.shape[1]))
-
+                break; 
+                
 #%%
 
-vae.cuda()
-# ax = plt.axes(projection='3d')
+plt.figure()
+plt.plot(total_loss_train)
+plt.plot(total_loss_test)
+plt.legend(["Train", "Test"])
+plt.title("Total Loss")
 
-mu_lists = {0:[], 1:[], 2:[], 3:[]}
-var_lists = {0:[], 1:[], 2:[], 3:[]}
+plt.figure()
+plt.plot(reconstruction_loss_train)
+plt.plot(reconstruction_loss_test)
+plt.legend(["Train", "Test"])
+plt.title("Reconstruction Loss")
 
-n_elements = 800
-for i in range(n_elements):
-    print("Completition: {}".format(round(i/n_elements, 2) * 100))
-    
-    x_eeg = train_dataset[i][0].unsqueeze(0).cuda()
-    label = int(train_dataset[i][1])
-    
-    z = vae.encoder(x_eeg)
-    
-    mu = z[0].cpu().squeeze().detach().numpy()
-    var = torch.exp(z[1]).cpu().squeeze().detach().numpy()
-    
-    x = np.random.normal(mu[0], var[0], 1)
-    y = np.random.normal(mu[1], var[1], 1)
-    # z = np.random.normal(mu[2], var[2], 1)
-    
-    # if(label == 0): 
-    #     plt.plot(x, y, 'ko')
-    # elif(label == 1): 
-    #     plt.plot(x, y, 'ro')
-    # elif(label == 2): 
-    #     plt.plot(x, y, 'yo')
-    # elif(label == 3): 
-    #     plt.plot(x, y, 'bo')
-        
-    mu_lists[label].append(mu)
-    var_lists[label].append(var)
-    
-    # if(label == 0): ax.scatter3D(x, y, z, c ='g', marker = 'o')
-    # elif(label == 1): ax.scatter3D(x, y, z, c ='r', marker = '+')
-    # elif(label == 2): ax.scatter3D(x, y, z, c ='b', marker = '^')
-    # elif(label == 3): ax.scatter3D(x, y, z, c ='k', marker = 'v')
-    
+plt.figure()
+plt.plot(kl_loss_train)
+plt.plot(kl_loss_test)
+plt.legend(["Train", "Test"])
+plt.title("KL Loss")
+
+plt.figure()
+plt.plot(discriminator_loss_train)
+plt.plot(discriminator_loss_test)
+plt.legend(["Train", "Test"])
+plt.title("Discriminator LOSS")
