@@ -11,8 +11,12 @@ from torch import nn
 
 def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     # Kullback-Leibler Divergence
-    kl_loss =  (-0.5 * (1 + log_var - mu**2 - torch.exp(log_var)).sum(dim = 1)).mean(dim = 0)
-    # kl_loss = 
+    sigma_p = torch.ones(log_var.size()).to(log_var.device)
+    mu_p = torch.zeros(mu.size()).to(mu.device)
+    kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
+    
+    # Old KL Loss (Simplified version with sigma_p = 1 and mu_p = 0)
+    # kl_loss =  (-0.5 * (1 + log_var - torch.exp(log_var) - mu**2).sum(dim = 1)).mean(dim = 0)
     
     # Reconstruction loss
     recon_loss_criterion = nn.MSELoss()
@@ -24,8 +28,42 @@ def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     
     return vae_loss, recon_loss, kl_loss
 
+
+def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_center = 0.5):
+    """
+    Modified VAE loss where each class is econded with a different distribution
+    """
+    
+    # Target distributions
+    sigma_p = torch.ones(log_var.size()).to(log_var.device)
+    mu_p = torch.zeros(mu.size()).to(mu.device)
+    mu_p[true_label == 0, 0:2] = torch.tensor([shift_from_center, 0]).to(mu_p.device)
+    mu_p[true_label == 1, 0:2] = torch.tensor([0, shift_from_center]).to(mu_p.device)
+    mu_p[true_label == 2, 0:2] = torch.tensor([-shift_from_center, 0]).to(mu_p.device)
+    mu_p[true_label == 3, 0:2] = torch.tensor([0, -shift_from_center]).to(mu_p.device)
+    
+    kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
+    
+    # Reconstruction loss
+    recon_loss_criterion = nn.MSELoss()
+    # recon_loss_criterion = nn.BCELoss()
+    recon_loss = recon_loss_criterion(x_r, x)
+    
+    # Total loss
+    vae_loss = recon_loss * alpha + kl_loss
+    
+    return vae_loss, recon_loss, kl_loss
+    
+    
+
 def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
-    tmp_el_1 = torch.log(sigma_p/sigma_q)
+    """
+    General function for a KL loss with specified the paramters of two gaussian distributions p and q
+    The parameter must be sigma (standard deviation) and mu (mean).
+    The order of the parameter must be the following: sigma_p, mu_p, sigma_q, mu_q
+    """
+    
+    tmp_el_1 = torch.log(sigma_q/sigma_p)
     
     tmp_el_2_num = torch.pow(sigma_q, 2) + torch.pow((mu_q - mu_p), 2)
     tmp_el_2_den = 2 * torch.pow(sigma_p, 2)
@@ -37,7 +75,8 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
 
 def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, alpha = 1):
     # VAE loss (reconstruction + kullback)
-    vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var)
+    # vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var)
+    vae_loss, recon_loss, kl_loss = advance_VAE_loss(x, x_r, mu, log_var, true_label)
     
     # Discriminator loss
     discriminator_loss_criterion = torch.nn.NLLLoss()

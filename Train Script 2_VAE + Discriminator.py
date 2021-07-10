@@ -23,7 +23,7 @@ from support.support_training import VAE_loss, advanceEpochV2, Pytorch_Dataset_H
 
 #%% Settings
 
-hidden_space_dimension = 64
+hidden_space_dimension = 2
 
 print_var = True
 tracking_input_dimension = True
