@@ -19,11 +19,13 @@ import torch
 from torch.utils.data import DataLoader
 
 from support.VAE_EEGNet import EEGFramework
-from support.support_training import VAE_loss, advanceEpochV2, Pytorch_Dataset_HGD
+from support.support_training import advanceEpochV2, measureAccuracy
+from support.support_datasets import Pytorch_Dataset_HGD
+from support.support_visualization import visualizeHiddenSpace
 
 #%% Settings
 
-hidden_space_dimension = 2
+hidden_space_dimension = 64
 
 print_var = True
 tracking_input_dimension = True
@@ -36,11 +38,11 @@ repetition = 1
 
 normalize_trials = True
 early_stop = False
+use_advance_vae_loss = True
+measure_accuracy = True
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
-
-loss_fn = VAE_loss
 
 idx_list = [3]
 
@@ -79,18 +81,20 @@ for rep in range(repetition):
         reconstruction_loss_train = []
         kl_loss_train = []
         discriminator_loss_train = []
+        accuracy_train = []
         
-         # Loss tracking variables (TEST)
+        # Loss tracking variables (TEST)
         total_loss_test = []
         reconstruction_loss_test = []
         kl_loss_test = []
         discriminator_loss_test = []
+        accuracy_test = []
         
         best_loss_test = sys.maxsize
         
         for epoch in range(epochs):
             # Training phase
-            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, alpha = alpha)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
             tmp_loss_train_total = tmp_loss_train[0]
             tmp_loss_train_recon = tmp_loss_train[1]
             tmp_loss_train_kl = tmp_loss_train[2]
@@ -103,7 +107,7 @@ for rep in range(repetition):
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # Testing phase
-            tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, alpha = alpha)
+            tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
             tmp_loss_test_kl = tmp_loss_test[2]
@@ -115,12 +119,21 @@ for rep in range(repetition):
             kl_loss_test.append(float(tmp_loss_test_kl))
             discriminator_loss_test.append(float(tmp_loss_test_discriminator))
             
+            # Measure accuracy (OPTIONAL)
+            if(measure_accuracy):
+                # accuracy_train.append(measureAccuracy(eeg_framework.classifier, train_dataset))
+                tmp_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device)
+                accuracy_test.append(tmp_accuracy_test)
+            
             if(tmp_loss_test_total < best_loss_test):
                 # Update loss
                 best_loss_test = tmp_loss_test_total
                 
                 # Reset counter
                 epoch_with_no_improvent = 0
+                
+                # visualizeHiddenSpace(eeg_framework.vae, trainlen_dataset, n_elements = 870, device = 'cuda')
+                visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
             else: 
                 epoch_with_no_improvent += 1
             
@@ -135,7 +148,8 @@ for rep in range(repetition):
                 print("\tLoss (TEST)\t\t: ", float(tmp_loss_test_total))
                 print("\t\tReconstr (TEST)\t\t\t: ", float(tmp_loss_test_recon))
                 print("\t\tKullback (TEST)\t\t\t: ", float(tmp_loss_test_kl))
-                print("\t\tDiscriminator (TEST)\t: ", float(tmp_loss_test_discriminator), "\n")
+                print("\t\tDiscriminator (TEST)\t: ", float(tmp_loss_test_discriminator))
+                print("\t\tAccuracy (TEST)\t\t\t: ", float(tmp_accuracy_test), "\n")
                 
                 print("\tBest loss test\t: ", float(best_loss_test))
                 print("\tNo Improvement\t: ", int(epoch_with_no_improvent))
@@ -171,3 +185,7 @@ plt.plot(discriminator_loss_train)
 plt.plot(discriminator_loss_test)
 plt.legend(["Train", "Test"])
 plt.title("Discriminator LOSS")
+
+#%%
+
+visualizeHiddenSpace(eeg_framework.vae, train_dataset, True, n_elements = 666, device = 'cuda')

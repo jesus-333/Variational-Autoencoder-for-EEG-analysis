@@ -7,7 +7,7 @@ import sys
 import torch
 from torch import nn
 
-#%%
+#%% Loss functions
 
 def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     # Kullback-Leibler Divergence
@@ -73,10 +73,13 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     
     return kl_loss.sum(dim = 1).mean(dim = 0)
 
-def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, alpha = 1):
+def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss = False, alpha = 1):
     # VAE loss (reconstruction + kullback)
-    # vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var)
-    vae_loss, recon_loss, kl_loss = advance_VAE_loss(x, x_r, mu, log_var, true_label)
+    if(use_advance_vae_loss):
+        shift_from_center = 0.7
+        vae_loss, recon_loss, kl_loss = advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha, shift_from_center)
+    else:
+        vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
     
     # Discriminator loss
     discriminator_loss_criterion = torch.nn.NLLLoss()
@@ -88,7 +91,7 @@ def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, alph
     
     return total_loss, recon_loss, kl_loss, discriminator_loss
 
-#%%
+#%% Training functions
 
 def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, alpha = 1, print_var = False):
     if(is_train): vae.train()
@@ -139,7 +142,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, a
     return tot_vae_loss, tot_recon_loss, tot_kl_loss
 
 
-def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, alpha = 1, print_var = False):
+def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
     if(is_train): eeg_framework.train()
     else: eeg_framework.eval()
     
@@ -164,7 +167,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
             x_r, mu, log_var, predict_label = eeg_framework(x)
             
             # Loss evaluation
-            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, alpha)
+            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
             
             # Backward/Optimization pass
             total_loss.backward()
@@ -175,7 +178,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
                 x = sample_data_batch.to(device)
                 eeg_framework.to(device)
                 x_r, mu, log_var, predict_label = eeg_framework(x)
-                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, alpha)
+                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
         
             
         tot_loss += total_loss
@@ -195,90 +198,31 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
 
 #%%
 
-class Pytorch_Dataset_HGD(torch.utils.data.Dataset):
+def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False):
+    # Set the classifier in evaluation mode
+    classifier.eval()
     
-    # Inizialization method
-    def __init__(self, path, n_elements = -1, normalize_trials = False, binary_mode = -1):
-        tmp_list = []
-        
-        # Read all the file in the folder and return them as list of string
-        for element in os.walk(path): tmp_list.append(element)
-        
-        # print(path, tmp_list)
-        self.path = tmp_list[0][0]
-        self.file_list = tmp_list[0][2]
-        
-        self.path_list = []
-        
-        for i in range(len(self.file_list)): 
-            file = self.file_list[i]
-            self.path_list.append(path + file)
-            
-            if(i >= (n_elements - 1) and n_elements != -1): break
-            
-        self.path_list = np.asarray(self.path_list)
-        
-        # Retrieve dimensions
-        tmp_trial = loadmat(self.path_list[0])['trial']
-        self.channel = tmp_trial.shape[0]
-        self.samples = tmp_trial.shape[1]
-        
-        # Set binary mode
-        self.binary_mode = binary_mode
-        
-        if(normalize_trials):
-            # Temporary set to false to allow to find max and min val
-            self.normalize_trials = False
-            self.max_val = self.maxVal()
-            self.min_val = self.minVal()
-            
-        # Set to real value
-        self.normalize_trials = normalize_trials
-        
-  
-        
-    def __getitem__(self, idx):
-        tmp_dict = loadmat(self.path_list[idx])
-        
-        # Retrieve and save trial 
-        trial = tmp_dict['trial']
-        trial = np.expand_dims(trial, axis = 0)
-        if(self.normalize_trials): trial = self.normalize(trial)
-        
-        # Retrieve label. Since the original label are in the range 1-4 I shift them in the range 0-3 for the NLLLoss() loss function
-        label = int(tmp_dict['label']) - 1
-        if(self.binary_mode != -1): 
-            if(label == self.binary_mode): label = 0
-            else: label = 1
-               
-        # Convert to PyTorch tensor
-        trial = torch.from_numpy(trial).float()
-        label = torch.tensor(label).long()
-        
-        return trial, label
+    vae = vae.to(device)
+    classifier = classifier.to(device)
     
-    def __len__(self):
-        return len(self.path_list)
+    correct_classification = 0
     
-    
-    def maxVal(self):
-        max_ret = - sys.maxsize
-        for i in range(self.__len__()):
-            el = self.__getitem__(i)[0]
-            tmp_max = float(torch.max(el))
-            if(tmp_max > max_ret): max_ret = tmp_max
-            
-        return max_ret
-    
-    def minVal(self):
-        min_ret = sys.maxsize
-        for i in range(self.__len__()):
-            el = self.__getitem__(i)[0]
-            tmp_min = float(torch.min(el))
-            if(tmp_min < min_ret): min_ret = tmp_min
+    # Iterate through element of the dataset
+    for i in range(len(dataset)):
+        if(print_var): print("Completition: {}".format(round(i/len(dataset) * 100, 2)))
+        x_eeg = dataset[i][0].unsqueeze(0)
+        true_label = dataset[i][1]
+        x_eeg = x_eeg.to(device)
         
-        return min_ret
+        mu, log_var = vae.encoder(x_eeg)
+        z = torch.cat((mu, log_var), dim = 1)
+        classifier_output = classifier(z)
+        
+        predict_prob = np.squeeze(torch.exp(classifier_output).cpu().detach().numpy())
+        predict_label = np.argmax(predict_prob)
+        
+        if(predict_label == true_label): correct_classification += 1
+        
+    accuracy = correct_classification / len(dataset)
     
-    def normalize(self, x, a = 0, b = 1):
-        x_norm = (x - self.min_val) / (self.max_val - self.min_val) * (b - a) + a
-        return x_norm
+    return accuracy
