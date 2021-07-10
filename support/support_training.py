@@ -11,8 +11,8 @@ from torch import nn
 
 def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     # Kullback-Leibler Divergence
-    sigma_p = torch.ones(log_var.size()).to(log_var.device)
-    mu_p = torch.zeros(mu.size()).to(mu.device)
+    sigma_p = torch.ones(log_var.shape).to(log_var.device)
+    mu_p = torch.zeros(mu.shape).to(mu.device)
     kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
     
     # Old KL Loss (Simplified version with sigma_p = 1 and mu_p = 0)
@@ -35,13 +35,14 @@ def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_cent
     """
     
     # Target distributions
-    sigma_p = torch.ones(log_var.size()).to(log_var.device)
-    mu_p = torch.zeros(mu.size()).to(mu.device)
-    mu_p[true_label == 0, 0:2] = torch.tensor([shift_from_center, 0]).to(mu_p.device)
-    mu_p[true_label == 1, 0:2] = torch.tensor([0, shift_from_center]).to(mu_p.device)
-    mu_p[true_label == 2, 0:2] = torch.tensor([-shift_from_center, 0]).to(mu_p.device)
-    mu_p[true_label == 3, 0:2] = torch.tensor([0, -shift_from_center]).to(mu_p.device)
-    
+    sigma_p = torch.ones(log_var.shape).to(log_var.device)
+    mu_p = torch.zeros(mu.shape).to(mu.device)
+    for i in range(4):mu_p[true_label == i, :] = constructMuTargetTensor(mu_p, shift_from_center, label = i)
+    # mu_p[true_label == 0, 0:2] = torch.tensor([shift_from_center, 0]).to(mu_p.device)
+    # mu_p[true_label == 1, 0:2] = torch.tensor([0, shift_from_center]).to(mu_p.device)
+    # mu_p[true_label == 2, 0:2] = torch.tensor([-shift_from_center, 0]).to(mu_p.device)
+    # mu_p[true_label == 3, 0:2] = torch.tensor([0, -shift_from_center]).to(mu_p.device)
+
     kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
     
     # Reconstruction loss
@@ -54,7 +55,26 @@ def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_cent
     
     return vae_loss, recon_loss, kl_loss
     
+
+def constructMuTargetTensor(mu_p, shift_from_center, label):
+    mu_length = mu_p.shape[1]
+    target = torch.ones(mu_length).to(mu_p.device)
     
+    if(label == 0): 
+        target[0:int(mu_length/2)] = shift_from_center
+        target[int(mu_length/2):] = 0
+    if(label == 1): 
+        target[0:int(mu_length/2)] = 0
+        target[int(mu_length/2):] = shift_from_center
+    if(label == 2): 
+        target[0:int(mu_length/2)] = -shift_from_center
+        target[int(mu_length/2):] = 0
+    if(label == 3): 
+        target[0:int(mu_length/2)] = 0
+        target[int(mu_length/2):] = -shift_from_center
+        
+    return target
+        
 
 def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     """
@@ -72,6 +92,7 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     kl_loss = - (tmp_el_1  - tmp_el_2 + 0.5)
     
     return kl_loss.sum(dim = 1).mean(dim = 0)
+
 
 def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss = False, alpha = 1):
     # VAE loss (reconstruction + kullback)
@@ -199,7 +220,8 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
 #%%
 
 def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False):
-    # Set the classifier in evaluation mode
+    # Set the vae and the classifier in evaluation mode
+    vae.eval()
     classifier.eval()
     
     vae = vae.to(device)

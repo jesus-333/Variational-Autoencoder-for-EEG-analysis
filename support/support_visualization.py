@@ -35,8 +35,8 @@ def visualizeHiddenSpace(vae, dataset, sampling = True, n_elements = 200, device
             x = np.random.normal(mu[0], std[0], 1)
             y = np.random.normal(mu[1], std[1], 1)
         else:
-            x = mu[0]
-            y = mu[1]
+            x = mu[31]
+            y = mu[32]
         
         if(label == 0): 
             plt.plot(x, y, 'ko')

@@ -91,6 +91,7 @@ for rep in range(repetition):
         accuracy_test = []
         
         best_loss_test = sys.maxsize
+        best_accuracy_test = sys.maxsize
         
         for epoch in range(epochs):
             # Training phase
@@ -122,18 +123,21 @@ for rep in range(repetition):
             # Measure accuracy (OPTIONAL)
             if(measure_accuracy):
                 # accuracy_train.append(measureAccuracy(eeg_framework.classifier, train_dataset))
+                eeg_framework.eval()
                 tmp_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device)
                 accuracy_test.append(tmp_accuracy_test)
+                eeg_framework.train()
             
             if(tmp_loss_test_total < best_loss_test):
-                # Update loss
+                # Update loss and accuracy (N.b. the best accuracy is intended as the accuracy when there is a new min loss)
                 best_loss_test = tmp_loss_test_total
+                best_accuracy_test = tmp_accuracy_test
                 
                 # Reset counter
                 epoch_with_no_improvent = 0
                 
                 # visualizeHiddenSpace(eeg_framework.vae, trainlen_dataset, n_elements = 870, device = 'cuda')
-                visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
+                # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
             else: 
                 epoch_with_no_improvent += 1
             
@@ -151,8 +155,9 @@ for rep in range(repetition):
                 print("\t\tDiscriminator (TEST)\t: ", float(tmp_loss_test_discriminator))
                 print("\t\tAccuracy (TEST)\t\t\t: ", float(tmp_accuracy_test), "\n")
                 
-                print("\tBest loss test\t: ", float(best_loss_test))
-                print("\tNo Improvement\t: ", int(epoch_with_no_improvent))
+                print("\tBest loss test\t\t: ", float(best_loss_test))
+                print("\tBest Accuracy test\t: ", float(best_accuracy_test))
+                print("\tNo Improvement\t\t: ", int(epoch_with_no_improvent))
                 
                 print("- - - - - - - - - - - - - - - - - - - - - - - - ")
                 
@@ -189,3 +194,4 @@ plt.title("Discriminator LOSS")
 #%%
 
 visualizeHiddenSpace(eeg_framework.vae, train_dataset, True, n_elements = 666, device = 'cuda')
+visualizeHiddenSpace(eeg_framework.vae, train_dataset, False, n_elements = 666, device = 'cuda')
