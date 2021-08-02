@@ -220,12 +220,13 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
 #%%
 
 def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False):
+    # Move classifier and vae to the device
+    vae = vae.to(device)
+    classifier = classifier.to(device)
+    
     # Set the vae and the classifier in evaluation mode
     vae.eval()
     classifier.eval()
-    
-    vae = vae.to(device)
-    classifier = classifier.to(device)
     
     correct_classification = 0
     

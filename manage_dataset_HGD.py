@@ -9,7 +9,7 @@
 import sys
 sys.path.insert(1, 'support')
 
-from support.support_function_HGD import downloadDataset, computeTrialsHGD, trialLengthDensity
+from support.support_dataset import downloadDataset, computeTrialsHGD, trialLengthDensity
 from support.support_perturbation import perturbSingleChannelHGDWithImpulse, perturbSingleChannelHGDWithGaussianNoise, perturbateHGDTrial
 from support.support_perturbation import computeSingleChannelPSD, computeSingleTrialAveragePSD, computeDatasetAveragePSD_V2
 from support.support_perturbation import computeSingleChannelFFT, computeSingleTrialAverageFFT, filterSignal
