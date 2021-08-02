@@ -331,7 +331,7 @@ def saveTrialsForSubject(path, subject_idx, trials, labels):
 
 #%% Dataset (PyTorch)
 
-class Pytorch_Dataset_HGD(torch.utils.data.Dataset):
+class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
     
     # Inizialization method
     def __init__(self, path, n_elements = -1, normalize_trials = False, binary_mode = -1):
@@ -420,3 +420,56 @@ class Pytorch_Dataset_HGD(torch.utils.data.Dataset):
     def normalize(self, x, a = 0, b = 1):
         x_norm = (x - self.min_val) / (self.max_val - self.min_val) * (b - a) + a
         return x_norm
+    
+    
+class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
+    
+    # Inizialization method
+    def __init__(self, path, idx_list, n_elements = -1):
+        
+        self.path_list = []
+        
+        tmp_list = []
+        
+        # Read all the file in the folder and return them as list of string
+        for idx in idx_list:
+            # print(path + str(idx) + '/')
+            for element in os.walk(path + str(idx) + '/'): tmp_list.append(element)
+        
+        self.tmp_list = tmp_list
+        # print(tmp_list)
+        
+        element_inserted = 0
+        for element in tmp_list:
+            for file_name in element[2]: 
+                if(element_inserted >= (n_elements - 1) and n_elements != -1): break
+                
+                tmp_path = element[0] + file_name
+                self.path_list.append(tmp_path)
+                
+                element_inserted += 1
+                
+        # Retrieve dimensions
+        tmp_trial = loadmat(self.path_list[0])['trial']
+        self.channel = tmp_trial.shape[0]
+        self.samples = tmp_trial.shape[1]
+            
+        
+    def __getitem__(self, idx):
+        tmp_dict = loadmat(self.path_list[idx])
+        
+        # Retrieve and save trial 
+        trial = tmp_dict['trial']
+        trial = np.expand_dims(trial, axis = 0)
+        
+        # Retrieve label. Since the original label are in the range 1-4 I shift them in the range 0-3 for the NLLLoss() loss function
+        label = int(tmp_dict['label']) - 1
+                
+        # Convert to PyTorch tensor
+        trial = torch.from_numpy(trial).float()
+        label = torch.tensor(label).long()
+        
+        return trial, label
+    
+    def __len__(self):
+        return len(self.path_list)

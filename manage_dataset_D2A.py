@@ -41,7 +41,7 @@ path_SAVE_test = 'Dataset/D2A/{}/Test/'.format(folder_save)
 #%%
 
 for idx in subject_idx:
-    print(idx)
+    print("Subject: ", idx)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # TRAIN set
@@ -83,6 +83,11 @@ for idx in subject_idx:
         
     # Compute trials
     trials, labels = computeTrialD2(data, event_matrix, fs, start_second = start_second, end_second = end_second)
+    
+    # Retrieve true label
+    path_true_label = 'Dataset/D2A/v1/true_labels_2a/A01E.mat'
+    path_true_label = path_true_label[:-6] + str(idx) + path_true_label[-5:]
+    labels = np.squeeze(loadmat(path_true_label)['classlabel'])
     
     # Downsampling
     if(resampling_trials): trials =  resampling(trials, fs, new_freq, axis = 2)

@@ -20,10 +20,12 @@ from torch.utils.data import DataLoader
 
 from support.VAE_EEGNet import EEGFramework
 from support.support_training import advanceEpochV2, measureAccuracy
-from support.support_datasets import Pytorch_Dataset_HGD
+from support.support_datasets import PytorchDatasetEEGSingleSubject
 from support.support_visualization import visualizeHiddenSpace
 
 #%% Settings
+
+dataset_type = 'D2A'
 
 hidden_space_dimension = 64
 
@@ -37,6 +39,7 @@ alpha = 0.5
 repetition = 1
 
 normalize_trials = True
+execute_test_epoch = True
 early_stop = False
 use_advance_vae_loss = False
 measure_accuracy = True
@@ -45,7 +48,7 @@ save_model = False
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
 
-idx_list = [3]
+idx_list = [2]
 
 step_show = 2
 
@@ -55,14 +58,20 @@ for rep in range(repetition):
     for idx in idx_list:
         
         # Train dataset
-        path = 'Dataset/HGD/Train/{}/'.format(idx)
-        train_dataset = Pytorch_Dataset_HGD(path, normalize_trials = normalize_trials)
+        if(dataset_type == 'HGD'):
+            path = 'Dataset/HGD/Train/{}/'.format(idx)
+        elif(dataset_type == 'D2A'):
+            path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
+        train_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
         train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TRAIN dataset and dataloader created\n")
         
         # Test dataset
-        path = 'Dataset/HGD/Test/{}/'.format(idx)
-        test_dataset = Pytorch_Dataset_HGD(path, normalize_trials = normalize_trials)
+        if(dataset_type == 'HGD'):
+            path = 'Dataset/HGD/Test/{}/'.format(idx)
+        elif(dataset_type == 'D2A'):
+            path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
+        test_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
         test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TEST dataset and dataloader created\n")
         
@@ -110,8 +119,8 @@ for rep in range(repetition):
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # Testing phase
-            # tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
-            tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
+            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
             tmp_loss_test_kl = tmp_loss_test[2]
@@ -169,7 +178,8 @@ for rep in range(repetition):
                 print("\t\tAccuracy (TEST)\t\t\t: ", float(tmp_accuracy_test), "\n")
                 
                 print("\tBest loss test\t\t: ", float(best_loss_test))
-                print("\tBest Accuracy test\t: ", float(best_accuracy_test))
+                print("\tBest Accuracy test (1)\t: ", float(best_accuracy_test))
+                print("\tBest Accuracy test (2)\t: ", float(np.max(accuracy_test)))
                 print("\tNo Improvement\t\t: ", int(epoch_with_no_improvent))
                 
                 print("- - - - - - - - - - - - - - - - - - - - - - - - ")
@@ -220,8 +230,8 @@ idx_hidden_space = (31, 32)
     
 # visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = True, n_elements = 666, device = 'cuda')
 
-visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = 666, device = 'cuda')
-visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = 159, device = 'cuda')
+visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(train_dataset), device = 'cuda')
+visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
 
 #%%
 

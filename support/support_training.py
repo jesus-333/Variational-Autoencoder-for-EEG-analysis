@@ -243,6 +243,7 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False)
         
         predict_prob = np.squeeze(torch.exp(classifier_output).cpu().detach().numpy())
         predict_label = np.argmax(predict_prob)
+        # print(predict_label, true_label)
         
         if(predict_label == true_label): correct_classification += 1
         

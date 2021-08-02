@@ -129,7 +129,7 @@ class EEGNetDecoderV2(nn.Module):
         upsample_layer_3 = nn.Upsample(size = tracking_input_dimension_list[1][1][2:4])
         act_3 = nn.SELU()
         batch_norm_3 = nn.BatchNorm2d(num_features = 16)
-        cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (128, 1), groups = 8, bias = False)
+        cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (tracking_input_dimension_list[0][1][2], 1), groups = 8, bias = False)
         
         batch_norm_4 = nn.BatchNorm2d(num_features = 8)
         cnn_layer_4 = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
