@@ -7,3 +7,5 @@ TMP Test/tmp_data/
 *.pyc
 *.pyc
 *.pyc
+Dataset/D2A/v1/Train.7z
+Dataset/D2A/v1/Test.7z

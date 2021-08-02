@@ -33,13 +33,14 @@ tracking_input_dimension = True
 epochs = 500
 batch_size = 15
 learning_rate = 1e-3
-alpha = 1
+alpha = 0.5
 repetition = 1
 
 normalize_trials = True
 early_stop = False
-use_advance_vae_loss = True
+use_advance_vae_loss = False
 measure_accuracy = True
+save_model = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -92,6 +93,7 @@ for rep in range(repetition):
         
         best_loss_test = sys.maxsize
         best_accuracy_test = sys.maxsize
+        epoch_with_no_improvent = 0
         
         for epoch in range(epochs):
             # Training phase
@@ -108,7 +110,8 @@ for rep in range(repetition):
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # Testing phase
-            tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            # tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
             tmp_loss_test_kl = tmp_loss_test[2]
@@ -138,6 +141,16 @@ for rep in range(repetition):
                 
                 # visualizeHiddenSpace(eeg_framework.vae, trainlen_dataset, n_elements = 870, device = 'cuda')
                 # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
+                
+                # (OPTIONAL) Save the model
+                if(save_model):  
+                    save_path = "Saved model/eeg_framework"
+                    if(use_advance_vae_loss): save_path = save_path + "_advance_loss"
+                    else: save_path = save_path + "_normal_loss"
+                    save_path = save_path + "_" + str(epoch) + ".pth"
+                    
+                    torch.save(eeg_framework.state_dict(), save_path)
+   
             else: 
                 epoch_with_no_improvent += 1
             
@@ -164,7 +177,16 @@ for rep in range(repetition):
             if(epoch_with_no_improvent > 50 and early_stop): 
                 if(print_var): print("     JUMP\n\n")
                 break; 
-                
+       
+# (OPTIONAL) Save the model
+if(save_model):  
+    save_path = "Saved model/eeg_framework"
+    if(use_advance_vae_loss): save_path = save_path + "_advance_loss"
+    else: save_path = save_path + "_normal_loss"
+    save_path = save_path + "_" + str(epoch) + ".pth"
+    
+    torch.save(eeg_framework.state_dict(), save_path)
+    
 #%%
 
 plt.figure()
@@ -193,5 +215,38 @@ plt.title("Discriminator LOSS")
 
 #%%
 
-visualizeHiddenSpace(eeg_framework.vae, train_dataset, True, n_elements = 666, device = 'cuda')
-visualizeHiddenSpace(eeg_framework.vae, train_dataset, False, n_elements = 666, device = 'cuda')
+# eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_243.pth"))
+idx_hidden_space = (31, 32)
+    
+# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = True, n_elements = 666, device = 'cuda')
+
+visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = 666, device = 'cuda')
+visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = 159, device = 'cuda')
+
+#%%
+
+if(False):
+    # eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_normal_loss_389.pth"))
+    train_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, train_dataset, device, True)
+    test_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, True)
+    
+    print("TRAIN Accuracy: \t", train_accuracy)
+    print("TEST accuracy: \t\t", test_accuracy)
+
+#%%
+if(False):
+    # idx_list = [0,1,5,12,31,32,37,79,85]
+    idx_list = [0,1,6,51,71,131,173,246,411,499]
+    
+    for idx in idx_list:
+        eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_{}.pth".format(idx)))
+        
+        # visualizeHiddenSpace(eeg_framework.vae, test_dataset, False, n_elements = 159, device = 'cuda')
+        
+        test_accuracy_evaluated = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, False)
+        test_accuracy_evaluated = round(test_accuracy_evaluated * 100, 2)
+        test_accuracy_saved = round(accuracy_test[idx] * 100, 2)
+        
+        print("Epoch: ", idx)
+        print("\tTEST accuracy eval:\t\t", test_accuracy_evaluated)
+        print("\tTEST accuracy saved:\t",test_accuracy_saved)

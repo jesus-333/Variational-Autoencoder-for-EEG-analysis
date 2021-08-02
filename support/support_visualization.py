@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 #%%
 
 
-def visualizeHiddenSpace(vae, dataset, sampling = True, n_elements = 200, device = 'cpu', print_var = True):
+def visualizeHiddenSpace(vae, dataset, idx_hidden_space = (0,1), sampling = True, n_elements = 200, device = 'cpu', print_var = True):
     """
     Create a 2D plot with the first two element of the hidden space of the VAE
     Return two dictionaries containing the mu (mean) and the standard deviation for each element of the dataset. The elements are divided by class
@@ -32,11 +32,11 @@ def visualizeHiddenSpace(vae, dataset, sampling = True, n_elements = 200, device
         std = torch.exp(0.5 * z[1]).cpu().squeeze().detach().numpy()
         
         if(sampling):
-            x = np.random.normal(mu[0], std[0], 1)
-            y = np.random.normal(mu[1], std[1], 1)
+            x = np.random.normal(mu[idx_hidden_space[0]], std[idx_hidden_space[0]], 1)
+            y = np.random.normal(mu[idx_hidden_space[1]], std[idx_hidden_space[1]], 1)
         else:
-            x = mu[31]
-            y = mu[32]
+            x = mu[idx_hidden_space[0]]
+            y = mu[idx_hidden_space[1]]
         
         if(label == 0): 
             plt.plot(x, y, 'ko')
