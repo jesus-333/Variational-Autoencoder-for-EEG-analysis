@@ -7,6 +7,8 @@ import sys
 import torch
 from torch import nn
 
+from support_datasets import PytorchDatasetEEGSingleSubject
+
 #%% Loss functions
 
 def VAE_loss(x, x_r, mu, log_var, alpha = 1):
@@ -219,7 +221,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
 
 #%%
 
-def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False):
+def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrization = False, print_var = False):
     # Move classifier and vae to the device
     vae = vae.to(device)
     classifier = classifier.to(device)
@@ -238,7 +240,8 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False)
         x_eeg = x_eeg.to(device)
         
         mu, log_var = vae.encoder(x_eeg)
-        z = torch.cat((mu, log_var), dim = 1)
+        if(use_reparametrization): z = vae.reparametrize(mu, log_var)
+        else: z = torch.cat((mu, log_var), dim = 1)
         classifier_output = classifier(z)
         
         predict_prob = np.squeeze(torch.exp(classifier_output).cpu().detach().numpy())
@@ -250,3 +253,25 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', print_var = False)
     accuracy = correct_classification / len(dataset)
     
     return accuracy
+
+
+def measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials = False, use_reparametrization = False, device = torch.device("cpu")):
+    """
+    Support function used when the framework is trained with the merge dataset.
+    It measures the accuracy for each subject and return a list of accuracy
+
+    """
+    
+    accuracy_list = []
+    
+    for idx in merge_list: 
+        if(dataset_type == 'HGD'):
+            path = 'Dataset/HGD/Train/{}/'.format(idx)
+        elif(dataset_type == 'D2A'):
+            path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
+        test_dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
+        
+        subject_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset_subject, device, use_reparametrization)
+        accuracy_list.append(subject_accuracy_test)
+        
+    return accuracy_list
