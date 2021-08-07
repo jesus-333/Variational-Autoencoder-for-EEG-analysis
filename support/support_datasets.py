@@ -450,6 +450,7 @@ class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
                 element_inserted += 1
                 
         # Retrieve dimensions
+        # print(self.path_list[0])
         tmp_trial = loadmat(self.path_list[0])['trial']
         self.channel = tmp_trial.shape[0]
         self.samples = tmp_trial.shape[1]

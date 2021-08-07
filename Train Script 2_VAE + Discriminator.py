@@ -13,7 +13,7 @@ sys.path.insert(1, 'support')
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
+from scipy.io import loadmat, savemat
 
 import torch
 from torch.utils.data import DataLoader
@@ -35,8 +35,8 @@ tracking_input_dimension = True
 epochs = 500
 batch_size = 15
 learning_rate = 1e-3
-alpha = 0.5
-repetition = 2
+alpha = 0.01 #TODO REMOVE THIS
+repetition = 1  
 
 normalize_trials = False
 use_reparametrization = False 
@@ -45,7 +45,7 @@ execute_test_epoch = True
 early_stop = False
 use_advance_vae_loss = False
 measure_accuracy = True
-save_model = True
+save_model = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -57,6 +57,7 @@ step_show = 2
 
 #%% Variable for save results
 
+accuracy_test_list = []
 best_average_accuracy_for_repetition = []
 subject_accuracy_during_epochs_LOSS = []
 subject_accuracy_during_epochs_for_repetition_LOSS = []
@@ -72,6 +73,8 @@ if(merge_subject):
 
 for rep in range(repetition):
     for idx in idx_list:
+        
+        subject_accuracy_during_epochs_LOSS = []
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Train dataset
@@ -225,26 +228,42 @@ for rep in range(repetition):
                 break; 
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # (OPTIONAL) Save the model
+    if(save_model):  
+        save_path_END = "Saved model/eeg_framework"
+        if(use_advance_vae_loss): save_path_END = save_path_END + "_advance_loss"
+        else: save_path_END = save_path_END + "_normal_loss"
+        save_path_END = save_path_END + "_" + str(epoch) + ".pth"
+        
+        torch.save(eeg_framework.state_dict(), save_path_END)
+    
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Backup dictionary with saved results
+    tmp_backup_dict = {}
+    
+    # Saved accuracy during training
+    if(measure_accuracy): 
+        accuracy_test_list.append(accuracy_test)
+        tmp_backup_dict['accuracy_test_list'] = accuracy_test_list
+    
+    # Saving accuracy when min loss is reached for test set (during actual repetition)
     subject_accuracy_during_epochs_for_repetition_LOSS.append(np.asanyarray(subject_accuracy_during_epochs_LOSS).T)
+    best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_during_epochs_LOSS[-1]
+    tmp_backup_dict['best_subject_accuracy_for_repetition_LOSS'] = best_subject_accuracy_for_repetition_LOSS
     
+    # Saved the best accuracy reached on the test set during the training
     best_average_accuracy_for_repetition.append(np.max(accuracy_test))
+    tmp_backup_dict['best_average_accuracy_for_repetition'] = best_average_accuracy_for_repetition
 
+    # Saved the accuracy reached at the end of the training
     subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization, device))
-    best_subject_accuracy_for_repetition_END[idx - 1, rep] = subject_accuracy_test
+    best_subject_accuracy_for_repetition_END[:, rep] = subject_accuracy_test
+    tmp_backup_dict['best_subject_accuracy_for_repetition_END'] = best_subject_accuracy_for_repetition_END
     
-    if(save_model):
-        eeg_framework.load_state_dict(torch.load(save_path))
-        subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization, device))
-        best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_test
+    # Save the dictionary
+    savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)
 
-# (OPTIONAL) Save the model
-if(save_model):  
-    save_path = "Saved model/eeg_framework"
-    if(use_advance_vae_loss): save_path = save_path + "_advance_loss"
-    else: save_path = save_path + "_normal_loss"
-    save_path = save_path + "_" + str(epoch) + ".pth"
-    
-    torch.save(eeg_framework.state_dict(), save_path)
     
 
 #%%
@@ -256,8 +275,8 @@ plt.legend(["Train", "Test"])
 plt.title("Total Loss")
 
 plt.figure()
-plt.plot(reconstruction_loss_train)
-plt.plot(reconstruction_loss_test)
+plt.plot(np.asarray(reconstruction_loss_train) * alpha)
+plt.plot(np.asarray(reconstruction_loss_test) * alpha)
 plt.legend(["Train", "Test"])
 plt.title("Reconstruction Loss")
 
@@ -280,8 +299,8 @@ idx_hidden_space = (31, 32)
     
 # visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = True, n_elements = 666, device = 'cuda')
 
-visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(train_dataset), device = 'cuda')
-visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
+# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(train_dataset), device = 'cuda')
+# visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
 
 #%%
 
