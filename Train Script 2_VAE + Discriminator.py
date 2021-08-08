@@ -36,7 +36,7 @@ epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO REMOVE THIS
-repetition = 1  
+repetition = 2  
 
 normalize_trials = False
 use_reparametrization = False 
