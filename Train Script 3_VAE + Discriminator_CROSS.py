@@ -65,16 +65,13 @@ best_subject_accuracy_for_repetition_END = np.zeros((9, repetition))
 best_subject_accuracy_for_repetition_LOSS = np.zeros((9, repetition))
 
 #%% Training cycle
-
-if(merge_subject): 
-    merge_list = idx_list.copy()
-    idx_list = [1]
-    
-
 for rep in range(repetition):
     for idx in idx_list:
         
         subject_accuracy_during_epochs_LOSS = []
+        
+        merge_list = idx_list.copy()
+        merge_list.remove(idx)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Train dataset
@@ -83,10 +80,7 @@ for rep in range(repetition):
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
             
-        if(merge_subject):
-            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
-        else:
-            train_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
+        train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
             
         train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TRAIN dataset and dataloader created\n")
@@ -98,10 +92,7 @@ for rep in range(repetition):
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
         
-        if(merge_subject):
-            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
-        else:
-            test_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
+        test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = [idx])
             
         test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TEST dataset and dataloader created\n")
@@ -226,6 +217,10 @@ for rep in range(repetition):
             if(epoch_with_no_improvent > 50 and early_stop): 
                 if(print_var): print("     JUMP\n\n")
                 break; 
+            
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        best_subject_accuracy_for_repetition_END[idx - 1, rep] = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
+        best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # (OPTIONAL) Save the model
@@ -238,94 +233,4 @@ for rep in range(repetition):
         torch.save(eeg_framework.state_dict(), save_path_END)
     
     
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Backup dictionary with saved results
-    tmp_backup_dict = {}
-    
-    # Saved accuracy during training
-    if(measure_accuracy): 
-        accuracy_test_list.append(accuracy_test)
-        tmp_backup_dict['accuracy_test_list'] = accuracy_test_list
-    
-    # Saving accuracy when min loss is reached for test set (during actual repetition)
-    subject_accuracy_during_epochs_for_repetition_LOSS.append(np.asanyarray(subject_accuracy_during_epochs_LOSS).T)
-    best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_during_epochs_LOSS[-1]
-    tmp_backup_dict['best_subject_accuracy_for_repetition_LOSS'] = best_subject_accuracy_for_repetition_LOSS
-    
-    # Saved the best accuracy reached on the test set during the training
-    best_average_accuracy_for_repetition.append(np.max(accuracy_test))
-    tmp_backup_dict['best_average_accuracy_for_repetition'] = best_average_accuracy_for_repetition
-
-    # Saved the accuracy reached at the end of the training
-    subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization, device))
-    best_subject_accuracy_for_repetition_END[:, rep] = subject_accuracy_test
-    tmp_backup_dict['best_subject_accuracy_for_repetition_END'] = best_subject_accuracy_for_repetition_END
-    
-    # Save the dictionary
-    savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)
-
-    
-
-#%%
-
-plt.figure()
-plt.plot(total_loss_train)
-plt.plot(total_loss_test)
-plt.legend(["Train", "Test"])
-plt.title("Total Loss")
-
-plt.figure()
-plt.plot(np.asarray(reconstruction_loss_train) * alpha)
-plt.plot(np.asarray(reconstruction_loss_test) * alpha)
-plt.legend(["Train", "Test"])
-plt.title("Reconstruction Loss")
-
-plt.figure()
-plt.plot(kl_loss_train)
-plt.plot(kl_loss_test)
-plt.legend(["Train", "Test"])
-plt.title("KL Loss")
-
-plt.figure()
-plt.plot(discriminator_loss_train)
-plt.plot(discriminator_loss_test)
-plt.legend(["Train", "Test"])
-plt.title("Discriminator LOSS")
-
-#%%
-
-# eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_243.pth"))
-idx_hidden_space = (31, 32)
-    
-# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = True, n_elements = 666, device = 'cuda')
-
-# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(train_dataset), device = 'cuda')
-# visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
-
-#%%
-
-if(False):
-    # eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_normal_loss_389.pth"))
-    train_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, train_dataset, device, True)
-    test_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, True)
-    
-    print("TRAIN Accuracy: \t", train_accuracy)
-    print("TEST accuracy: \t\t", test_accuracy)
-
-#%%
-if(False):
-    # idx_list = [0,1,5,12,31,32,37,79,85]
-    idx_list = [0,1,6,51,71,131,173,246,411,499]
-    
-    for idx in idx_list:
-        eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_{}.pth".format(idx)))
-        
-        # visualizeHiddenSpace(eeg_framework.vae, test_dataset, False, n_elements = 159, device = 'cuda')
-        
-        test_accuracy_evaluated = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, False)
-        test_accuracy_evaluated = round(test_accuracy_evaluated * 100, 2)
-        test_accuracy_saved = round(accuracy_test[idx] * 100, 2)
-        
-        print("Epoch: ", idx)
-        print("\tTEST accuracy eval:\t\t", test_accuracy_evaluated)
-        print("\tTEST accuracy saved:\t",test_accuracy_saved)
+   
