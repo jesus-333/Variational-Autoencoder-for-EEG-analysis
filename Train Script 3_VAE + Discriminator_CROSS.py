@@ -175,8 +175,9 @@ for rep in range(repetition):
                 # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
                 
                 if(measure_accuracy):
-                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, use_reparametrization, device = device)
+                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
+                    best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = tmp_subject_accuracy
                 
                 # (OPTIONAL) Save the model
                 if(save_model):  
@@ -220,7 +221,7 @@ for rep in range(repetition):
             
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         best_subject_accuracy_for_repetition_END[idx - 1, rep] = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
-        best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
+        # best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = subject_accuracy_during_epochs_LOSS[-1]
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # (OPTIONAL) Save the model

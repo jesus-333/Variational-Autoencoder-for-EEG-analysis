@@ -27,7 +27,8 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 64
+hidden_space_dimension = 128 # TODO RETURN TO 64
+# hidden_space_dimension = 64
 
 print_var = True
 tracking_input_dimension = True
@@ -36,7 +37,7 @@ epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO REMOVE THIS
-repetition = 2  
+repetition = 1  
 
 normalize_trials = False
 use_reparametrization = False 
