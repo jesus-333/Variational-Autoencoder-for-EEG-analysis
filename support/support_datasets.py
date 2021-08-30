@@ -1,3 +1,11 @@
+"""
+@author: Alberto Zancanaro (Jesus)
+@organization: University of Padua (Italy)
+
+Support functions related to the datasets
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os

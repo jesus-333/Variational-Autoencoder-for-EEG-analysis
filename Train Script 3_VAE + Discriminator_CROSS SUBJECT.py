@@ -2,6 +2,8 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
+Script to train the VAE + Discriminator jointly for CROSS subject classification.
+
 """
 
 #%% Path for imports

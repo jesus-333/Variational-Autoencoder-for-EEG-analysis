@@ -2,6 +2,9 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
+Script to train the VAE + Discriminator jointly for INTRA subject classification.
+The train datasets are merged toghether and then the network is tested on the test datasets separately.
+
 """
 
 #%% Path for imports
@@ -28,7 +31,7 @@ from support.support_visualization import visualizeHiddenSpace
 dataset_type = 'D2A'
 
 hidden_space_dimension = 64
-hidden_space_dimension = 128 # TODO
+# hidden_space_dimension = 32 # TODO Remove
 
 print_var = True
 tracking_input_dimension = True
@@ -37,7 +40,7 @@ epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
-repetition = 1  
+repetition = 7
 
 normalize_trials = False
 use_reparametrization = False 
@@ -46,7 +49,7 @@ execute_test_epoch = True
 early_stop = False
 use_advance_vae_loss = False
 measure_accuracy = True
-save_model = False
+save_model = True
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
