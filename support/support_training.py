@@ -175,7 +175,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer, is_train = True, alpha = 
     return tot_vae_loss, tot_recon_loss, tot_kl_loss
 
 
-def advanceEpochV2(eeg_framework, device, dataloader, optimizer, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
+def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
     """
     Function used to advance one epoch of training in training scripts 2 and 3 (VAE + Classifier trained jointly)
     
@@ -235,7 +235,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer, is_train = True
     return tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss
 
 
-def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = True, alpha = 1):
+def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_train = True, alpha = 1):
     """
     Function used to advance one epoch of training in training scripts 4 (VAE + Classifier trained separately)
 
@@ -276,9 +276,9 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = 
                 x_r, mu, log_var = model(x)
                 total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
             elif (model_type == 1): # Classifier
-                mu, log_var = model.vae.encoder(x)
+                mu, log_var = model[0].encoder(x)
                 z = torch.cat((mu, log_var), dim = 1)
-                predict_label = model.clf_layer(z)
+                predict_label = model[1].classifier(z)
                 true_label = sample_label_batch.to(device)
                 total_loss = classifierLoss(predict_label, true_label)
 
@@ -295,9 +295,9 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = 
                     x_r, mu, log_var = model(x)
                     total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
                 elif (model_type == 1): # Classifier
-                    mu, log_var = model.vae.encoder(x)
+                    mu, log_var = model[0].encoder(x)
                     z = torch.cat((mu, log_var), dim = 1)
-                    predict_label = model.clf_layer(z)
+                    predict_label = model[1].classifier(z)
                     true_label = sample_label_batch.to(device)
                     total_loss = classifierLoss(predict_label, true_label)
         

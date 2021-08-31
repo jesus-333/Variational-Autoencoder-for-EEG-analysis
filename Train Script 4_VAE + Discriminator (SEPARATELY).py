@@ -36,7 +36,7 @@ hidden_space_dimension = 64
 print_var = True
 tracking_input_dimension = True
 
-epochs = 500
+epochs = 3
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
@@ -260,7 +260,18 @@ for rep in range(repetition):
                 best_accuracy_test = tmp_accuracy_test
                 
                 if(measure_accuracy):
-                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, use_reparametrization, device = device)
+                    tmp_subject_accuracy = []
+    
+                    for idx in merge_list: 
+                        if(dataset_type == 'HGD'):
+                            path = 'Dataset/HGD/Train/{}/'.format(idx)
+                        elif(dataset_type == 'D2A'):
+                            path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
+                        test_dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
+                        
+                        subject_accuracy_test = measureAccuracy(vae, classifier, test_dataset_subject, device, use_reparametrization)
+                        tmp_subject_accuracy.append(subject_accuracy_test)
+                        
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
                     
                 if(print_var and epoch % step_show == 0):
