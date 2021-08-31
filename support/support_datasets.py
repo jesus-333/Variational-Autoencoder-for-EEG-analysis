@@ -340,6 +340,9 @@ def saveTrialsForSubject(path, subject_idx, trials, labels):
 #%% Dataset (PyTorch)
 
 class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
+    """
+    Extension of PyTorch Dataset class to work with EEG data of a single subject.
+    """
     
     # Inizialization method
     def __init__(self, path, n_elements = -1, normalize_trials = False, binary_mode = -1):
@@ -431,6 +434,10 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
     
     
 class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
+    """
+    Extension of PyTorch Dataset class to work with EEG data of a multiple subjects.
+    It merged the data of different subjects into a single dataset.
+    """
     
     # Inizialization method
     def __init__(self, path, idx_list, n_elements = -1):
@@ -458,7 +465,6 @@ class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
                 element_inserted += 1
                 
         # Retrieve dimensions
-        # print(self.path_list[0])
         tmp_trial = loadmat(self.path_list[0])['trial']
         self.channel = tmp_trial.shape[0]
         self.samples = tmp_trial.shape[1]

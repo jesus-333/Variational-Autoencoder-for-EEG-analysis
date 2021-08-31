@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Script to train the VAE + Discriminator jointly for INTRA subject classification.
+Script to train the VAE + Discriminator separately for INTRA subject classification.
 The train datasets are merged toghether and then the network is tested on the test datasets separately.
 
 """
@@ -21,7 +21,7 @@ from scipy.io import loadmat, savemat
 import torch
 from torch.utils.data import DataLoader
 
-from support.VAE_EEGNet import EEGFramework
+from support.VAE_EEGNet import EEGNetVAE, CLF_V1
 from support.support_training import advanceEpochV2, measureAccuracy, measureSingleSubjectAccuracy
 from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
 from support.support_visualization import visualizeHiddenSpace
@@ -114,13 +114,17 @@ for rep in range(repetition):
         # Network creation
         C = train_dataset[0][0].shape[1]
         T = train_dataset[0][0].shape[2]
-        eeg_framework = EEGFramework(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
-        if(print_var): print("EEG Framework created")
+        
+        # VAE Creation
+        vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+        if(print_var): print("VAE created")
+        
+        # Classifier creation
+        clf = CLF_V1(hidden_space_dimension * 2)
         
         # Optimizer
-        # optimizer = torch.optim.Adam(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
-        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
-        # optimizer = torch.optim.SGD(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        optimizer_vae = torch.optim.AdamW(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        optimizer_clf = torch.optim.AdamW(clf.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
         # Loss tracking variables (TRAIN)
         total_loss_train = []

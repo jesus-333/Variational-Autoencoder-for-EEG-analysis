@@ -166,6 +166,21 @@ class EEGNetDecoderV2(nn.Module):
         x = self.conv_decoder(x)
         
         return x
+    
+#%% Classifier
+
+class CLF_V1(nn.Module):
+    
+    def __init__(self, hidden_space_dimension):
+        self.classifier = nn.Sequential(
+            nn.Linear(hidden_space_dimension, 64),
+            nn.SELU(),
+            nn.Linear(64, 4),
+            nn.LogSoftmax(dim = 1)
+        )
+        
+    def forward(self, x): 
+        return self.classifier(x)
         
 
 #%% VAE + Classifier
@@ -179,12 +194,14 @@ class EEGFramework(nn.Module):
         self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
         
         # Classifier definition
-        self.classifier = nn.Sequential(
-            nn.Linear(hidden_space_dimension * 2, 64),
-            nn.SELU(),
-            nn.Linear(64, 4),
-            nn.LogSoftmax(dim = 1)
-        )
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(hidden_space_dimension * 2, 64),
+        #     nn.SELU(),
+        #     nn.Linear(64, 4),
+        #     nn.LogSoftmax(dim = 1)
+        # )
+        
+        self.classifier = CLF_V1(hidden_space_dimension * 2)
         
     def forward(self, x):
         x_r, mu, log_var = self.vae(x)

@@ -117,6 +117,11 @@ def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_
 #%% Training functions
 
 def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, alpha = 1, print_var = False):
+    """
+    Function used to advance one epoch of training in training script 1 (Only VAE)
+    
+    """
+    
     if(is_train): vae.train()
     else: vae.eval()
     
@@ -166,6 +171,11 @@ def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, a
 
 
 def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
+    """
+    Function used to advance one epoch of training in training scripts 2 and 3 (VAE + Classifier trained jointly)
+    
+    """
+    
     if(is_train): eeg_framework.train()
     else: eeg_framework.eval()
     
@@ -218,6 +228,13 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
         i += 1
         
     return tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss
+
+
+def advanceEpochV3():
+    """
+    Function used to advance one epoch of training in training scripts 4 (VAE + Classifier trained separately)
+    
+    """
 
 #%%
 
