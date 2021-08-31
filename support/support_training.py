@@ -96,6 +96,13 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     return kl_loss.sum(dim = 1).mean(dim = 0)
 
 
+def classifierLoss(predict_label, true_label):
+    classifier_loss_criterion = torch.nn.NLLLoss()
+    # classifier_loss_criterion = torch.nn.CrossEntropyLoss()
+    
+    return classifier_loss_criterion(predict_label, true_label)
+
+
 def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss = False, alpha = 1):
     # VAE loss (reconstruction + kullback)
     if(use_advance_vae_loss):
@@ -104,19 +111,17 @@ def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_
     else:
         vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
     
-    # Discriminator loss
-    discriminator_loss_criterion = torch.nn.NLLLoss()
-    # discriminator_loss_criterion = torch.nn.CrossEntropyLoss()
-    discriminator_loss = discriminator_loss_criterion(predict_label, true_label)
+    # Classifier (discriminator) loss
+    classifier_loss = classifierLoss(predict_label, true_label) 
     
     # Total loss
-    total_loss = vae_loss + discriminator_loss
+    total_loss = vae_loss + classifier_loss
     
-    return total_loss, recon_loss, kl_loss, discriminator_loss
+    return total_loss, recon_loss, kl_loss, classifier_loss
 
 #%% Training functions
 
-def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, alpha = 1, print_var = False):
+def advanceEpochV1(vae, device, dataloader, optimizer, is_train = True, alpha = 1, print_var = False):
     """
     Function used to advance one epoch of training in training script 1 (Only VAE)
     
@@ -170,7 +175,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer = None, is_train = True, a
     return tot_vae_loss, tot_recon_loss, tot_kl_loss
 
 
-def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
+def advanceEpochV2(eeg_framework, device, dataloader, optimizer, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
     """
     Function used to advance one epoch of training in training scripts 2 and 3 (VAE + Classifier trained jointly)
     
@@ -230,11 +235,62 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
     return tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss
 
 
-def advanceEpochV3():
+def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = True, alpha = 1):
     """
     Function used to advance one epoch of training in training scripts 4 (VAE + Classifier trained separately)
-    
+
+    Parameters
+    ----------
+    model : PyTorch model
+        Model to train. Can be the VAE or the classifier.
+    model_type : int
+        Specify if the model is the VAE or the classifier. 0 for VAE and 1 for classifier
+
     """
+    
+    # Check the model type
+    if(model_type != 0 and model_type != 1): raise Exception("\"model_type\" must have value 0 (VAE) or 1 (classifier)")
+    
+    # Check if is trained or test epoch
+    if(is_train): model.train()
+    else: model.eval()
+    
+    # Track variable
+    i = 0
+    tot_loss = 0
+    tot_recon_loss = 0
+    tot_kl_loss = 0
+    tot_discriminator_loss = 0
+    
+    for sample_data_batch, sample_label_batch in dataloader:
+        # Move data, label and netowrks to device
+        x = sample_data_batch.to(device)
+        model.to(device)
+        
+        if(is_train): # Train step (keep track of the gradient)
+            # Zeros past gradients
+            optimizer.zero_grad()
+            
+            # Networks works and loss evaluation            
+            if(model_type == 0): # VAE
+                x_r, mu, log_var = model(x)
+                total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
+            elif (model_type == 1): # Classifier
+                predict_label = model(x)
+                true_label = sample_label_batch.to(device)
+                total_loss = classifierLoss(predict_label, true_label)
+
+            # Backward/Optimization pass
+            total_loss.backward()
+            optimizer.step()    
+        
+        else: # Test step (don't need the gradient)
+            with torch.no_grad():
+                x = sample_data_batch.to(device)
+                eeg_framework.to(device)
+                x_r, mu, log_var, predict_label = eeg_framework(x)
+                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
+        
 
 #%%
 
