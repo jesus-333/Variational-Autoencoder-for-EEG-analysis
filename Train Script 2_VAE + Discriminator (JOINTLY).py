@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Script to train the VAE + Discriminator jointly for INTRA subject classification.
+Script to train the VAE and Discriminator JOINTLY for INTRA subject classification.
 The train datasets are merged toghether and then the network is tested on the test datasets separately.
 
 """
@@ -170,7 +170,6 @@ for rep in range(repetition):
             
             # Measure accuracy (OPTIONAL)
             if(measure_accuracy):
-                # accuracy_train.append(measureAccuracy(eeg_framework.classifier, train_dataset))
                 eeg_framework.eval()
                 tmp_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization)
                 accuracy_test.append(tmp_accuracy_test)

@@ -159,7 +159,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer, is_train = True, alpha = 
                 x_r, mu, log_var = vae(x)
                 vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
             
-        # Save total loss
+        # Compute the total loss
         tot_vae_loss += vae_loss
         tot_recon_loss += recon_loss
         tot_kl_loss += kl_loss
@@ -218,7 +218,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer, is_train = True
                 x_r, mu, log_var, predict_label = eeg_framework(x)
                 total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
         
-            
+        # Compute the total loss
         tot_loss += total_loss
         tot_recon_loss += recon_loss
         tot_kl_loss += kl_loss
@@ -276,7 +276,9 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = 
                 x_r, mu, log_var = model(x)
                 total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
             elif (model_type == 1): # Classifier
-                predict_label = model(x)
+                mu, log_var = model.vae.encoder(x)
+                z = torch.cat((mu, log_var), dim = 1)
+                predict_label = model.clf_layer(z)
                 true_label = sample_label_batch.to(device)
                 total_loss = classifierLoss(predict_label, true_label)
 
@@ -287,14 +289,40 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer, is_train = 
         else: # Test step (don't need the gradient)
             with torch.no_grad():
                 x = sample_data_batch.to(device)
-                eeg_framework.to(device)
-                x_r, mu, log_var, predict_label = eeg_framework(x)
-                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
+                model.to(device)
+                
+                if(model_type == 0): # VAE
+                    x_r, mu, log_var = model(x)
+                    total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
+                elif (model_type == 1): # Classifier
+                    mu, log_var = model.vae.encoder(x)
+                    z = torch.cat((mu, log_var), dim = 1)
+                    predict_label = model.clf_layer(z)
+                    true_label = sample_label_batch.to(device)
+                    total_loss = classifierLoss(predict_label, true_label)
+        
+        # Compute the total loss
+        if(model_type == 0):
+            tot_loss += total_loss
+            tot_recon_loss += recon_loss
+            tot_kl_loss += kl_loss
+        elif(model_type == 1):
+            tot_discriminator_loss += total_loss
+            
+    if(model_type == 0):
+        return tot_loss, tot_recon_loss, tot_kl_loss
+    elif(model_type == 1):
+        return tot_discriminator_loss 
         
 
 #%%
 
 def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrization = False, print_var = False):
+    """
+    Functions used to measure accuracy in training script 2 and 3.
+
+    """
+    
     # Move classifier and vae to the device
     vae = vae.to(device)
     classifier = classifier.to(device)
@@ -303,26 +331,38 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrizat
     vae.eval()
     classifier.eval()
     
+    # Tracking varaible to count the number of correct prediction
     correct_classification = 0
     
     # Iterate through element of the dataset
     for i in range(len(dataset)):
         if(print_var): print("Completition: {}".format(round(i/len(dataset) * 100, 2)))
+        
+        # Retrieve EEG data and move to device
         x_eeg = dataset[i][0].unsqueeze(0)
-        true_label = dataset[i][1]
         x_eeg = x_eeg.to(device)
         
+        # Retrieve correct label
+        true_label = dataset[i][1]
+        
+        # Forward pass through vae encoder
         mu, log_var = vae.encoder(x_eeg)
+        
+        # (OPTIONAL) Use reparametrization. Otherwise use directly the values of mu and log_var as inputs
         if(use_reparametrization): z = vae.reparametrize(mu, log_var)
         else: z = torch.cat((mu, log_var), dim = 1)
+        
+        # Forward pass through classifier
         classifier_output = classifier(z)
         
+        # Retrieve probability of each class and select the class with the highest probability
         predict_prob = np.squeeze(torch.exp(classifier_output).cpu().detach().numpy())
         predict_label = np.argmax(predict_prob)
-        # print(predict_label, true_label)
-        
+
+        # Increase the counter of 1 if the prediction is correct        
         if(predict_label == true_label): correct_classification += 1
-        
+    
+    # Evaluate percentage of correct prediction
     accuracy = correct_classification / len(dataset)
     
     return accuracy
@@ -330,7 +370,7 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrizat
 
 def measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials = False, use_reparametrization = False, device = torch.device("cpu")):
     """
-    Support function used when the framework is trained with the merge dataset.
+    Support function used when the framework is trained with the merge dataset. Used in training script 2 and 3.
     It measures the accuracy for each subject and return a list of accuracy
 
     """

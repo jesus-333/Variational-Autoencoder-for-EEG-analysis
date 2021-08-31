@@ -172,6 +172,8 @@ class EEGNetDecoderV2(nn.Module):
 class CLF_V1(nn.Module):
     
     def __init__(self, hidden_space_dimension):
+        super().__init__()
+        
         self.classifier = nn.Sequential(
             nn.Linear(hidden_space_dimension, 64),
             nn.SELU(),
