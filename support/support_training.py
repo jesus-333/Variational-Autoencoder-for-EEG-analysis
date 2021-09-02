@@ -408,4 +408,4 @@ def measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset
         accuracy_list.append(subject_accuracy)
         kappa_score_list.append(subject_kappa_score)
         
-    return accuracy_list
+    return accuracy_list, kappa_score_list

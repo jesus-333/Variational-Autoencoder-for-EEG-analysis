@@ -36,11 +36,11 @@ hidden_space_dimension = 64
 print_var = True
 tracking_input_dimension = True
 
-epochs = 500
+epochs = 3
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
-repetition = 1
+repetition = 4
 
 normalize_trials = False
 merge_subject = True
@@ -61,12 +61,19 @@ step_show = 2
 
 #%% Variable for saving results
 
+# Accuracy variable
 accuracy_test_list = []
 best_average_accuracy_for_repetition = []
 subject_accuracy_during_epochs_LOSS = []
 subject_accuracy_during_epochs_for_repetition_LOSS = []
 best_subject_accuracy_for_repetition_END = np.zeros((9, repetition))
 best_subject_accuracy_for_repetition_LOSS = np.zeros((9, repetition))
+
+# Kappa Score variable
+subject_kappa_score_during_epochs_LOSS = []
+subject_kappa_score_during_epochs_for_repetition_LOSS = []
+best_subject_kappa_score_for_repetition_END = np.zeros((9, repetition))
+best_subject_kappa_score_for_repetition_LOSS = np.zeros((9, repetition))
 
 #%% Training cycle
 
@@ -78,7 +85,9 @@ if(merge_subject):
 for rep in range(repetition):
     for idx in idx_list:
         
+        # Reset list 
         subject_accuracy_during_epochs_LOSS = []
+        subject_kappa_score_during_epochs_LOSS = []
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Train dataset
@@ -120,13 +129,16 @@ for rep in range(repetition):
         # Optimizer
         optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Tracking variable (for repetition)
+        
         # Loss tracking variables (TRAIN)
         total_loss_train = []
         reconstruction_loss_train = []
         kl_loss_train = []
         discriminator_loss_train = []
-        accuracy_train = []
-        kappa_score_train = []
+        accuracy_train = []     # Not used
+        kappa_score_train = []  # Not used
         
         # Loss tracking variables (TEST)
         total_loss_test = []
@@ -138,9 +150,11 @@ for rep in range(repetition):
         
         best_loss_test = sys.maxsize
         best_accuracy_test = sys.maxsize
+        best_kappa_score_test = sys.maxsize
         epoch_with_no_improvent = 0
         
         for epoch in range(epochs):
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Training phase
             tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
             tmp_loss_train_total = tmp_loss_train[0]
@@ -154,6 +168,7 @@ for rep in range(repetition):
             kl_loss_train.append(float(tmp_loss_train_kl))
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Testing phase
             if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
@@ -168,27 +183,40 @@ for rep in range(repetition):
             kl_loss_test.append(float(tmp_loss_test_kl))
             discriminator_loss_test.append(float(tmp_loss_test_discriminator))
             
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Measure accuracy (OPTIONAL)
             if(measure_accuracy):
+                # Switch to evaluation mode
                 eeg_framework.eval()
+                
+                # Evaluate accuracy and kappa score
                 tmp_accuracy_test, tmp_kappa_score_test = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization_for_classification)
+                
+                # Save results
                 accuracy_test.append(tmp_accuracy_test)
+                kappa_score_test.append(tmp_kappa_score_test)
+                
+                # Return to train mode
                 eeg_framework.train()
             
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # Check loss value
+            
             if(tmp_loss_test_total < best_loss_test):
-                # Update loss and accuracy (N.b. the best accuracy is intended as the accuracy when there is a new min loss)
+                # Update loss and (OPTIONAL) accuracy (N.b. the best accuracy is intended as the accuracy when there is a new min loss)
                 best_loss_test = tmp_loss_test_total
-                best_accuracy_test = tmp_accuracy_test
+                if(measure_accuracy):
+                    best_accuracy_test = tmp_accuracy_test
+                    best_kappa_score_test = tmp_kappa_score_test
                 
                 # Reset counter
                 epoch_with_no_improvent = 0
                 
-                # visualizeHiddenSpace(eeg_framework.vae, trainlen_dataset, n_elements = 870, device = 'cuda')
-                # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
-                
-                if(measure_accuracy):
-                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials = normalize_trials, use_reparametrization_for_classification = use_reparametrization_for_classification, device = device)
+                # Measure the accuracy separately for each subject
+                if(measure_accuracy and merge_subject):
+                    tmp_subject_accuracy, tmp_subject_kappa_score = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset_type, normalize_trials = normalize_trials, use_reparametrization_for_classification = use_reparametrization_for_classification, device = device)
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
+                    subject_kappa_score_during_epochs_LOSS.append(tmp_subject_kappa_score)
                 
                 # (OPTIONAL) Save the model
                 if(save_model):  
@@ -204,6 +232,9 @@ for rep in range(repetition):
    
             else: 
                 epoch_with_no_improvent += 1
+            
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # (OPTIONAL) Print information during training
             
             if(print_var and epoch % step_show == 0):
                 print("Epoch: {} ({:.2f}%) - Subject: {} - Repetition: {}".format(epoch, epoch/epochs * 100, idx, rep))
@@ -255,14 +286,23 @@ for rep in range(repetition):
     best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_during_epochs_LOSS[-1]
     tmp_backup_dict['best_subject_accuracy_for_repetition_LOSS'] = best_subject_accuracy_for_repetition_LOSS
     
+    # Saving kappa score when min loss is reached for the test set (during actual repetition)
+    subject_kappa_score_during_epochs_for_repetition_LOSS.append(np.asanyarray(subject_kappa_score_during_epochs_LOSS).T)
+    best_subject_kappa_score_for_repetition_LOSS[:, rep] = subject_kappa_score_during_epochs_LOSS[-1]
+    tmp_backup_dict['best_subject_kappa_score_for_repetition_LOSS'] = best_subject_kappa_score_for_repetition_LOSS
+    
     # Saved the best accuracy reached on the test set during the training
     best_average_accuracy_for_repetition.append(np.max(accuracy_test))
     tmp_backup_dict['best_average_accuracy_for_repetition'] = best_average_accuracy_for_repetition
 
-    # Saved the accuracy reached at the end of the training
-    subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization_for_classification, device))
+    # Saved the accuracy and the kappa score reached at the end of the training
+    tmp_accuracy_end, tmp_kappa_score_end = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization_for_classification, device)
+    subject_accuracy_test = np.asarray(tmp_accuracy_end)
     best_subject_accuracy_for_repetition_END[:, rep] = subject_accuracy_test
     tmp_backup_dict['best_subject_accuracy_for_repetition_END'] = best_subject_accuracy_for_repetition_END
+    subject_kappa_score_test = np.asarray(tmp_kappa_score_end)
+    best_subject_kappa_score_for_repetition_END[:, rep] = subject_kappa_score_test
+    tmp_backup_dict['best_subject_kappa_score_for_repetition_END'] = best_subject_kappa_score_for_repetition_END
     
     # Save the dictionary
     savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)
@@ -309,8 +349,8 @@ idx_hidden_space = (31, 32)
 
 if(False):
     # eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_normal_loss_389.pth"))
-    train_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, train_dataset, device, True)
-    test_accuracy = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, True)
+    train_accuracy = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, train_dataset, device, True)[0]
+    test_accuracy = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, True)[0]
     
     print("TRAIN Accuracy: \t", train_accuracy)
     print("TEST accuracy: \t\t", test_accuracy)
@@ -325,7 +365,7 @@ if(False):
         
         # visualizeHiddenSpace(eeg_framework.vae, test_dataset, False, n_elements = 159, device = 'cuda')
         
-        test_accuracy_evaluated = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, False)
+        test_accuracy_evaluated = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, False)[0]
         test_accuracy_evaluated = round(test_accuracy_evaluated * 100, 2)
         test_accuracy_saved = round(accuracy_test[idx] * 100, 2)
         
