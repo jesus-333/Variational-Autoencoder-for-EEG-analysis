@@ -189,28 +189,28 @@ class CLF_V1(nn.Module):
 
 class EEGFramework(nn.Module):
     
-    def __init__(self, C, T, hidden_space_dimension, print_var = False, tracking_input_dimension = False):
+    def __init__(self, C, T, hidden_space_dimension, use_reparametrization_for_classification = False, print_var = False, tracking_input_dimension = False):
         super().__init__()
         
         # VAE Definition
         self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
         
-        # Classifier definition
-        # self.classifier = nn.Sequential(
-        #     nn.Linear(hidden_space_dimension * 2, 64),
-        #     nn.SELU(),
-        #     nn.Linear(64, 4),
-        #     nn.LogSoftmax(dim = 1)
-        # )
+        # Classifier (Discriminator) definition        
+        if(use_reparametrization_for_classification): self.classifier = CLF_V1(hidden_space_dimension)
+        else: self.classifier = CLF_V1(hidden_space_dimension * 2)
         
-        self.classifier = CLF_V1(hidden_space_dimension * 2)
+        self.use_reparametrization_for_classification = use_reparametrization_for_classification
         
     def forward(self, x):
+        # Foraward pass through VAE
         x_r, mu, log_var = self.vae(x)
+                
+        # (OPTIONAL) Reparametrization
+        if(self.use_reparametrization_for_classification): z = self.vae.reparametrize(mu, log_var)
+        else: z = torch.cat((mu, log_var), dim = 1)
         
-        # z = self.vae.reparametrize(mu, log_var)
-        z = torch.cat((mu, log_var), dim = 1)
-        
+        # Classification of VAE output
         label = self.classifier(z)
         
+        # Return reconstructed input, mu and log variance vectors and label of the input.
         return x_r, mu, log_var, label

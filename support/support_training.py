@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.io import loadmat
 import os
 import sys
+
+from scipy.io import loadmat
+from sklearn.metrics import cohen_kappa_score
 
 import torch
 from torch import nn
@@ -201,7 +203,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
             # Zeros past gradients
             optimizer.zero_grad()
             
-            # Networks works
+            # Networks forward pass
             x_r, mu, log_var, predict_label = eeg_framework(x)
             
             # Loss evaluation
@@ -263,7 +265,7 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_t
     tot_discriminator_loss = 0
     
     for sample_data_batch, sample_label_batch in dataloader:
-        # Move data, label and netowrks to device
+        # Move data, label and netowrk to device
         x = sample_data_batch.to(device)
         model.to(device)
         
@@ -271,7 +273,7 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_t
             # Zeros past gradients
             optimizer.zero_grad()
             
-            # Networks works and loss evaluation            
+            # Networks forward pass and loss evaluation            
             if(model_type == 0): # VAE
                 x_r, mu, log_var = model(x)
                 total_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha)
@@ -317,7 +319,7 @@ def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_t
 
 #%%
 
-def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrization = False, print_var = False):
+def measureAccuracyAndKappaScore(vae, classifier, dataset, device = 'cpu', use_reparametrization_for_classification = False, print_var = False):
     """
     Functions used to measure accuracy in training script 2 and 3.
 
@@ -334,6 +336,10 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrizat
     # Tracking varaible to count the number of correct prediction
     correct_classification = 0
     
+    # List of labels
+    true_labels_list = []
+    predict_labels_list = []
+    
     # Iterate through element of the dataset
     for i in range(len(dataset)):
         if(print_var): print("Completition: {}".format(round(i/len(dataset) * 100, 2)))
@@ -349,7 +355,7 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrizat
         mu, log_var = vae.encoder(x_eeg)
         
         # (OPTIONAL) Use reparametrization. Otherwise use directly the values of mu and log_var as inputs
-        if(use_reparametrization): z = vae.reparametrize(mu, log_var)
+        if(use_reparametrization_for_classification): z = vae.reparametrize(mu, log_var)
         else: z = torch.cat((mu, log_var), dim = 1)
         
         # Forward pass through classifier
@@ -361,30 +367,45 @@ def measureAccuracy(vae, classifier, dataset, device = 'cpu', use_reparametrizat
 
         # Increase the counter of 1 if the prediction is correct        
         if(predict_label == true_label): correct_classification += 1
+        
+        # Save labels
+        true_labels_list.append(float(true_label))
+        predict_labels_list.append(float(predict_label))
     
     # Evaluate percentage of correct prediction
     accuracy = correct_classification / len(dataset)
     
-    return accuracy
+    # Evaluate Cohen's Kappa Score
+    kappa_score = cohen_kappa_score(true_labels_list, predict_labels_list)
+    
+    return accuracy, kappa_score
 
 
-def measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials = False, use_reparametrization = False, device = torch.device("cpu")):
+def measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset_type, normalize_trials = False, use_reparametrization_for_classification = False, device = torch.device("cpu")):
     """
     Support function used when the framework is trained with the merge dataset. Used in training script 2 and 3.
-    It measures the accuracy for each subject and return a list of accuracy
+    It measures the accuracy for each subject and return a list of accuracies.
 
     """
     
+    # List to save accuracy and kappa score
     accuracy_list = []
+    kappa_score_list = []
     
+    # Cycle thorugh subjects
     for idx in merge_list: 
+        # Dataset creation
         if(dataset_type == 'HGD'):
             path = 'Dataset/HGD/Train/{}/'.format(idx)
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
-        test_dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
+        dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
         
-        subject_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset_subject, device, use_reparametrization)
-        accuracy_list.append(subject_accuracy_test)
+        # Accuracy and kappa score evaluation
+        subject_accuracy, subject_kappa_score = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, dataset_subject, device, use_reparametrization_for_classification)
+        
+        # Save results
+        accuracy_list.append(subject_accuracy)
+        kappa_score_list.append(subject_kappa_score)
         
     return accuracy_list

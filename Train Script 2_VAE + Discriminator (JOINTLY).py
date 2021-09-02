@@ -22,7 +22,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from support.VAE_EEGNet import EEGFramework
-from support.support_training import advanceEpochV2, measureAccuracy, measureSingleSubjectAccuracy
+from support.support_training import advanceEpochV2, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
 from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
 from support.support_visualization import visualizeHiddenSpace
 
@@ -40,16 +40,16 @@ epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
-repetition = 7
+repetition = 1
 
 normalize_trials = False
-use_reparametrization = False 
 merge_subject = True
 execute_test_epoch = True
 early_stop = False
 use_advance_vae_loss = False
+use_reparametrization_for_classification = False
 measure_accuracy = True
-save_model = True
+save_model = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -114,13 +114,11 @@ for rep in range(repetition):
         # Network creation
         C = train_dataset[0][0].shape[1]
         T = train_dataset[0][0].shape[2]
-        eeg_framework = EEGFramework(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+        eeg_framework = EEGFramework(C = C, T = T, hidden_space_dimension = hidden_space_dimension, use_reparametrization_for_classification = use_reparametrization_for_classification, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
         if(print_var): print("EEG Framework created")
         
         # Optimizer
-        # optimizer = torch.optim.Adam(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
         optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
-        # optimizer = torch.optim.SGD(vae.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
         # Loss tracking variables (TRAIN)
         total_loss_train = []
@@ -128,6 +126,7 @@ for rep in range(repetition):
         kl_loss_train = []
         discriminator_loss_train = []
         accuracy_train = []
+        kappa_score_train = []
         
         # Loss tracking variables (TEST)
         total_loss_test = []
@@ -135,6 +134,7 @@ for rep in range(repetition):
         kl_loss_test = []
         discriminator_loss_test = []
         accuracy_test = []
+        kappa_score_test = []
         
         best_loss_test = sys.maxsize
         best_accuracy_test = sys.maxsize
@@ -171,7 +171,7 @@ for rep in range(repetition):
             # Measure accuracy (OPTIONAL)
             if(measure_accuracy):
                 eeg_framework.eval()
-                tmp_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization)
+                tmp_accuracy_test, tmp_kappa_score_test = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization_for_classification)
                 accuracy_test.append(tmp_accuracy_test)
                 eeg_framework.train()
             
@@ -187,7 +187,7 @@ for rep in range(repetition):
                 # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
                 
                 if(measure_accuracy):
-                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, use_reparametrization, device = device)
+                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials = normalize_trials, use_reparametrization_for_classification = use_reparametrization_for_classification, device = device)
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
                 
                 # (OPTIONAL) Save the model
@@ -260,7 +260,7 @@ for rep in range(repetition):
     tmp_backup_dict['best_average_accuracy_for_repetition'] = best_average_accuracy_for_repetition
 
     # Saved the accuracy reached at the end of the training
-    subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization, device))
+    subject_accuracy_test = np.asarray(measureSingleSubjectAccuracy(eeg_framework, merge_list, dataset_type, normalize_trials, use_reparametrization_for_classification, device))
     best_subject_accuracy_for_repetition_END[:, rep] = subject_accuracy_test
     tmp_backup_dict['best_subject_accuracy_for_repetition_END'] = best_subject_accuracy_for_repetition_END
     

@@ -36,11 +36,11 @@ hidden_space_dimension = 64
 print_var = True
 tracking_input_dimension = True
 
-epochs = 3
+epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
-repetition = 7
+repetition = 2
 
 normalize_trials = False
 use_reparametrization = False 
@@ -300,18 +300,18 @@ for rep in range(repetition):
     # TODO Backup dictionary with saved results
     # tmp_backup_dict = {}
     
-    # # Saved accuracy during training
-    # if(measure_accuracy): 
-    #     accuracy_test_list.append(accuracy_test)
-    #     tmp_backup_dict['accuracy_test_list'] = accuracy_test_list
+    # Saved accuracy during training
+    if(measure_accuracy): 
+        accuracy_test_list.append(accuracy_test)
+        # tmp_backup_dict['accuracy_test_list'] = accuracy_test_list
     
     # # Saving accuracy when min loss is reached for test set (during actual repetition)
-    # subject_accuracy_during_epochs_for_repetition_LOSS.append(np.asanyarray(subject_accuracy_during_epochs_LOSS).T)
-    # best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_during_epochs_LOSS[-1]
+    subject_accuracy_during_epochs_for_repetition_LOSS.append(np.asanyarray(subject_accuracy_during_epochs_LOSS).T)
+    best_subject_accuracy_for_repetition_LOSS[:, rep] = subject_accuracy_during_epochs_LOSS[-1]
     # tmp_backup_dict['best_subject_accuracy_for_repetition_LOSS'] = best_subject_accuracy_for_repetition_LOSS
     
     # # Saved the best accuracy reached on the test set during the training
-    # best_average_accuracy_for_repetition.append(np.max(accuracy_test))
+    best_average_accuracy_for_repetition.append(np.max(accuracy_test))
     # tmp_backup_dict['best_average_accuracy_for_repetition'] = best_average_accuracy_for_repetition
 
     # # Saved the accuracy reached at the end of the training
