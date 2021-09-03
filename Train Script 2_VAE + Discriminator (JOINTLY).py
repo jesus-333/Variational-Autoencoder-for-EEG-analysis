@@ -36,11 +36,11 @@ hidden_space_dimension = 64
 print_var = True
 tracking_input_dimension = True
 
-epochs = 3
+epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO Tune alpha
-repetition = 4
+repetition = 9
 
 normalize_trials = False
 merge_subject = True
