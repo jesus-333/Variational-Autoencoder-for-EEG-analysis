@@ -13,7 +13,15 @@ from support_datasets import PytorchDatasetEEGSingleSubject
 
 #%% Loss functions
 
+
 def VAE_loss(x, x_r, mu, log_var, alpha = 1):
+    """
+    Standard loss of the VAE. 
+    It return the reconstruction loss between x and x_r and the Kullback between a standard normal distribution and the ones defined by sigma and log_var
+    It also return the sum of the two.
+
+    """
+    
     # Kullback-Leibler Divergence
     sigma_p = torch.ones(log_var.shape).to(log_var.device)
     mu_p = torch.zeros(mu.shape).to(mu.device)
@@ -22,20 +30,24 @@ def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     # Old KL Loss (Simplified version with sigma_p = 1 and mu_p = 0)
     # kl_loss =  (-0.5 * (1 + log_var - torch.exp(log_var) - mu**2).sum(dim = 1)).mean(dim = 0)
     
-    # Reconstruction loss
+    # Reconstruction loss 
+    # TODO return to normal recon loss 
     recon_loss_criterion = nn.MSELoss()
-    # recon_loss_criterion = nn.BCELoss()
-    recon_loss = recon_loss_criterion(x_r, x)
+    # recon_loss = recon_loss_criterion(x_r, x)
+    recon_loss = modifiedL2Loss(x, x_r, alpha)
     
     # Total loss
-    vae_loss = recon_loss * alpha + kl_loss
-    
+    vae_loss = recon_loss + kl_loss
     return vae_loss, recon_loss, kl_loss
 
+    # TODO uncomment
+    # vae_loss = recon_loss * alpha + kl_loss
+    # return vae_loss, recon_loss * alpha, kl_loss
 
 def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_center = 0.5):
     """
-    Modified VAE loss where each class is econded with a different distribution
+    Modified VAE loss where each class is econded with a different distribution.
+    In this case the Kullback for each class is different.
     """
     
     # Target distributions
@@ -51,13 +63,46 @@ def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_cent
     
     # Reconstruction loss
     recon_loss_criterion = nn.MSELoss()
-    # recon_loss_criterion = nn.BCELoss()
     recon_loss = recon_loss_criterion(x_r, x)
     
     # Total loss
-    vae_loss = recon_loss * alpha + kl_loss
+    # vae_loss = recon_loss * alpha + kl_loss
+    vae_loss = recon_loss + kl_loss
     
     return vae_loss, recon_loss, kl_loss
+
+
+def modifiedL2Loss(x, x_r, alpha = 1):
+    """
+    Modified version of L2 loss. Instead of simply appli the L2 loss at the entire matrix the methods applied it row by row.
+    The input are the dataset data (x) and the reconstructed data (x_r)
+    
+    N.B. Remember that since x and x_r are created inside the advanceEpochV2 function and therefore they came from a dataloader.
+         This means that they have 4 dimension: (batch_size, depth, channel, time samples).
+    """
+    
+    # Reconstruction loss criterion
+    recon_loss_criterion = nn.MSELoss()
+    
+    # Tensor to save the total loss
+    recon_loss = torch.zeros(1).to(x.device)
+    
+    # Cycle through batch elements
+    for i in range(x_r.shape[0]):
+        # Extract i-th element of the batch. Also since depth dimension (see above) is 1 I simply "remove it" by taking the first element (index 0) of that dimension
+        x_i = x[i, 0]
+        x_r_i = x_r[i, 0]
+        
+        # Cycle through channels
+        for ch in range(x_r_i.shape[0]):
+            # Extract channel
+            x_i_ch = x_i[ch].to()
+            x_r_i_ch = x_r_i[ch]
+            
+            # Evaluate loss
+            recon_loss += alpha * recon_loss_criterion(x_i_ch, x_r_i_ch)
+    
+    return recon_loss
     
 
 def constructMuTargetTensor(mu_p, shift_from_center, label):
@@ -105,7 +150,7 @@ def classifierLoss(predict_label, true_label):
     return classifier_loss_criterion(predict_label, true_label)
 
 
-def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss = False, alpha = 1):
+def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss = False, alpha = 1, beta = 1):
     # VAE loss (reconstruction + kullback)
     if(use_advance_vae_loss):
         shift_from_center = 0.7
@@ -117,9 +162,9 @@ def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_
     classifier_loss = classifierLoss(predict_label, true_label) 
     
     # Total loss
-    total_loss = vae_loss + classifier_loss
+    total_loss = vae_loss + classifier_loss * beta
     
-    return total_loss, recon_loss, kl_loss, classifier_loss
+    return total_loss, recon_loss, kl_loss, classifier_loss * beta
 
 #%% Training functions
 
@@ -177,7 +222,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer, is_train = True, alpha = 
     return tot_vae_loss, tot_recon_loss, tot_kl_loss
 
 
-def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, print_var = False):
+def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_advance_vae_loss = False, alpha = 1, beta = 1, print_var = False):
     """
     Function used to advance one epoch of training in training scripts 2 and 3 (VAE + Classifier trained jointly)
     
@@ -207,7 +252,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
             x_r, mu, log_var, predict_label = eeg_framework(x)
             
             # Loss evaluation
-            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
+            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha, beta)
             
             # Backward/Optimization pass
             total_loss.backward()
@@ -218,8 +263,8 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
                 x = sample_data_batch.to(device)
                 eeg_framework.to(device)
                 x_r, mu, log_var, predict_label = eeg_framework(x)
-                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha)
-        
+                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_advance_vae_loss, alpha, beta)
+               
         # Compute the total loss
         tot_loss += total_loss
         tot_recon_loss += recon_loss
@@ -237,7 +282,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
     return tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss
 
 
-def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_train = True, alpha = 1):
+def advanceEpochV3(model, model_type, device, dataloader, optimizer = None, is_train = True, alpha = 1, beta = 1):
     """
     Function used to advance one epoch of training in training scripts 4 (VAE + Classifier trained separately)
 

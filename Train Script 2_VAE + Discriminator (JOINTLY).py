@@ -36,20 +36,24 @@ hidden_space_dimension = 64
 print_var = True
 tracking_input_dimension = True
 
-epochs = 500
+epochs = 600
 batch_size = 15
 learning_rate = 1e-3
-alpha = 0.01 #TODO Tune alpha
-repetition = 9
+repetition = 5
 
-normalize_trials = False
+# Hyperparameter (alpha for recon and beta for discriminator)
+alpha = 0.1
+beta = 1
+
+normalize_trials = True # TODO check if decoder use sigmoid as last layer
 merge_subject = True
 execute_test_epoch = True
 early_stop = False
 use_advance_vae_loss = False
 use_reparametrization_for_classification = False
 measure_accuracy = True
-save_model = False
+save_model = True
+plot_reconstructed_signal = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -83,6 +87,10 @@ if(merge_subject):
     
 
 for rep in range(repetition):
+    # TODO remove
+    alpha_list = np.linspace(1, 0.1, repetition)
+    alpha = alpha_list[rep]
+    
     for idx in idx_list:
         
         # Reset list 
@@ -97,7 +105,7 @@ for rep in range(repetition):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
             
         if(merge_subject):
-            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
+            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
         else:
             train_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
             
@@ -112,7 +120,7 @@ for rep in range(repetition):
             path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
         
         if(merge_subject):
-            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
+            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
         else:
             test_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
             
@@ -156,7 +164,7 @@ for rep in range(repetition):
         for epoch in range(epochs):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Training phase
-            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha, beta = beta)
             tmp_loss_train_total = tmp_loss_train[0]
             tmp_loss_train_recon = tmp_loss_train[1]
             tmp_loss_train_kl = tmp_loss_train[2]
@@ -170,7 +178,7 @@ for rep in range(repetition):
             
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Testing phase
-            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha, beta = beta)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
@@ -217,6 +225,15 @@ for rep in range(repetition):
                     tmp_subject_accuracy, tmp_subject_kappa_score = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset_type, normalize_trials = normalize_trials, use_reparametrization_for_classification = use_reparametrization_for_classification, device = device)
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
                     subject_kappa_score_during_epochs_LOSS.append(tmp_subject_kappa_score)
+                    
+                if(plot_reconstructed_signal):
+                    x = test_dataset[np.random.randint(0, len(train_dataset))][0]
+                    x_r = eeg_framework(x.unsqueeze(0).cuda())[0].cpu().squeeze().detach()
+                    
+                    plt.figure(figsize = (20, 10))
+                    plt.plot(x.squeeze()[0])
+                    plt.plot(x_r.squeeze()[0])
+                    plt.show()
                 
                 # (OPTIONAL) Save the model
                 if(save_model):  
@@ -267,6 +284,7 @@ for rep in range(repetition):
         save_path_END = "Saved model/eeg_framework"
         if(use_advance_vae_loss): save_path_END = save_path_END + "_advance_loss"
         else: save_path_END = save_path_END + "_normal_loss"
+        save_path_END = save_path_END + "_" + str(rep)
         save_path_END = save_path_END + "_" + str(epoch) + ".pth"
         
         torch.save(eeg_framework.state_dict(), save_path_END)
