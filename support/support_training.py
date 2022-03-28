@@ -14,7 +14,7 @@ from support_datasets import PytorchDatasetEEGSingleSubject
 #%% Loss functions
 
 
-def VAE_loss(x, x_r, mu, log_var, alpha = 1):
+def VAE_loss(x, x_r, mu_q, log_var, alpha = 1):
     """
     Standard loss of the VAE. 
     It return the reconstruction loss between x and x_r and the Kullback between a standard normal distribution and the ones defined by sigma and log_var
@@ -23,9 +23,12 @@ def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     """
     
     # Kullback-Leibler Divergence
-    sigma_p = torch.ones(log_var.shape).to(log_var.device)
-    mu_p = torch.zeros(mu.shape).to(mu.device)
-    kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
+    sigma_p = torch.ones(log_var.shape).to(log_var.device) # Standard deviation of the target standard distribution
+    mu_p = torch.zeros(mu_q.shape).to(mu_q.device) # Mean of the target gaussian distribution
+    sigma_q = torch.sqrt(torch.exp(log_var)) # standard deviation obtained from the VAE
+    kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
+    # N.b. Due to implementation reasons I pass to the function the STANDARD DEVIATION, i.e. the NON-SQUARED VALUE
+    # When the variance is needed inside the function the sigmas are eventually squared
     
     # Old KL Loss (Simplified version with sigma_p = 1 and mu_p = 0)
     # kl_loss =  (-0.5 * (1 + log_var - torch.exp(log_var) - mu**2).sum(dim = 1)).mean(dim = 0)
@@ -44,7 +47,7 @@ def VAE_loss(x, x_r, mu, log_var, alpha = 1):
     # vae_loss = recon_loss * alpha + kl_loss
     # return vae_loss, recon_loss * alpha, kl_loss
 
-def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_center = 0.5):
+def advance_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, shift_from_center = 0.5):
     """
     Modified VAE loss where each class is econded with a different distribution.
     In this case the Kullback for each class is different.
@@ -52,15 +55,16 @@ def advance_VAE_loss(x, x_r, mu, log_var, true_label, alpha = 1, shift_from_cent
     
     # Target distributions
     sigma_p = torch.ones(log_var.shape).to(log_var.device)
-    mu_p = torch.zeros(mu.shape).to(mu.device)
+    mu_p = torch.zeros(mu_q.shape).to(mu_q.device)
     for i in range(4):mu_p[true_label == i, :] = constructMuTargetTensor(mu_p, shift_from_center, label = i)
     # mu_p[true_label == 0, 0:2] = torch.tensor([shift_from_center, 0]).to(mu_p.device)
     # mu_p[true_label == 1, 0:2] = torch.tensor([0, shift_from_center]).to(mu_p.device)
     # mu_p[true_label == 2, 0:2] = torch.tensor([-shift_from_center, 0]).to(mu_p.device)
     # mu_p[true_label == 3, 0:2] = torch.tensor([0, -shift_from_center]).to(mu_p.device)
-
-    kl_loss = KL_Loss(sigma_p, mu_p, torch.sqrt(torch.exp(log_var)), mu)
     
+    sigma_q = torch.sqrt(torch.exp(log_var)) # standard deviation obtained from the VAE
+    kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
+ 
     # Reconstruction loss
     recon_loss_criterion = nn.MSELoss()
     recon_loss = recon_loss_criterion(x_r, x)

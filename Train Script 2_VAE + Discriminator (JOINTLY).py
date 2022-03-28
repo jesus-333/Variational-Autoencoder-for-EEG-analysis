@@ -52,7 +52,7 @@ early_stop = False
 use_advance_vae_loss = False
 use_reparametrization_for_classification = False
 measure_accuracy = True
-save_model = True
+save_model = False
 plot_reconstructed_signal = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")

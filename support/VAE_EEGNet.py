@@ -26,7 +26,7 @@ class EEGNetVAE(nn.Module):
         tracking_input_dimension_list = self.encoder.conv_encoder.tracking_input_dimension_list
         self.decoder = EEGNetDecoderV2(hidden_space_dimension, self.encoder.flatten_neurons, tracking_input_dimension_list)
         
-        if(print_var): print("Number of trainable parameters = ", sum(p.numel() for p in self.parameters() if p.requires_grad), "\n")
+        if(print_var): print("Number of trainable parameters (VAE) = ", sum(p.numel() for p in self.parameters() if p.requires_grad), "\n")
         
     def forward(self, x):
         mu, log_var = self.encoder(x)
@@ -200,6 +200,9 @@ class EEGFramework(nn.Module):
         else: self.classifier = CLF_V1(hidden_space_dimension * 2)
         
         self.use_reparametrization_for_classification = use_reparametrization_for_classification
+        
+        if(print_var): print("Number of trainable parameters (VAE + Classifier) = ", sum(p.numel() for p in  self.classifier.parameters() if p.requires_grad), "\n")
+        if(print_var): print("Number of trainable parameters (VAE + Classifier) = ", sum(p.numel() for p in self.parameters() if p.requires_grad), "\n")
         
     def forward(self, x):
         # Foraward pass through VAE
