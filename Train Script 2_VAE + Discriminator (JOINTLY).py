@@ -10,7 +10,7 @@ The train datasets are merged toghether and then the network is tested on the te
 #%% Path for imports
 
 import sys
-sys.path.insert(1, 'support')
+sys.path.insert(0, 'support')
 
 #%% Imports
 
@@ -39,17 +39,18 @@ tracking_input_dimension = True
 epochs = 600
 batch_size = 15
 learning_rate = 1e-3
-repetition = 5
+repetition = 1
 
-# Hyperparameter (alpha for recon and beta for discriminator)
+# Hyperparameter (alpha for recon, beta for kl, gamma for classifier)
 alpha = 0.1
 beta = 1
+gamma = 1
 
 normalize_trials = True # TODO check if decoder use sigmoid as last layer
 merge_subject = True
 execute_test_epoch = True
 early_stop = False
-use_advance_vae_loss = False
+use_shifted_VAE_loss = False
 use_reparametrization_for_classification = False
 measure_accuracy = True
 save_model = False
@@ -137,6 +138,11 @@ for rep in range(repetition):
         # Optimizer
         optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
+        # Learning weight scheduler
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+
+        
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Tracking variable (for repetition)
         
@@ -164,7 +170,7 @@ for rep in range(repetition):
         for epoch in range(epochs):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Training phase
-            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha, beta = beta)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha, beta = beta, gamma = gamma)
             tmp_loss_train_total = tmp_loss_train[0]
             tmp_loss_train_recon = tmp_loss_train[1]
             tmp_loss_train_kl = tmp_loss_train[2]
@@ -178,7 +184,7 @@ for rep in range(repetition):
             
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Testing phase
-            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha, beta = beta)
+            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha, beta = beta, gamma = gamma)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
@@ -238,7 +244,7 @@ for rep in range(repetition):
                 # (OPTIONAL) Save the model
                 if(save_model):  
                     save_path = "Saved model/eeg_framework"
-                    if(use_advance_vae_loss): save_path = save_path + "_advance_loss"
+                    if(use_shifted_VAE_loss): save_path = save_path + "_advance_loss"
                     else: save_path = save_path + "_normal_loss"
                     save_path = save_path + "_" + str(rep)
                     save_path = save_path + "_" + str(epoch) + ".pth"
@@ -282,7 +288,7 @@ for rep in range(repetition):
     # (OPTIONAL) Save the model
     if(save_model):  
         save_path_END = "Saved model/eeg_framework"
-        if(use_advance_vae_loss): save_path_END = save_path_END + "_advance_loss"
+        if(use_shifted_VAE_loss): save_path_END = save_path_END + "_advance_loss"
         else: save_path_END = save_path_END + "_normal_loss"
         save_path_END = save_path_END + "_" + str(rep)
         save_path_END = save_path_END + "_" + str(epoch) + ".pth"
