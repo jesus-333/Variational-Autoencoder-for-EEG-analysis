@@ -30,22 +30,24 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 64
+hidden_space_dimension = 2
 # hidden_space_dimension = 32 # TODO Remove
 
 print_var = True
 tracking_input_dimension = True
 
+# Training parameters
 epochs = 600
 batch_size = 15
 learning_rate = 1e-3
-repetition = 1
+repetition = 13
 
-# Hyperparameter (alpha for recon, beta for kl, gamma for classifier)
+# Hyperparameter for the loss function (alpha for recon, beta for kl, gamma for classifier)
 alpha = 0.1
 beta = 1
 gamma = 1
 
+# Various parameter
 normalize_trials = True # TODO check if decoder use sigmoid as last layer
 merge_subject = True
 execute_test_epoch = True
@@ -55,6 +57,8 @@ use_reparametrization_for_classification = False
 measure_accuracy = True
 save_model = False
 plot_reconstructed_signal = False
+L2_loss_type = 0
+use_lr_scheduler = True
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -80,6 +84,14 @@ subject_kappa_score_during_epochs_for_repetition_LOSS = []
 best_subject_kappa_score_for_repetition_END = np.zeros((9, repetition))
 best_subject_kappa_score_for_repetition_LOSS = np.zeros((9, repetition))
 
+parameter_train = []
+
+#%% Check on parameter
+
+if(repetition < 0): raise Exception("The number of repetition must be greater than 0")
+if(L2_loss_type != 0 and L2_loss_type != 1 and L2_loss_type != 2): raise Exception("L2_loss_type must be 0 or 1 or 2") 
+if(alpha < 0 or beta < 0 or gamma < 0): raise Exception("The loss hyperparameter (alpha, beta, gamma) must be greater than 0 ") 
+
 #%% Training cycle
 
 if(merge_subject): 
@@ -91,6 +103,22 @@ for rep in range(repetition):
     # TODO remove
     alpha_list = np.linspace(1, 0.1, repetition)
     alpha = alpha_list[rep]
+    
+    if(rep == 1): epochs = 100; use_lr_scheduler = False; beta = 2
+    if(rep == 2): epochs = 200; use_lr_scheduler = False; beta = 1
+    if(rep == 3): epochs = 300; use_lr_scheduler = False
+    if(rep == 4): epochs = 100; use_lr_scheduler = True; beta = 2
+    if(rep == 5): epochs = 200; use_lr_scheduler = True; beta = 1
+    if(rep == 6): epochs = 300; use_lr_scheduler = True
+    if(rep == 7): epochs = 550; use_lr_scheduler = True; learning_rate = 1e-2;
+    if(rep == 8): epochs = 300; use_lr_scheduler = False; learning_rate = 1e-3;
+    if(rep == 9): epochs = 300; use_lr_scheduler = False;
+    if(rep == 10): epochs = 600; use_lr_scheduler = False; learning_rate = 1e-2;
+    if(rep == 11): epochs = 600; use_lr_scheduler = True; learning_rate = 1e-2;
+    
+    tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
+                       'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs
+                       }
     
     for idx in idx_list:
         
@@ -139,10 +167,11 @@ for rep in range(repetition):
         optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
         # Learning weight scheduler
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+        # if(rep == 0): pass
+        # elif(rep == 1): scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
+        # elif(rep == 2): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
+        if(use_lr_scheduler): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 10, eta_min = 0)
 
-        
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Tracking variable (for repetition)
         
@@ -170,7 +199,10 @@ for rep in range(repetition):
         for epoch in range(epochs):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Training phase
-            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha, beta = beta, gamma = gamma)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, 
+                                            is_train = True, use_shifted_VAE_loss = use_shifted_VAE_loss, 
+                                            alpha = alpha, beta = beta, gamma = gamma,
+                                            L2_loss_type = L2_loss_type)
             tmp_loss_train_total = tmp_loss_train[0]
             tmp_loss_train_recon = tmp_loss_train[1]
             tmp_loss_train_kl = tmp_loss_train[2]
@@ -184,7 +216,10 @@ for rep in range(repetition):
             
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Testing phase
-            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha, beta = beta, gamma = gamma)
+            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, 
+                                                                   is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, 
+                                                                   alpha = alpha, beta = beta, gamma = gamma,
+                                                                   L2_loss_type = L2_loss_type)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
@@ -283,6 +318,8 @@ for rep in range(repetition):
             if(epoch_with_no_improvent > 50 and early_stop): 
                 if(print_var): print("     JUMP\n\n")
                 break; 
+                
+            if(use_lr_scheduler): scheduler.step()
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # (OPTIONAL) Save the model
@@ -327,6 +364,9 @@ for rep in range(repetition):
     subject_kappa_score_test = np.asarray(tmp_kappa_score_end)
     best_subject_kappa_score_for_repetition_END[:, rep] = subject_kappa_score_test
     tmp_backup_dict['best_subject_kappa_score_for_repetition_END'] = best_subject_kappa_score_for_repetition_END
+    
+    parameter_train.append(tmp_parameter_train)
+    tmp_backup_dict['parameter_train'] = parameter_train
     
     # Save the dictionary
     savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)

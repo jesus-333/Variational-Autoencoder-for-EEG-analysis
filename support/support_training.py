@@ -50,7 +50,7 @@ def VAE_loss(x, x_r, mu_q, log_var, alpha = 1, beta = 1, L2_loss_type = 0):
     
     return vae_loss, recon_loss * alpha, kl_loss * beta
 
-def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shift_from_center = 0.5):
+def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shift_from_center = 0.5, L2_loss_type = 0):
     """
     Modified VAE loss where each class is econded with a different distribution.
     In this case the Kullback for each class is different.
@@ -65,8 +65,11 @@ def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shi
     kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
  
     # Reconstruction loss
-    recon_loss_criterion = nn.MSELoss()
-    recon_loss = recon_loss_criterion(x_r, x)
+    if(L2_loss_type == 0):
+        recon_loss_criterion = nn.MSELoss()
+        recon_loss = recon_loss_criterion(x_r, x)
+    elif(L2_loss_type == 1): recon_loss = L2Loss_row_by_row(x, x_r, alpha) # P.s. The alpha is needed because it is applied to every row
+    elif(L2_loss_type == 2): recon_loss = advance_recon_loss(x, x_r)
     
     # Total loss
     vae_loss = recon_loss * alpha + kl_loss * beta
@@ -181,13 +184,13 @@ def classifierLoss(predict_label, true_label):
     return classifier_loss_criterion(predict_label, true_label)
 
 
-def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss = False, alpha = 1, beta = 1, gamma = 1):
+def VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss = False, alpha = 1, beta = 1, gamma = 1, L2_loss_type = 0):
     # VAE loss (reconstruction + kullback)
     if(use_shifted_VAE_loss):
         shift_from_center = 0.7
-        vae_loss, recon_loss, kl_loss = shifted_VAE_loss(x, x_r, mu, log_var, true_label, alpha, beta, shift_from_center)
+        vae_loss, recon_loss, kl_loss = shifted_VAE_loss(x, x_r, mu, log_var, true_label, alpha, beta, shift_from_center, L2_loss_type)
     else:
-        vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha, beta)
+        vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r, mu, log_var, alpha, beta, L2_loss_type)
     
     # Classifier (discriminator) loss
     classifier_loss = classifierLoss(predict_label, true_label) 
@@ -259,7 +262,7 @@ def advanceEpochV1(vae, device, dataloader, optimizer, is_train = True, alpha = 
     return tot_vae_loss, tot_recon_loss, tot_kl_loss
 
 
-def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_shifted_VAE_loss = False, alpha = 1, beta = 1, gamma = 1, print_var = False):
+def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train = True, use_shifted_VAE_loss = False, alpha = 1, beta = 1, gamma = 1, L2_loss_type = 0, print_var = False):
     """
     Function used to advance one epoch of training in training scripts 2 and 3 (VAE + Classifier trained jointly)
     
@@ -289,7 +292,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
             x_r, mu, log_var, predict_label = eeg_framework(x)
             
             # Loss evaluation
-            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss, alpha, beta, gamma)
+            total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss, alpha, beta, gamma, L2_loss_type)
             
             # Backward/Optimization pass
             total_loss.backward()
@@ -300,7 +303,7 @@ def advanceEpochV2(eeg_framework, device, dataloader, optimizer = None, is_train
                 x = sample_data_batch.to(device)
                 eeg_framework.to(device)
                 x_r, mu, log_var, predict_label = eeg_framework(x)
-                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss, alpha, beta, gamma)
+                total_loss, recon_loss, kl_loss, discriminator_loss = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, use_shifted_VAE_loss, alpha, beta, gamma, L2_loss_type)
                
         # Compute the total loss
         tot_loss += total_loss
