@@ -171,15 +171,21 @@ class EEGNetDecoderV2(nn.Module):
 
 class CLF_V1(nn.Module):
     
-    def __init__(self, hidden_space_dimension):
+    def __init__(self, n_input_neurons):
         super().__init__()
         
+        # ORIGINAL STRUCTURE
         self.classifier = nn.Sequential(
-            nn.Linear(hidden_space_dimension, 64),
+            nn.Linear(n_input_neurons, 64),
             nn.SELU(),
             nn.Linear(64, 4),
             nn.LogSoftmax(dim = 1)
         )
+        
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(n_input_neurons, 4),
+        #     nn.LogSoftmax(dim = 1)
+        # )
         
     def forward(self, x): 
         return self.classifier(x)
@@ -198,6 +204,7 @@ class EEGFramework(nn.Module):
         # Classifier (Discriminator) definition        
         if(use_reparametrization_for_classification): self.classifier = CLF_V1(hidden_space_dimension)
         else: self.classifier = CLF_V1(hidden_space_dimension * 2)
+        
         
         self.use_reparametrization_for_classification = use_reparametrization_for_classification
         

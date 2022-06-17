@@ -30,17 +30,18 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 2
+hidden_space_dimension = 16
 # hidden_space_dimension = 32 # TODO Remove
 
 print_var = True
 tracking_input_dimension = True
 
 # Training parameters
-epochs = 600
+epochs = 500
 batch_size = 15
 learning_rate = 1e-3
-repetition = 13
+repetition = 20
+percentage_train = 0.85
 
 # Hyperparameter for the loss function (alpha for recon, beta for kl, gamma for classifier)
 alpha = 0.1
@@ -49,7 +50,6 @@ gamma = 1
 
 # Various parameter
 normalize_trials = True # TODO check if decoder use sigmoid as last layer
-merge_subject = True
 execute_test_epoch = True
 early_stop = False
 use_shifted_VAE_loss = False
@@ -59,6 +59,7 @@ save_model = False
 plot_reconstructed_signal = False
 L2_loss_type = 0
 use_lr_scheduler = True
+optimize_memory_dataset = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -94,30 +95,19 @@ if(alpha < 0 or beta < 0 or gamma < 0): raise Exception("The loss hyperparameter
 
 #%% Training cycle
 
-if(merge_subject): 
-    merge_list = idx_list.copy()
-    idx_list = [1]
+
+merge_list = idx_list.copy()
+idx_list = [1]
     
 
 for rep in range(repetition):
-    # TODO remove
-    alpha_list = np.linspace(1, 0.1, repetition)
-    alpha = alpha_list[rep]
     
-    if(rep == 1): epochs = 100; use_lr_scheduler = False; beta = 2
-    if(rep == 2): epochs = 200; use_lr_scheduler = False; beta = 1
-    if(rep == 3): epochs = 300; use_lr_scheduler = False
-    if(rep == 4): epochs = 100; use_lr_scheduler = True; beta = 2
-    if(rep == 5): epochs = 200; use_lr_scheduler = True; beta = 1
-    if(rep == 6): epochs = 300; use_lr_scheduler = True
-    if(rep == 7): epochs = 550; use_lr_scheduler = True; learning_rate = 1e-2;
-    if(rep == 8): epochs = 300; use_lr_scheduler = False; learning_rate = 1e-3;
-    if(rep == 9): epochs = 300; use_lr_scheduler = False;
-    if(rep == 10): epochs = 600; use_lr_scheduler = False; learning_rate = 1e-2;
-    if(rep == 11): epochs = 600; use_lr_scheduler = True; learning_rate = 1e-2;
+    if(rep >= 1): use_lr_scheduler = False
+    if(rep >= 10): hidden_space_dimension = 32
     
     tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
-                       'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs
+                       'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs,
+                       'hidden_space_dimension':hidden_space_dimension
                        }
     
     for idx in idx_list:
@@ -132,13 +122,15 @@ for rep in range(repetition):
             path = 'Dataset/HGD/Train/{}/'.format(idx)
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
-            
-        if(merge_subject):
-            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
-        else:
-            train_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
-            
+        
+        full_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials, optimize_memory = optimize_memory_dataset, device = device)
+        
+        size_train = int(len(full_dataset) * percentage_train) 
+        size_val = len(full_dataset) - size_train
+        train_dataset, validation_dataset = torch.utils.data.random_split(full_dataset, [size_train, size_val])
+        
         train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
+        validation_dataloader = DataLoader(validation_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TRAIN dataset and dataloader created\n")
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -148,11 +140,8 @@ for rep in range(repetition):
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
         
-        if(merge_subject):
-            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
-        else:
-            test_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
-            
+        test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials, optimize_memory = optimize_memory_dataset, device = device)
+        
         test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TEST dataset and dataloader created\n")
         
@@ -166,11 +155,9 @@ for rep in range(repetition):
         # Optimizer
         optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
         
-        # Learning weight scheduler
-        # if(rep == 0): pass
-        # elif(rep == 1): scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
-        # elif(rep == 2): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
-        if(use_lr_scheduler): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 10, eta_min = 0)
+        # Learning weight scheduler 
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
+        # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 10, eta_min = 0)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Tracking variable (for repetition)
@@ -180,9 +167,13 @@ for rep in range(repetition):
         reconstruction_loss_train = []
         kl_loss_train = []
         discriminator_loss_train = []
-        accuracy_train = []     # Not used
-        kappa_score_train = []  # Not used
         
+        # Loss tracking variables (VALIDATION)
+        total_loss_val = []
+        reconstruction_loss_val = []
+        kl_loss_val = []
+        discriminator_loss_val = []
+
         # Loss tracking variables (TEST)
         total_loss_test = []
         reconstruction_loss_test = []
@@ -191,7 +182,8 @@ for rep in range(repetition):
         accuracy_test = []
         kappa_score_test = []
         
-        best_loss_test = sys.maxsize
+        best_loss_validation = sys.maxsize
+        
         best_accuracy_test = sys.maxsize
         best_kappa_score_test = sys.maxsize
         epoch_with_no_improvent = 0
@@ -215,12 +207,30 @@ for rep in range(repetition):
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # Validation phase
+            tmp_loss_val = advanceEpochV2(eeg_framework, device, validation_dataloader, optimizer, 
+                                            is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, 
+                                            alpha = alpha, beta = beta, gamma = gamma,
+                                            L2_loss_type = L2_loss_type)
+            tmp_loss_val_total = tmp_loss_val[0]
+            tmp_loss_val_recon = tmp_loss_val[1]
+            tmp_loss_val_kl = tmp_loss_val[2]
+            tmp_loss_val_discriminator = tmp_loss_val[3]
+            
+            # Save train losses
+            total_loss_train.append(float(tmp_loss_train_total))
+            reconstruction_loss_train.append(float(tmp_loss_train_recon))
+            kl_loss_train.append(float(tmp_loss_train_kl))
+            discriminator_loss_train.append(float(tmp_loss_train_discriminator))
+            
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Testing phase
             if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, 
                                                                    is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, 
                                                                    alpha = alpha, beta = beta, gamma = gamma,
                                                                    L2_loss_type = L2_loss_type)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
+            
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
             tmp_loss_test_kl = tmp_loss_test[2]
@@ -251,7 +261,7 @@ for rep in range(repetition):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Check loss value
             
-            if(tmp_loss_test_total < best_loss_test):
+            if(tmp_loss_val_total < best_loss_validation):
                 # Update loss and (OPTIONAL) accuracy (N.b. the best accuracy is intended as the accuracy when there is a new min loss)
                 best_loss_test = tmp_loss_test_total
                 if(measure_accuracy):
@@ -262,7 +272,7 @@ for rep in range(repetition):
                 epoch_with_no_improvent = 0
                 
                 # Measure the accuracy separately for each subject
-                if(measure_accuracy and merge_subject):
+                if(measure_accuracy):
                     tmp_subject_accuracy, tmp_subject_kappa_score = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, merge_list, dataset_type, normalize_trials = normalize_trials, use_reparametrization_for_classification = use_reparametrization_for_classification, device = device)
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
                     subject_kappa_score_during_epochs_LOSS.append(tmp_subject_kappa_score)
@@ -301,6 +311,12 @@ for rep in range(repetition):
                 print("\t\tReconstr (TRAIN)\t\t: ", float(tmp_loss_train_recon))
                 print("\t\tKullback (TRAIN)\t\t: ", float(tmp_loss_train_kl))
                 print("\t\tDiscriminator (TRAIN)\t: ", float(tmp_loss_train_discriminator), "\n")
+                
+                print("\tLoss (VAL)\t\t: ", float(tmp_loss_val_total))
+                print("\t\tReconstr (VAL)\t\t\t: ", float(tmp_loss_val_recon))
+                print("\t\tKullback (VAL)\t\t\t: ", float(tmp_loss_val_kl))
+                print("\t\tDiscriminator (VAL)\t: ", float(tmp_loss_val_discriminator), "\n")
+                
                 
                 print("\tLoss (TEST)\t\t: ", float(tmp_loss_test_total))
                 print("\t\tReconstr (TEST)\t\t\t: ", float(tmp_loss_test_recon))
@@ -370,6 +386,9 @@ for rep in range(repetition):
     
     # Save the dictionary
     savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)
+    
+    # Clean the variable
+    del full_dataset, train_dataset, train_dataloader, validation_dataset, validation_dataloader, test_dataset, test_dataloader
 
     
 
@@ -382,8 +401,8 @@ plt.legend(["Train", "Test"])
 plt.title("Total Loss")
 
 plt.figure()
-plt.plot(np.asarray(reconstruction_loss_train) * alpha)
-plt.plot(np.asarray(reconstruction_loss_test) * alpha)
+plt.plot(np.asarray(reconstruction_loss_train))
+plt.plot(np.asarray(reconstruction_loss_test))
 plt.legend(["Train", "Test"])
 plt.title("Reconstruction Loss")
 
@@ -410,29 +429,3 @@ idx_hidden_space = (31, 32)
 # visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
 
 #%%
-
-if(False):
-    # eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_normal_loss_389.pth"))
-    train_accuracy = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, train_dataset, device, True)[0]
-    test_accuracy = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, True)[0]
-    
-    print("TRAIN Accuracy: \t", train_accuracy)
-    print("TEST accuracy: \t\t", test_accuracy)
-
-#%%
-if(False):
-    # idx_list = [0,1,5,12,31,32,37,79,85]
-    idx_list = [0,1,6,51,71,131,173,246,411,499]
-    
-    for idx in idx_list:
-        eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_{}.pth".format(idx)))
-        
-        # visualizeHiddenSpace(eeg_framework.vae, test_dataset, False, n_elements = 159, device = 'cuda')
-        
-        test_accuracy_evaluated = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, False)[0]
-        test_accuracy_evaluated = round(test_accuracy_evaluated * 100, 2)
-        test_accuracy_saved = round(accuracy_test[idx] * 100, 2)
-        
-        print("Epoch: ", idx)
-        print("\tTEST accuracy eval:\t\t", test_accuracy_evaluated)
-        print("\tTEST accuracy saved:\t",test_accuracy_saved)

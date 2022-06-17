@@ -345,7 +345,7 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
     """
     
     # Inizialization method
-    def __init__(self, path, n_elements = -1, normalize_trials = False, binary_mode = -1):
+    def __init__(self, path, n_elements = -1, normalize_trials = False, binary_mode = -1, optimize_memory = True):
         tmp_list = []
         
         # Read all the file in the folder and return them as list of string
@@ -361,7 +361,7 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
             file = self.file_list[i]
             self.path_list.append(path + file)
             
-            if(i >= (n_elements - 1) and n_elements != -1): break
+            if(i >= (n_elements - 1) and n_elements >= 0): break
             
         self.path_list = np.asarray(self.path_list)
         
@@ -381,6 +381,8 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
             
         # Set to real value
         self.normalize_trials = normalize_trials  
+        
+
         
         
     def __getitem__(self, idx):
@@ -402,6 +404,7 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
         label = torch.tensor(label).long()
         
         return trial, label
+
     
     
     def __len__(self):
@@ -440,11 +443,14 @@ class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
     """
     
     # Inizialization method
-    def __init__(self, path, idx_list, n_elements = -1, normalize_trials = False):
+    def __init__(self, path, idx_list, n_elements = -1, normalize_trials = False, optimize_memory = True, device = 'cpu'):
         
         self.path_list = []
         
         tmp_list = []
+        
+        # Temporary set to True to allow some operation
+        self.optimize_memory = True
         
         # Read all the file in the folder and return them as list of string
         for idx in idx_list:
@@ -457,7 +463,7 @@ class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
         element_inserted = 0
         for element in tmp_list:
             for file_name in element[2]: 
-                if(element_inserted >= (n_elements - 1) and n_elements != -1): break
+                if(element_inserted >= (n_elements - 1) and n_elements >= 0): break
                 
                 tmp_path = element[0] + file_name
                 self.path_list.append(tmp_path)
@@ -478,24 +484,46 @@ class PytorchDatasetEEGMergeSubject(torch.utils.data.Dataset):
             
         # Set to real value
         self.normalize_trials = normalize_trials 
+        
+        # If optimize_memory is set to false load all the dataset 
+        if not optimize_memory:
+            self.labels = torch.zeros(len(self.path_list))
+            self.trials = torch.zeros((len(self.path_list), 1, self.channel, self.samples))
+            
+            for i in range(len(self.path_list)):
+                tmp_trial, tmp_label = self.__getitem__(i)
+                
+                self.labels[i] = tmp_label
+                self.trials[i, 0] = tmp_trial
+                
+            # Move labels and trials to device (CPU/GPU)
+            self.labels = self.labels.to(device)
+            self.trials = self.trials.to(device)
+            
+        self.optimize_memory = optimize_memory
+        
+        self.device = device
             
         
     def __getitem__(self, idx):
-        tmp_dict = loadmat(self.path_list[idx])
-        
-        # Retrieve and save trial 
-        trial = tmp_dict['trial']
-        trial = np.expand_dims(trial, axis = 0)
-        if(self.normalize_trials): trial = self.normalize(trial)
-        
-        # Retrieve label. Since the original label are in the range 1-4 I shift them in the range 0-3 for the NLLLoss() loss function
-        label = int(tmp_dict['label']) - 1
-                
-        # Convert to PyTorch tensor
-        trial = torch.from_numpy(trial).float()
-        label = torch.tensor(label).long()
-        
-        return trial, label
+        if(self.optimize_memory):
+            tmp_dict = loadmat(self.path_list[idx])
+            
+            # Retrieve and save trial 
+            trial = tmp_dict['trial']
+            trial = np.expand_dims(trial, axis = 0)
+            if(self.normalize_trials): trial = self.normalize(trial)
+            
+            # Retrieve label. Since the original label are in the range 1-4 I shift them in the range 0-3 for the NLLLoss() loss function
+            label = int(tmp_dict['label']) - 1
+                    
+            # Convert to PyTorch tensor
+            trial = torch.from_numpy(trial).float()
+            label = torch.tensor(label).long()
+            
+            return trial, label
+        else:
+            return self.trials[idx].float(), self.labels[idx].long()
     
     def __len__(self):
         return len(self.path_list)
