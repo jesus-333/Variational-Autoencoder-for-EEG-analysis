@@ -30,7 +30,7 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 16
+hidden_space_dimension = 64
 # hidden_space_dimension = 32 # TODO Remove
 
 print_var = True
@@ -40,8 +40,8 @@ tracking_input_dimension = True
 epochs = 500
 batch_size = 15
 learning_rate = 1e-3
-repetition = 20
-percentage_train = 0.85
+repetition = 30
+percentage_train = 0.9
 
 # Hyperparameter for the loss function (alpha for recon, beta for kl, gamma for classifier)
 alpha = 0.1
@@ -58,7 +58,7 @@ measure_accuracy = True
 save_model = False
 plot_reconstructed_signal = False
 L2_loss_type = 0
-use_lr_scheduler = True
+use_lr_scheduler = False
 optimize_memory_dataset = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -98,12 +98,18 @@ if(alpha < 0 or beta < 0 or gamma < 0): raise Exception("The loss hyperparameter
 
 merge_list = idx_list.copy()
 idx_list = [1]
+
+# TODO REMOVE
+tmp_weight_decay = 1e-5
     
 
 for rep in range(repetition):
     
-    if(rep >= 1): use_lr_scheduler = False
-    if(rep >= 10): hidden_space_dimension = 32
+    if(rep >= 5): tmp_weight_decay = 1e-2;
+    if(rep >= 10): tmp_weight_decay = 1e-5; hidden_space = 32
+    if(rep >= 15): tmp_weight_decay = 1e-2;
+    if(rep >= 20): tmp_weight_decay = 1e-5; hidden_space = 16
+    if(rep >= 25): tmp_weight_decay = 1e-2;
     
     tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
                        'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs,
@@ -153,7 +159,8 @@ for rep in range(repetition):
         if(print_var): print("EEG Framework created")
         
         # Optimizer
-        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        # optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = tmp_weight_decay)
         
         # Learning weight scheduler 
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
@@ -263,7 +270,7 @@ for rep in range(repetition):
             
             if(tmp_loss_val_total < best_loss_validation):
                 # Update loss and (OPTIONAL) accuracy (N.b. the best accuracy is intended as the accuracy when there is a new min loss)
-                best_loss_test = tmp_loss_test_total
+                best_loss_validation = tmp_loss_val_total
                 if(measure_accuracy):
                     best_accuracy_test = tmp_accuracy_test
                     best_kappa_score_test = tmp_kappa_score_test
@@ -317,14 +324,13 @@ for rep in range(repetition):
                 print("\t\tKullback (VAL)\t\t\t: ", float(tmp_loss_val_kl))
                 print("\t\tDiscriminator (VAL)\t: ", float(tmp_loss_val_discriminator), "\n")
                 
-                
                 print("\tLoss (TEST)\t\t: ", float(tmp_loss_test_total))
                 print("\t\tReconstr (TEST)\t\t\t: ", float(tmp_loss_test_recon))
                 print("\t\tKullback (TEST)\t\t\t: ", float(tmp_loss_test_kl))
                 print("\t\tDiscriminator (TEST)\t: ", float(tmp_loss_test_discriminator))
                 print("\t\tAccuracy (TEST)\t\t\t: ", float(tmp_accuracy_test), "\n")
                 
-                print("\tBest loss test\t\t: ", float(best_loss_test))
+                print("\tBest loss val\t\t: ", float(best_loss_validation))
                 print("\tBest Accuracy test (1)\t: ", float(best_accuracy_test))
                 print("\tBest Accuracy test (2)\t: ", float(np.max(accuracy_test)))
                 print("\tNo Improvement\t\t: ", int(epoch_with_no_improvent))

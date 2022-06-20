@@ -30,7 +30,7 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 16
+hidden_space_dimension = 64
 # hidden_space_dimension = 32 # TODO Remove
 
 print_var = True
@@ -40,7 +40,7 @@ tracking_input_dimension = True
 epochs = 500
 batch_size = 15
 learning_rate = 1e-3
-repetition = 1
+repetition = 20
 
 # Hyperparameter for the loss function (alpha for recon, beta for kl, gamma for classifier)
 alpha = 0.1
@@ -48,7 +48,7 @@ beta = 1
 gamma = 1
 
 # Various parameter
-normalize_trials = True # TODO check if decoder use sigmoid as last layer
+normalize_trials = False 
 merge_subject = True
 execute_test_epoch = True
 early_stop = False
@@ -58,7 +58,8 @@ measure_accuracy = True
 save_model = False
 plot_reconstructed_signal = False
 L2_loss_type = 0
-use_lr_scheduler = True
+use_lr_scheduler = False
+optimize_memory_dataset = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -94,29 +95,14 @@ if(alpha < 0 or beta < 0 or gamma < 0): raise Exception("The loss hyperparameter
 
 #%% Training cycle
 
+tmp_weight_decay = 1e-5
+
 if(merge_subject): 
     merge_list = idx_list.copy()
     idx_list = [1]
     
 
 for rep in range(repetition):
-    # if(rep == 0): epochs = 300; use_lr_scheduler = False; alpha = 0.1
-    # if(rep == 1): epochs = 300; use_lr_scheduler = True; alpha = 0.1
-    # if(rep == 2): epochs = 300; use_lr_scheduler = False; alpha = 1
-    # if(rep == 3): epochs = 300; use_lr_scheduler = True; alpha = 1
-    # if(rep == 2): epochs = 200; use_lr_scheduler = False; beta = 1
-    # if(rep == 3): epochs = 300; use_lr_scheduler = False
-    # if(rep == 4): epochs = 100; use_lr_scheduler = True; beta = 2
-    # if(rep == 5): epochs = 200; use_lr_scheduler = True; beta = 1
-    # if(rep == 6): epochs = 300; use_lr_scheduler = True
-    # if(rep == 7): epochs = 550; use_lr_scheduler = True; learning_rate = 1e-2;
-    # if(rep == 8): epochs = 300; use_lr_scheduler = False; learning_rate = 1e-3;
-    # if(rep == 9): epochs = 300; use_lr_scheduler = False;
-    # if(rep == 10): epochs = 600; use_lr_scheduler = False; learning_rate = 1e-2;
-    # if(rep == 11): epochs = 600; use_lr_scheduler = True; learning_rate = 1e-2;
-    if(rep >= 5): hidden_space_dimension = 16
-    if(rep >= 10): hidden_space_dimension = 8
-    if(rep >= 15): hidden_space_dimension = 16
     
     tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
                        'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs,
@@ -137,7 +123,7 @@ for rep in range(repetition):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
             
         if(merge_subject):
-            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
+            train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials, optimize_memory = optimize_memory_dataset, device = device)
         else:
             train_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
             
@@ -152,7 +138,7 @@ for rep in range(repetition):
             path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
         
         if(merge_subject):
-            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials)
+            test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, normalize_trials = normalize_trials, optimize_memory = optimize_memory_dataset, device = device)
         else:
             test_dataset = PytorchDatasetEEGSingleSubject(path, normalize_trials = normalize_trials)
             
@@ -167,13 +153,13 @@ for rep in range(repetition):
         if(print_var): print("EEG Framework created")
         
         # Optimizer
-        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        # optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
+        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = tmp_weight_decay)
         
         # Learning weight scheduler
-        # if(rep == 0): pass
-        # elif(rep == 1): scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
-        # elif(rep == 2): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0)
-        if(use_lr_scheduler): scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 10, eta_min = 0)
+        if(use_lr_scheduler): 
+            # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 10, eta_min = 0)
+            scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.95)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Tracking variable (for repetition)
