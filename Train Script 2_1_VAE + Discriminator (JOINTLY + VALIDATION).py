@@ -30,15 +30,14 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 64
-# hidden_space_dimension = 32 # TODO Remove
+hidden_space_dimension = 2
 
 print_var = True
 tracking_input_dimension = True
 
 # Training parameters
 epochs = 500
-batch_size = 15
+batch_size = 20 # TODO return to 15
 learning_rate = 1e-3
 repetition = 30
 percentage_train = 0.9
@@ -49,7 +48,7 @@ beta = 1
 gamma = 1
 
 # Various parameter
-normalize_trials = True # TODO check if decoder use sigmoid as last layer
+normalize_trials = False # Normalization lowers the results
 execute_test_epoch = True
 early_stop = False
 use_shifted_VAE_loss = False
@@ -106,9 +105,9 @@ tmp_weight_decay = 1e-5
 for rep in range(repetition):
     
     if(rep >= 5): tmp_weight_decay = 1e-2;
-    if(rep >= 10): tmp_weight_decay = 1e-5; hidden_space = 32
+    if(rep >= 10): tmp_weight_decay = 1e-5; hidden_space_dimension = 128
     if(rep >= 15): tmp_weight_decay = 1e-2;
-    if(rep >= 20): tmp_weight_decay = 1e-5; hidden_space = 16
+    if(rep >= 20): tmp_weight_decay = 1e-5; hidden_space_dimension = 256
     if(rep >= 25): tmp_weight_decay = 1e-2;
     
     tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
