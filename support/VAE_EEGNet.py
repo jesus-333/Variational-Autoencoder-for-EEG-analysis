@@ -208,7 +208,10 @@ class EEGFramework(nn.Module):
         
         self.use_reparametrization_for_classification = use_reparametrization_for_classification
         
-        if(print_var): print("Number of trainable parameters (VAE + Classifier) = ", sum(p.numel() for p in  self.classifier.parameters() if p.requires_grad), "\n")
+        self.trainable_parameter_VAE = sum(p.numel() for p in  self.vae.parameters() if p.requires_grad)
+        self.trainable_parameter_classifier = sum(p.numel() for p in  self.classifier.parameters() if p.requires_grad)
+        
+        if(print_var): print("Number of trainable parameters (Classifier) = ", sum(p.numel() for p in  self.classifier.parameters() if p.requires_grad), "\n")
         if(print_var): print("Number of trainable parameters (VAE + Classifier) = ", sum(p.numel() for p in self.parameters() if p.requires_grad), "\n")
         
     def forward(self, x):

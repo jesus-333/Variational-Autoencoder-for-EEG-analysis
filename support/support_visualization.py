@@ -5,18 +5,19 @@ import matplotlib.pyplot as plt
 #%%
 
 
-def visualizeHiddenSpace(vae, dataset, idx_hidden_space = (0,1), sampling = True, n_elements = 200, device = 'cpu', print_var = True):
+def computeHiddenSpaceRepresentation(vae, dataset, n_elements = 200, device = 'cpu', print_var = True):
     """
-    Create a 2D plot with the first two element of the hidden space of the VAE
-    Return two dictionaries containing the mu (mean) and the standard deviation for each element of the dataset. The elements are divided by class
+    Create two dictionaries containing the mu (mean) and the standard deviation for each element of the dataset. The elements are divided by class
 
     """
     vae = vae.to(device)
     
     mu_lists = {0:[], 1:[], 2:[], 3:[]}
-    std_lists = {0:[], 1:[], 2:[], 3:[]}
+    std_list = {0:[], 1:[], 2:[], 3:[]}
     
     plt.figure(figsize = (10, 10))
+    
+    if(n_elements <= 0): n_elements = len(dataset)
     
     for i in range(n_elements):
         if(print_var and i % 3 == 0): print("Completition: {}".format(round(i/n_elements * 100, 2)))
@@ -31,25 +32,46 @@ def visualizeHiddenSpace(vae, dataset, idx_hidden_space = (0,1), sampling = True
         # N.B. Since I obtain the logarimt of the variance from the VAE I moltiply for 0.5 = 1/2 to obtain the standard deviation
         std = torch.exp(0.5 * z[1]).cpu().squeeze().detach().numpy()
         
-        if(sampling):
-            x = np.random.normal(mu[idx_hidden_space[0]], std[idx_hidden_space[0]], 1)
-            y = np.random.normal(mu[idx_hidden_space[1]], std[idx_hidden_space[1]], 1)
-        else:
-            x = mu[idx_hidden_space[0]]
-            y = mu[idx_hidden_space[1]]
-        
-        if(label == 0): 
-            plt.plot(x, y, 'ko')
-        elif(label == 1): 
-            plt.plot(x, y, 'ro')
-        elif(label == 2): 
-            plt.plot(x, y, 'yo')
-        elif(label == 3): 
-            plt.plot(x, y, 'bo')
+        # if(label == 0): 
+        #     plt.plot(x, y, 'ko', alpha = 0.4)
+        # elif(label == 1): 
+        #     plt.plot(x, y, 'ro')
+        # elif(label == 2): 
+        #     plt.plot(x, y, 'yo')
+        # elif(label == 3): 
+        #     plt.plot(x, y, 'bo')
             
         mu_lists[label].append(mu)
-        std_lists[label].append(std)
+        std_list[label].append(std)
         
-        
-    return mu_lists, std_lists
     
+    for label in mu_lists.keys():
+        mu_lists[label] = np.asarray(mu_lists[label])
+        std_list[label] = np.asarray(std_list[label])
+    
+    return mu_lists, std_list
+
+def visualizeHiddenSpace(mu_list, std_list, idx_hidden_space = (0,1), sampling = True, figsize = (10, 10), alpha = 0.8, s = 0.3):
+    
+    plt.figure(figsize = figsize)
+    for label in mu_list.keys():
+        mu = mu_list[label]
+        std = std_list[label]
+        
+        if(sampling):
+            x = np.random.normal(mu[:, idx_hidden_space[0]], std[:, idx_hidden_space[0]], mu.shape[0])
+            y = np.random.normal(mu[:, idx_hidden_space[1]], std[:, idx_hidden_space[1]], mu.shape[0])
+        else:
+            x = mu[:, idx_hidden_space[0]]
+            y = mu[:, idx_hidden_space[1]]
+            
+        print(x.shape)
+        print(y.shape)
+        if(label == 0): 
+            plt.scatter(x, y, c = 'red', s = s, alpha = alpha)
+        elif(label == 1): 
+            plt.scatter(x, y, c ='blue', s = s, alpha = alpha)
+        elif(label == 2): 
+            plt.scatter(x, y, c = 'green', s = s, alpha = alpha)
+        elif(label == 3): 
+            plt.scatter(x, y, c = 'orange', s = s, alpha = alpha)

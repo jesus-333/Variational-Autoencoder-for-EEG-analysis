@@ -21,7 +21,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from support.VAE_EEGNet import EEGFramework
-from support.support_training import advanceEpochV2, measureAccuracy, measureSingleSubjectAccuracy
+from support.support_training import advanceEpochV2, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
 from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
 from support.support_visualization import visualizeHiddenSpace
 
@@ -29,7 +29,7 @@ from support.support_visualization import visualizeHiddenSpace
 
 dataset_type = 'D2A'
 
-hidden_space_dimension = 64
+hidden_space_dimension = 2
 
 print_var = True
 tracking_input_dimension = True
@@ -38,16 +38,17 @@ epochs = 500
 batch_size = 15
 learning_rate = 1e-3
 alpha = 0.01 #TODO REMOVE THIS
-repetition = 2  
+repetition = 30  
 
 normalize_trials = False
 use_reparametrization = False 
 merge_subject = True
 execute_test_epoch = True
 early_stop = False
-use_advance_vae_loss = False
+use_shifted_VAE_loss = False
 measure_accuracy = True
 save_model = False
+optimize_memory_dataset = False
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -65,9 +66,20 @@ subject_accuracy_during_epochs_LOSS = []
 subject_accuracy_during_epochs_for_repetition_LOSS = []
 best_subject_accuracy_for_repetition_END = np.zeros((9, repetition))
 best_subject_accuracy_for_repetition_LOSS = np.zeros((9, repetition))
+best_subject_kappa_score_for_repetition_END = np.zeros((9, repetition))
+best_subject_kappa_score_for_repetition_LOSS = np.zeros((9, repetition))
+
+tmp_backup_dict = {}
 
 #%% Training cycle
 for rep in range(repetition):
+    
+    if(rep >= 5): hidden_space_dimension = 4
+    if(rep >= 10): hidden_space_dimension = 8
+    if(rep >= 15): hidden_space_dimension = 16
+    if(rep >= 20): hidden_space_dimension = 32
+    if(rep >= 25): hidden_space_dimension = 64
+    
     for idx in idx_list:
         
         subject_accuracy_during_epochs_LOSS = []
@@ -82,7 +94,7 @@ for rep in range(repetition):
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(idx)
             
-        train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list)
+        train_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = merge_list, optimize_memory = optimize_memory_dataset, device = device)
             
         train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TRAIN dataset and dataloader created\n")
@@ -94,7 +106,7 @@ for rep in range(repetition):
         elif(dataset_type == 'D2A'):
             path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(idx)
         
-        test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = [idx])
+        test_dataset = PytorchDatasetEEGMergeSubject(path[0:-2], idx_list = [idx], optimize_memory = optimize_memory_dataset, device = device)
             
         test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle = True)
         if(print_var): print("TEST dataset and dataloader created\n")
@@ -131,7 +143,7 @@ for rep in range(repetition):
         
         for epoch in range(epochs):
             # Training phase
-            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            tmp_loss_train = advanceEpochV2(eeg_framework, device, train_dataloader, optimizer, is_train = True, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha)
             tmp_loss_train_total = tmp_loss_train[0]
             tmp_loss_train_recon = tmp_loss_train[1]
             tmp_loss_train_kl = tmp_loss_train[2]
@@ -144,7 +156,7 @@ for rep in range(repetition):
             discriminator_loss_train.append(float(tmp_loss_train_discriminator))
             
             # Testing phase
-            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_advance_vae_loss = use_advance_vae_loss, alpha = alpha)
+            if(execute_test_epoch): tmp_loss_test = advanceEpochV2(eeg_framework, device, test_dataloader, is_train = False, use_shifted_VAE_loss = use_shifted_VAE_loss, alpha = alpha)
             else: tmp_loss_test = [sys.maxsize, sys.maxsize, sys.maxsize, sys.maxsize]
             tmp_loss_test_total = tmp_loss_test[0]
             tmp_loss_test_recon = tmp_loss_test[1] 
@@ -161,7 +173,7 @@ for rep in range(repetition):
             if(measure_accuracy):
                 # accuracy_train.append(measureAccuracy(eeg_framework.classifier, train_dataset))
                 eeg_framework.eval()
-                tmp_accuracy_test = measureAccuracy(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization)
+                tmp_accuracy_test, tmp_kappa_score = measureAccuracyAndKappaScore(eeg_framework.vae, eeg_framework.classifier, test_dataset, device, use_reparametrization)
                 accuracy_test.append(tmp_accuracy_test)
                 eeg_framework.train()
             
@@ -177,14 +189,15 @@ for rep in range(repetition):
                 # visualizeHiddenSpace(eeg_framework.vae, test_dataset, True, n_elements = 159, device = 'cuda')
                 
                 if(measure_accuracy):
-                    tmp_subject_accuracy = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
+                    tmp_subject_accuracy, tmp_kappa_score = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)
                     subject_accuracy_during_epochs_LOSS.append(tmp_subject_accuracy)
-                    best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = tmp_subject_accuracy
+                    best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = tmp_subject_accuracy[0]
+                    best_subject_kappa_score_for_repetition_LOSS[idx - 1, rep] = tmp_kappa_score[0]
                 
                 # (OPTIONAL) Save the model
                 if(save_model):  
                     save_path = "Saved model/eeg_framework"
-                    if(use_advance_vae_loss): save_path = save_path + "_advance_loss"
+                    if(use_shifted_VAE_loss): save_path = save_path + "_advance_loss"
                     else: save_path = save_path + "_normal_loss"
                     save_path = save_path + "_" + str(rep)
                     save_path = save_path + "_" + str(epoch) + ".pth"
@@ -222,18 +235,25 @@ for rep in range(repetition):
                 break; 
             
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        best_subject_accuracy_for_repetition_END[idx - 1, rep] = measureSingleSubjectAccuracy(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)[0]
+        tmp_accuracy, tmp_kappa_score = measureSingleSubjectAccuracyAndKappaScore(eeg_framework, [idx], dataset_type, use_reparametrization, device = device)
+        best_subject_accuracy_for_repetition_END[idx - 1, rep] = tmp_accuracy[0]
+        best_subject_kappa_score_for_repetition_END[idx - 1, rep] = tmp_kappa_score[0]
         # best_subject_accuracy_for_repetition_LOSS[idx - 1, rep] = subject_accuracy_during_epochs_LOSS[-1]
+        
+        tmp_backup_dict['best_subject_accuracy_for_repetition_END'] = best_subject_accuracy_for_repetition_END
+        
+        # Save the dictionary
+        savemat("Saved Model/TMP RESULTS/backup.mat", tmp_backup_dict)
+
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # (OPTIONAL) Save the model
     if(save_model):  
         save_path_END = "Saved model/eeg_framework"
-        if(use_advance_vae_loss): save_path_END = save_path_END + "_advance_loss"
+        if(use_shifted_VAE_loss): save_path_END = save_path_END + "_advance_loss"
         else: save_path_END = save_path_END + "_normal_loss"
         save_path_END = save_path_END + "_" + str(epoch) + ".pth"
         
         torch.save(eeg_framework.state_dict(), save_path_END)
     
     
-   

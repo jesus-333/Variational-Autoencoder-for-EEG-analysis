@@ -24,7 +24,7 @@ from torch.utils.data import DataLoader
 from support.VAE_EEGNet import EEGFramework
 from support.support_training import advanceEpochV2, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
 from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
-from support.support_visualization import visualizeHiddenSpace
+from support.support_visualization import computeHiddenSpaceRepresentation, visualizeHiddenSpace
 
 #%% Settings
 
@@ -39,7 +39,7 @@ tracking_input_dimension = True
 epochs = 500
 batch_size = 20 # TODO return to 15
 learning_rate = 1e-3
-repetition = 30
+repetition = 1
 percentage_train = 0.9
 
 # Hyperparameter for the loss function (alpha for recon, beta for kl, gamma for classifier)
@@ -54,11 +54,12 @@ early_stop = False
 use_shifted_VAE_loss = False
 use_reparametrization_for_classification = False
 measure_accuracy = True
-save_model = False
+save_model = True
 plot_reconstructed_signal = False
 L2_loss_type = 0
 use_lr_scheduler = False
 optimize_memory_dataset = False
+cross_subject = True
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 # device = torch.device('cpu')
@@ -99,16 +100,10 @@ merge_list = idx_list.copy()
 idx_list = [1]
 
 # TODO REMOVE
-tmp_weight_decay = 1e-5
+# tmp_weight_decay = 1e-5
     
 
 for rep in range(repetition):
-    
-    if(rep >= 5): tmp_weight_decay = 1e-2;
-    if(rep >= 10): tmp_weight_decay = 1e-5; hidden_space_dimension = 128
-    if(rep >= 15): tmp_weight_decay = 1e-2;
-    if(rep >= 20): tmp_weight_decay = 1e-5; hidden_space_dimension = 256
-    if(rep >= 25): tmp_weight_decay = 1e-2;
     
     tmp_parameter_train = {'lr':learning_rate, 'alpha': alpha, 'beta': beta, 'gamma': gamma, 
                        'use_lr_scheduler':use_lr_scheduler, 'L2_loss_type': L2_loss_type, 'epochs':epochs,
@@ -159,7 +154,7 @@ for rep in range(repetition):
         
         # Optimizer
         # optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = 1e-5)
-        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate, weight_decay = tmp_weight_decay)
+        optimizer = torch.optim.AdamW(eeg_framework.parameters(), lr = learning_rate)
         
         # Learning weight scheduler 
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)
@@ -427,10 +422,17 @@ plt.title("Discriminator LOSS")
 
 # eeg_framework.load_state_dict(torch.load("Saved model/eeg_framework_advance_loss_243.pth"))
 idx_hidden_space = (31, 32)
-    
-# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = True, n_elements = 666, device = 'cuda')
 
-# visualizeHiddenSpace(eeg_framework.vae, train_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(train_dataset), device = 'cuda')
-# visualizeHiddenSpace(eeg_framework.vae, test_dataset, idx_hidden_space = idx_hidden_space, sampling = False, n_elements = len(test_dataset), device = 'cuda')
+figsize = (15, 15)
+alpha = 0.5
+s = 16
+
+mu_list, std_list = computeHiddenSpaceRepresentation(eeg_framework.vae, train_dataset, n_elements = -1, device = 'cuda')
+visualizeHiddenSpace(mu_list, std_list, sampling = True, figsize = figsize, alpha = alpha, s = s)
+visualizeHiddenSpace(mu_list, std_list, sampling = False, figsize = figsize, alpha = alpha, s = s)
+
+mu_list, std_list = computeHiddenSpaceRepresentation(eeg_framework.vae, test_dataset, n_elements = -1, device = 'cuda')
+visualizeHiddenSpace(mu_list, std_list, sampling = True, figsize = figsize, alpha = alpha, s = s)
+visualizeHiddenSpace(mu_list, std_list, sampling = False, figsize = figsize, alpha = alpha, s = s)
 
 #%%
