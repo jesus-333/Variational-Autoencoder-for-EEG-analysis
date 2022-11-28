@@ -1,15 +1,24 @@
 import wandb
 import torch
 
-from support_training import VAE_and_classifier_loss
-# from support.support_training import VAE_and_classifier_loss
+from support_training import VAE_and_classifier_loss, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
+import torch
+
+def bbb():
+    x = torch.rand(10) 
+    x_r = torch.rand(10)
+    mu  = torch.rand(10)
+    log_var = torch.rand(10)
+    true_label  = torch.rand(10)
+    predict_label = torch.rand(10)
+    a = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label)
+    return a
 
 #%% Principal function
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
     with wandb.init(project = wandb_config['project_name'], job_type = "train", config = train_config, name = wandb_config['run_name']) as run:
         train_config = wandb.config
-
 
         # Setup optimizer
         optimizer = torch.optim.AdamW(model.parameters(), lr = config['lr'], 
@@ -42,6 +51,7 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
         
     return model
 
+
 #%% Train cycle function
 
 def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_scheduler = None):
@@ -62,11 +72,17 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
         if train_config['use_scheduler']:
             log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
         
-        train_loss      = advance_epoch_wand(model, optimizer, train_loader, train_config, True)
-        validation_loss = advance_epoch_wand(model, optimizer, validation_loader, train_config, False)
+        # Advance epoch for train set (backward pass) and validation (no backward pass)
+        train_loss_list      = advance_epoch_wand(model, optimizer, train_loader, train_config, True)
+        validation_loss_list = advance_epoch_wand(model, optimizer, validation_loader, train_config, False)
+        
+        # Update the log with the epoch loss
+        update_log_dict(train_loss_list, log_dict, 'train')
+        update_log_dict(validation_loss_list, log_dict, 'validation')
 
-        log_dict['train_loss']      = train_loss
-        log_dict['validation_loss'] = validation_loss
+        # Measure Accuracy
+        if train_config['measure_accuracy_during_training']:
+            train_accuracy = measureAccuracyAndKappaScore()
 
         # Save the model after the epoch
         # N.b. When the variable epoch is 0 the model is trained for an epoch when arrive at this instructions.
@@ -78,6 +94,11 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
         
         # Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None: lr_scheduler.step()
+        
+        # Print loss 
+        if train_config['print_var']:
+            print("Epoch:{}".format(epoch))
+            print(get_loss_string(log_dict))
         
 
 def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
@@ -123,7 +144,7 @@ def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
                                                     train_config['L2_loss_type'])
         
 
-        # ACcumulate the  loss
+        # cccumulate the  loss
         tot_loss += total_loss * x.shape[0]
         tot_recon_loss += loss_list[1] * x.shape[0]
         tot_kl_loss += loss_list[2] * x.shape[0]
@@ -141,12 +162,42 @@ def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
 
 
 #%% Other function
+
 def add_model_to_artifact(model, artifact, model_name = "model.pth"):
     torch.save(model.state_dict(), model_name)
     artifact.add_file(model_name)
     wandb.save(model_name)
 
-# TODO
-def update_log_dict(loss_list):
-    pass
+def update_log_dict(loss_list, log_dict, label):
+    tot_loss += loss_list[0]
+    recon_loss += loss_list[1]
+    kl_loss += loss_list[2]
+    discriminator_loss += loss_list[2]
+
+    log_dict["tot_loss_{}".format(label)] = tot_loss
+    log_dict["recon_loss_{}".format(label)] = recon_loss
+    log_dict["kl_loss_{}".format(label)] = kl_loss
+    log_dict["discriminator_loss_{}".format(label)] = discriminator_loss
+
+def get_loss_string(log_dict):
+    tmp_loss = ""
+    
+    tmp_loss += "\t(TRAIN) Tot   Loss:" + str(log_dict['tot_loss_train']) + "\n"
+    tmp_loss += "\t(TRAIN) Recon Loss:" + str(log_dict['recon_loss_train']) + "\n"
+    tmp_loss += "\t(TRAIN) KL    Loss:" + str(log_dict['kl_loss_train']) + "\n"
+    tmp_loss += "\t(TRAIN) Disc  Loss:" + str(log_dict['discriminator_loss_train']) + "\n"
+
+    tmp_loss += "\t(VALID) Tot   Loss:" + str(log_dict['tot_loss_validation']) + "\n"
+    tmp_loss += "\t(VALID) Recon Loss:" + str(log_dict['recon_loss_validation']) + "\n"
+    tmp_loss += "\t(VALID) KL    Loss:" + str(log_dict['kl_loss_validation']) + "\n"
+    tmp_loss += "\t(VALID) Disc  Loss:" + str(log_dict['discriminator_loss_validation']) + "\n"
+
+    return tmp_loss
+
+
+def compute_label(eeg_framework, loader):
+    """
+    Method create to compute the label in a dataloader with the eeg_framework class
+    """
+
 
