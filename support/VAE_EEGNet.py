@@ -42,7 +42,7 @@ class EEGNetVAE(nn.Module):
         
         sigma = torch.exp(0.5 * log_var)
         z = torch.randn(size = (mu.size(0),mu.size(1)))
-        z= z.type_as(mu) # Setting z to be .cuda when using GPU training 
+        z = z.type_as(mu) # Setting z to be .cuda when using GPU training 
         
         return mu + sigma*z
     
@@ -205,7 +205,6 @@ class EEGFramework(nn.Module):
         if(use_reparametrization_for_classification): self.classifier = CLF_V1(hidden_space_dimension)
         else: self.classifier = CLF_V1(hidden_space_dimension * 2)
         
-        
         self.use_reparametrization_for_classification = use_reparametrization_for_classification
         
         self.trainable_parameter_VAE = sum(p.numel() for p in  self.vae.parameters() if p.requires_grad)
@@ -218,7 +217,7 @@ class EEGFramework(nn.Module):
         # Foraward pass through VAE
         x_r, mu, log_var = self.vae(x)
                 
-        # (OPTIONAL) Reparametrization
+        # (OPTIONAL) Reparametrization for classification
         if(self.use_reparametrization_for_classification): z = self.vae.reparametrize(mu, log_var)
         else: z = torch.cat((mu, log_var), dim = 1)
         
@@ -227,3 +226,14 @@ class EEGFramework(nn.Module):
         
         # Return reconstructed input, mu and log variance vectors and label of the input.
         return x_r, mu, log_var, label
+
+    def classify(self, x, return_as_index = True):
+        mu, log_var = self.vae.encoder(x)
+        z = torch.cat((mu, log_var), dim = 1)
+        label = self.classifier(z)
+
+        if return_as_index:
+            predict_prob = np.squeeze(torch.exp(label).cpu().detach().numpy())
+            label = np.argmax(predict_prob)
+
+        return label
