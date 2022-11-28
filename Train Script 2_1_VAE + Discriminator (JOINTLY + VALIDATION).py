@@ -218,6 +218,7 @@ for rep in range(repetition):
             tmp_loss_val_kl = tmp_loss_val[2]
             tmp_loss_val_discriminator = tmp_loss_val[3]
             
+            # TODO correct
             # Save train losses
             total_loss_train.append(float(tmp_loss_train_total))
             reconstruction_loss_train.append(float(tmp_loss_train_recon))
