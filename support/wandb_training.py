@@ -1,7 +1,8 @@
 import wandb
 import torch
 
-from support.support_training import VAE_and_classifier_loss
+from support_training import VAE_and_classifier_loss
+# from support.support_training import VAE_and_classifier_loss
 
 #%% Principal function
 
@@ -100,10 +101,11 @@ def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
             
             # Loss evaluation
             loss_list = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, 
-                                                config['use_shifted_VAE_loss'], config['alpha'], config['beta'], config['gamma'], 
-                                                config['L2_loss_type'])
+                                                train_config['use_shifted_VAE_loss'], 
+                                                train_config['alpha'], train_config['beta'], train_config['gamma'], 
+                                                train_config['L2_loss_type'])
+            
             total_loss = loss_list[0]
-
             # total_loss, recon_loss, kl_loss, discriminator_loss
         
             # Backward/Optimization pass
@@ -111,7 +113,31 @@ def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
             optimizer.step()
         else:
             with torch.no_grad():
-                pass
+                # Forward pass
+                x_r, mu, log_var, predict_label = model(x)
+            
+                # Loss evaluation
+                loss_list = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, 
+                                                    train_config['use_shifted_VAE_loss'], 
+                                                    train_config['alpha'], train_config['beta'], train_config['gamma'], 
+                                                    train_config['L2_loss_type'])
+        
+
+        # ACcumulate the  loss
+        tot_loss += total_loss * x.shape[0]
+        tot_recon_loss += loss_list[1] * x.shape[0]
+        tot_kl_loss += loss_list[2] * x.shape[0]
+        tot_discriminator_loss += loss_list[2] * x.shape[0]
+
+    # End training cycle
+
+    # Compute final loss
+    tot_loss = tot_loss / len(loader.sampler)
+    tot_recon_loss = tot_recon_loss / len(loader.sampler)
+    tot_kl_loss = tot_kl_loss / len(loader.sampler)
+    tot_discriminator_loss = tot_discriminator_loss / len(loader.sampler)
+    
+    return [tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss]
 
 
 #%% Other function
@@ -119,3 +145,8 @@ def add_model_to_artifact(model, artifact, model_name = "model.pth"):
     torch.save(model.state_dict(), model_name)
     artifact.add_file(model_name)
     wandb.save(model_name)
+
+# TODO
+def update_log_dict(loss_list):
+    pass
+
