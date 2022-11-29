@@ -1,9 +1,19 @@
+"""
+@author: Alberto Zancanaro (Jesus)
+@organization: University of Padua (Italy)
+
+Script to train the model with the wandb framework
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Imports
+
 import wandb
 import torch
 
 from support_training import VAE_and_classifier_loss, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
-import torch
+from metrics import compute_metrics
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Principal function
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
@@ -41,7 +51,7 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
         
     return model
 
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Train cycle function
 
 def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_scheduler = None):
@@ -63,16 +73,20 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
             log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
         
         # Advance epoch for train set (backward pass) and validation (no backward pass)
-        train_loss_list      = advance_epoch_wand(model, optimizer, train_loader, train_config, True)
-        validation_loss_list = advance_epoch_wand(model, optimizer, validation_loader, train_config, False)
+        train_loss_list      = advance_epoch(model, optimizer, train_loader, train_config, True)
+        validation_loss_list = advance_epoch(model, optimizer, validation_loader, train_config, False)
         
         # Update the log with the epoch loss
-        update_log_dict(train_loss_list, log_dict, 'train')
-        update_log_dict(validation_loss_list, log_dict, 'validation')
+        update_log_dict_loss(train_loss_list, log_dict, 'train')
+        update_log_dict_loss(validation_loss_list, log_dict, 'validation')
 
         # Measure Accuracy
         if train_config['measure_accuracy_during_training']:
-            train_accuracy = measureAccuracyAndKappaScore()
+            train_metrics_list = compute_metrics(model, train_loader)    
+            validation_metrics_list = compute_metrics(model, validation_loader)
+
+            update_log_dict_metrics(train_metrics_list, log_dict, 'train')
+            update_log_dict_metrics(validation_metrics_list, log_dict, 'validation')
 
         # Save the model after the epoch
         # N.b. When the variable epoch is 0 the model is trained for an epoch when arrive at this instructions.
@@ -91,7 +105,7 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
             print(get_loss_string(log_dict))
         
 
-def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
+def advance_epoch(model, optimizer, loader, train_config, is_train):
     """
     Function to advance a single epoch of the model
     """
@@ -151,6 +165,7 @@ def advance_epoch_wand(model, optimizer, loader, train_config, is_train):
     return [tot_loss, tot_recon_loss, tot_kl_loss, tot_discriminator_loss]
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Other function
 
 def add_model_to_artifact(model, artifact, model_name = "model.pth"):
@@ -158,16 +173,33 @@ def add_model_to_artifact(model, artifact, model_name = "model.pth"):
     artifact.add_file(model_name)
     wandb.save(model_name)
 
-def update_log_dict(loss_list, log_dict, label):
-    tot_loss += loss_list[0]
-    recon_loss += loss_list[1]
-    kl_loss += loss_list[2]
-    discriminator_loss += loss_list[2]
+
+def update_log_dict_loss(loss_list, log_dict, label):
+    tot_loss = loss_list[0]
+    recon_loss = loss_list[1]
+    kl_loss = loss_list[2]
+    discriminator_loss = loss_list[3]
 
     log_dict["tot_loss_{}".format(label)] = tot_loss
     log_dict["recon_loss_{}".format(label)] = recon_loss
     log_dict["kl_loss_{}".format(label)] = kl_loss
     log_dict["discriminator_loss_{}".format(label)] = discriminator_loss
+
+
+def update_log_dict_metrics(metrics_list, log_dict, label):
+    # return accuracy, cohen_kappa, sensitivity, specificity, f1
+    accuracy = metrics_list[0]
+    cohen_kappa = metrics_list[1]
+    sensitivity = metrics_list[2]
+    specificity = metrics_list[3]
+    f1 = metrics_list[4]
+
+    log_dict['accuracy_{}'.format(label)] = accuracy
+    log_dict['cohen_kappa_{}'.format(label)] = cohen_kappa
+    log_dict['sensitivity_{}'.format(label)] = sensitivity
+    log_dict['specificity_{}'.format(label)] = specificity
+    log_dict['f1_{}'.format(label)] = f1
+
 
 def get_loss_string(log_dict):
     tmp_loss = ""
