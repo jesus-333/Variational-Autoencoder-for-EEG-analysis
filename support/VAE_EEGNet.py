@@ -233,7 +233,7 @@ class EEGFramework(nn.Module):
         label = self.classifier(z)
 
         if return_as_index:
-            predict_prob = np.squeeze(torch.exp(label).cpu().detach().numpy())
-            label = np.argmax(predict_prob)
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
 
         return label

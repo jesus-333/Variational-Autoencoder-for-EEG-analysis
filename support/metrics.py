@@ -14,26 +14,27 @@ from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def compute_metrics(eeg_framework, loader):
-    true_label, predict_label = compute_label(eeg_framework, loader)
+def compute_metrics(eeg_framework, loader, device):
+    true_label, predict_label = compute_label(eeg_framework, loader, device)
 
     metrics_list = compute_metrics_from_labels(true_label, predict_label)
 
     return metrics_list
 
-def compute_label(eeg_framework, loader):
+def compute_label(eeg_framework, loader, device):
     """
     Method create to compute the label in a dataloader with the eeg_framework class
     """
     
     eeg_framework.eval()
+    eeg_framework.to(device)
 
     true_label_list = []
     predict_label_list = []
 
     for batch in loader:
         # Get data and true labels
-        x = batch[0]
+        x = batch[0].to(device)
         tmp_true_label = batch[1]
         
         # Compute predicted labels
@@ -42,10 +43,10 @@ def compute_label(eeg_framework, loader):
         # Save predicted and true labels
         true_label_list.append(tmp_true_label)
         predict_label_list.append(tmp_predict_label)
-    
+        
     # Convert list in tensor
-    true_label = torch.cat(true_label_list)
-    predict_label = torch.cat(predict_label_list)
+    true_label = torch.cat(true_label_list).cpu()
+    predict_label = torch.cat(predict_label_list).cpu()
 
     return true_label, predict_label
 
@@ -53,9 +54,9 @@ def compute_label(eeg_framework, loader):
 def compute_metrics_from_labels(true_label, predict_label):
     accuracy    = accuracy_score(true_label, predict_label)
     cohen_kappa = cohen_kappa_score(true_label, predict_label)
-    sensitivity = recall_score(true_label, predict_label)
+    sensitivity = recall_score(true_label, predict_label, average = 'weighted')
     specificity = compute_specificity_multiclass(true_label, predict_label)
-    f1          = f1_score(true_label, predict_label)
+    f1          = f1_score(true_label, predict_label, average = 'weighted')
 
     return accuracy, cohen_kappa, sensitivity, specificity, f1
 

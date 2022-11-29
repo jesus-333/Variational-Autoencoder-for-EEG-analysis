@@ -9,23 +9,52 @@ Script to train the model with the wandb framework
 
 import wandb
 import torch
+from torch.utils.data import DataLoader
 
 from metrics import compute_metrics
+from support_training import VAE_and_classifier_loss
+import config_file as cf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Principal function
+
+def train_and_test_model(hidden_space = 16):
+    # Get the various config
+    dataset_config = cf.get_dataset_config()
+    train_config = cf.get_train_config()
+
+    # Get the training data
+    train_dataset, validation_dataset = cf.get_train_data(dataset_config)
+    
+    # Create dataloader
+    train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
+    validation_dataloader   = DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
+    loader_list = [train_dataloader, validation_dataloader]
+
+    # Get the model
+    C = train_dataset[0][0].shape[1]
+    T = train_dataset[0][0].shape[2]
+    eeg_framework = cf.get_model(C, T, hidden_space)
+
+    # Train the model 
+
+    for rep in range(train_config['repetition']):
+        wandb_config = cf.get_wandb_config('train_VAE_EEG_{}'.format(rep))
+        model = train_model_wandb(eeg_framework, loader_list, train_config, wandb_config)
+    
+    return model
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
     with wandb.init(project = wandb_config['project_name'], job_type = "train", config = train_config, name = wandb_config['run_name']) as run:
         train_config = wandb.config
 
         # Setup optimizer
-        optimizer = torch.optim.AdamW(model.parameters(), lr = config['lr'], 
-                                      weight_decay = config['optimizer_weight_decay'])
+        optimizer = torch.optim.AdamW(model.parameters(), lr = train_config['lr'], 
+                                      weight_decay = train_config['optimizer_weight_decay'])
 
         # Setup lr scheduler
         if train_config['use_scheduler'] == True:
-            lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['gamma'])
+            lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
         else:
             lr_scheduler = None
             
@@ -33,7 +62,7 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
         model_artifact_name = train_config['model_artifact_name'] + '_trained'
         metadata = dict(training_config = dict(train_config))
         model_artifact = wandb.Artifact(model_artifact_name, type = "model",
-                                        description = "Trained {}:{} model".format(train_config['model_artifact_name'], train_config['version']),
+                                        description = "Trained {} model".format(train_config['model_artifact_name']),
                                         metadata = metadata)
         
         # Print the training device
@@ -81,8 +110,8 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
 
         # Measure Accuracy
         if train_config['measure_accuracy_during_training']:
-            train_metrics_list = compute_metrics(model, train_loader)    
-            validation_metrics_list = compute_metrics(model, validation_loader)
+            train_metrics_list = compute_metrics(model, train_loader, train_config['device'])    
+            validation_metrics_list = compute_metrics(model, validation_loader, train_config['device'])
 
             update_log_dict_metrics(train_metrics_list, log_dict, 'train')
             update_log_dict_metrics(validation_metrics_list, log_dict, 'validation')
@@ -112,6 +141,11 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
     if is_train: model.train()
     else: model.eval()
     
+    tot_loss = 0
+    tot_recon_loss = 0
+    tot_kl_loss = 0
+    tot_discriminator_loss = 0
+
     for sample_data_batch, sample_label_batch in loader:
         x = sample_data_batch.to(train_config['device'])
         true_label = sample_label_batch.to(train_config['device'])
@@ -145,7 +179,7 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
                                                     train_config['use_shifted_VAE_loss'], 
                                                     train_config['alpha'], train_config['beta'], train_config['gamma'], 
                                                     train_config['L2_loss_type'])
-        
+                total_loss = loss_list[0]    
 
         # cccumulate the  loss
         tot_loss += total_loss * x.shape[0]
@@ -203,15 +237,15 @@ def update_log_dict_metrics(metrics_list, log_dict, label):
 def get_loss_string(log_dict):
     tmp_loss = ""
     
-    tmp_loss += "\t(TRAIN) Tot   Loss:" + str(log_dict['tot_loss_train']) + "\n"
-    tmp_loss += "\t(TRAIN) Recon Loss:" + str(log_dict['recon_loss_train']) + "\n"
-    tmp_loss += "\t(TRAIN) KL    Loss:" + str(log_dict['kl_loss_train']) + "\n"
-    tmp_loss += "\t(TRAIN) Disc  Loss:" + str(log_dict['discriminator_loss_train']) + "\n"
+    tmp_loss += "\t(TRAIN) Tot   Loss:\t" + str(float(log_dict['tot_loss_train'])) + "\n"
+    tmp_loss += "\t(TRAIN) Recon Loss:\t" + str(float(log_dict['recon_loss_train'])) + "\n"
+    tmp_loss += "\t(TRAIN) KL    Loss:\t" + str(float(log_dict['kl_loss_train'])) + "\n"
+    tmp_loss += "\t(TRAIN) Disc  Loss:\t" + str(float(log_dict['discriminator_loss_train'])) + "\n\n"
 
-    tmp_loss += "\t(VALID) Tot   Loss:" + str(log_dict['tot_loss_validation']) + "\n"
-    tmp_loss += "\t(VALID) Recon Loss:" + str(log_dict['recon_loss_validation']) + "\n"
-    tmp_loss += "\t(VALID) KL    Loss:" + str(log_dict['kl_loss_validation']) + "\n"
-    tmp_loss += "\t(VALID) Disc  Loss:" + str(log_dict['discriminator_loss_validation']) + "\n"
+    tmp_loss += "\t(VALID) Tot   Loss:\t" + str(float(log_dict['tot_loss_validation'])) + "\n"
+    tmp_loss += "\t(VALID) Recon Loss:\t" + str(float(log_dict['recon_loss_validation'])) + "\n"
+    tmp_loss += "\t(VALID) KL    Loss:\t" + str(float(log_dict['kl_loss_validation'])) + "\n"
+    tmp_loss += "\t(VALID) Disc  Loss:\t" + str(float(log_dict['discriminator_loss_validation'])) + "\n"
 
     return tmp_loss
 

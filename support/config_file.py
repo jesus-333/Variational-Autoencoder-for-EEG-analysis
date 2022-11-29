@@ -21,7 +21,7 @@ def get_dataset_config():
         test_path = 'Dataset/D2A/v2_raw_128/Test/',
         merge_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = False,
-        percentage_train = 0.9,
+        percentage_split = 0.9,
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
     )
 
@@ -41,7 +41,7 @@ def get_train_config():
         # Training settings
         batch_size = 32,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 1,                         # Number of epochs to train the model
+        epochs = 2,                         # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
@@ -67,28 +67,32 @@ def get_train_config():
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Model and data function
 
-def get_data(config):
+def get_train_data(config):
     """
-    Return dataset and dataloader
+    Return the training data of the D2A dataset  
     """
     full_dataset = PytorchDatasetEEGMergeSubject(config['train_path'], idx_list = config['merge_list'], 
                                                  normalize_trials = config['normalize_trials'], 
                                                  optimize_memory = False, device = config['device'])
     
-    size_train = int(len(full_dataset) * config['percentage_train']) 
+    # test_dataset = PytorchDatasetEEGMergeSubject(config['test_path'], idx_list = config['merge_list'], 
+    #                                              normalize_trials = config['normalize_trials'], 
+    #                                              optimize_memory = False, device = config['device'])
+    
+    train_dataset, validation_dataset = split_dataset(full_dataset, config['percentage_split'])
+
+    return train_dataset, validation_dataset
+
+def split_dataset(full_dataset, percentage_split):
+    """
+    Split a dataset in 2 
+    """
+
+    size_train = int(len(full_dataset) * percentage_split) 
     size_val = len(full_dataset) - size_train
     train_dataset, validation_dataset = torch.utils.data.random_split(full_dataset, [size_train, size_val])
     
-    test_dataset = PytorchDatasetEEGMergeSubject(config['test_path'], idx_list = config['merge_list'], 
-                                                 normalize_trials = config['normalize_trials'], 
-                                                 optimize_memory = False, device = config['device'])
-    
-    # train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
-    # validation_dataloader = DataLoader(validation_dataset, batch_size = batch_size, shuffle = True)
-    # if(print_var): print("TRAIN dataset and dataloader created\n")
-
-    return train_dataset, validation_dataset, test_dataset
-
+    return train_dataset, validation_dataset
 
 def get_model(C, T, hidden_space_dimension):
         eeg_framework = EEGFramework(C = C, T = T, hidden_space_dimension = hidden_space_dimension, 
