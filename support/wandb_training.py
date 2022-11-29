@@ -4,16 +4,6 @@ import torch
 from support_training import VAE_and_classifier_loss, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
 import torch
 
-def bbb():
-    x = torch.rand(10) 
-    x_r = torch.rand(10)
-    mu  = torch.rand(10)
-    log_var = torch.rand(10)
-    true_label  = torch.rand(10)
-    predict_label = torch.rand(10)
-    a = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label)
-    return a
-
 #%% Principal function
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
