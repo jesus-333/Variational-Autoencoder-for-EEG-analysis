@@ -10,7 +10,6 @@ Script to train the model with the wandb framework
 import wandb
 import torch
 
-from support_training import VAE_and_classifier_loss, measureAccuracyAndKappaScore, measureSingleSubjectAccuracyAndKappaScore
 from metrics import compute_metrics
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
