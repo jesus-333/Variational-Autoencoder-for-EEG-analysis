@@ -36,7 +36,7 @@ def train_and_test_model_wandb(hidden_space = 16):
     loader_list             = [train_dataloader, validation_dataloader]
     
     # Get test data
-    test_loader_list = cf.get_test_data(dataset_config, return_dataloader = True, batch_size = train_config['batch_size'])
+    test_loader_list = cf.get_subject_data(dataset_config, 'test', return_dataloader = True, batch_size = train_config['batch_size'])
 
     # Variables
     C = train_dataset[0][0].shape[1] # Used for model creation

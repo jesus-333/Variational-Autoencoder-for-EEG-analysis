@@ -51,17 +51,17 @@ def get_train_config():
         model_artifact_name = "vEEGNet",    # Name of the artifact used to save the models
         # Training settings
         batch_size = 15,                    
-        lr = 1e-3,                          # Learning rate (lr)
+        lr = 1e-2,                          # Learning rate (lr)
         epochs = 500,                       # Number of epochs to train the model
-        use_scheduler = False,               # Use the lr scheduler
-        lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
+        use_scheduler = True,               # Use the lr scheduler
+        lr_decay_rate = 0.995,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-5,      # Weight decay of the optimizer
-        use_shifted_VAE_loss = False,
+        use_shifted_VAE_loss = True,
         L2_loss_type = 0,                   # 0 ---> Simple MSE, 2 ---> Advance MSE (used likelihood formulation)
         # Loss multiplication factor
         alpha = 0.1,                          # Reconstruction
         beta = 1,                           # KL
-        gamma = 1,                          # Discrimination
+        gamma = 2,                          # Discrimination
         # Support stuff (device, log frequency etc)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
         log_freq = 1,
@@ -83,7 +83,7 @@ def get_metrics_config():
 
     metrics_config = dict(
         metrics_artifact_name = "jesus_333/VAE_EEG/Metrics",
-        version_list = [5, 6, 7, 8],
+        version_list = [5, 6, 7, 8, 9],
         metrics_name = ["accuracy", "cohen_kappa", "sensitivity", "specificity", "f1"]
     )
 
@@ -104,12 +104,21 @@ def get_train_data(config):
 
     return train_dataset, validation_dataset
 
-def get_test_data(config, return_dataloader = True, batch_size = 32):
+def get_subject_data(config, data_type, return_dataloader = True, batch_size = 32):
+    """
+    Load the data, divided for each subject
+    """
+
     idx_list = [1,2,3,4,5,6,7,8,9]
     data_list = []
 
     for idx in idx_list:
-        path = config['test_path'] + '{}/'.format(idx)
+        if data_type == 'test':
+            path = config['test_path'] + '{}/'.format(idx)
+        elif data_type == 'train':
+            path = config['train_path'] + '{}/'.format(idx)
+        else:
+            raise ValueError("data_type must be train or test")
         dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = config['normalize_trials'])
             
         if return_dataloader: data_list.append(DataLoader(dataset_subject, batch_size = batch_size, shuffle = True))
