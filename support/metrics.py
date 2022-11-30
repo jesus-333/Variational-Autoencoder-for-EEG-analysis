@@ -12,8 +12,8 @@ import numpy as np
 import torch
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
-
 import os
+import wandb
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -103,22 +103,23 @@ def compute_specificity_binary(true_label, predict_label):
 #%% Other function
 
 def get_results_from_wandb(config):
-    run = wandb.init()
+    run = wandb.init(project = "content")
     
-    metrics_dict = create_metrics_dict()
+    metrics_dict = create_metrics_dict(config)
 
-    for i in range(config['version_list']):
-        artifact = run.use_artifact('jesus_333/VAE_EEG/Metrics:v{}'.format(i), type='metrics')
+    for i in range(len(config['version_list'])):
+        version = config['version_list'][i]
+        artifact = run.use_artifact('jesus_333/VAE_EEG/Metrics:v{}'.format(version), type='metrics')
         metrics_dir = artifact.download()
 
-        tmp_metrics_END      = pd.read_csv(os.path.join(metrics_dir, 'metrics_END.csv')).to_numpy()
-        tmp_metrics_BEST_CLF = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_CLF.csv')).to_numpy()
-        tmp_metrics_BEST_TOT = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_TOT.csv')).to_numpy()
+        tmp_metrics_END      = pd.read_csv(os.path.join(metrics_dir, 'metrics_END.csv'))
+        tmp_metrics_BEST_CLF = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_CLF.csv'))
+        tmp_metrics_BEST_TOT = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_TOT.csv'))
         
         for metric in config['metrics_name']:
-            metrics_dict[metric]['END'][:, i] = tmp_metrics_END[metrics]
-            metrics_dict[metric]['BEST_CLF'][:, i] = tmp_metrics_BEST_CLF[metrics]
-            metrics_dict[metric]['BEST_TOT'][:, i] = tmp_metrics_BEST_TOT[metrics]
+            metrics_dict[metric]['END'][:, i] = tmp_metrics_END[metric]
+            metrics_dict[metric]['BEST_CLF'][:, i] = tmp_metrics_BEST_CLF[metric]
+            metrics_dict[metric]['BEST_TOT'][:, i] = tmp_metrics_BEST_TOT[metric]
 
     return metrics_dict
 
@@ -134,9 +135,9 @@ def create_metrics_dict(config):
 
     for metrics in config['metrics_name']:
         metrics_dict[metrics] = {}
-        metrics_dict[metrics]['END'] = np.zeros(9, len(config['version_list']))
-        metrics_dict[metrics]['BEST_CLF'] = np.zeros(9, len(config['version_list']))
-        metrics_dict[metrics]['BEST_TOT'] = np.zeros(9, len(config['version_list']))
+        metrics_dict[metrics]['END']      = np.zeros((9, len(config['version_list'])))
+        metrics_dict[metrics]['BEST_CLF'] = np.zeros((9, len(config['version_list'])))
+        metrics_dict[metrics]['BEST_TOT'] = np.zeros((9, len(config['version_list'])))
     
     return metrics_dict
 

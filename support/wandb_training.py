@@ -183,11 +183,13 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
         update_log_dict_loss(train_loss_list, log_dict, 'train')
         update_log_dict_loss(validation_loss_list, log_dict, 'validation')
 
-        # Measure Accuracy
-        if train_config['measure_accuracy_during_training']:
+        # Measure the various metrics
+        if train_config['measure_metrics_during_training']:
+            # Compute the various metrics
             train_metrics_list = compute_metrics(model, train_loader, train_config['device'])    
             validation_metrics_list = compute_metrics(model, validation_loader, train_config['device'])
-
+            
+            # Save the metrics in the log
             update_log_dict_metrics(train_metrics_list, log_dict, 'train')
             update_log_dict_metrics(validation_metrics_list, log_dict, 'validation')
 
@@ -219,7 +221,7 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
     """
     Function to advance a single epoch of the model
     """
-
+    
     if is_train: model.train()
     else: model.eval()
     
@@ -267,7 +269,7 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
         tot_loss += total_loss * x.shape[0]
         tot_recon_loss += loss_list[1] * x.shape[0]
         tot_kl_loss += loss_list[2] * x.shape[0]
-        tot_discriminator_loss += loss_list[2] * x.shape[0]
+        tot_discriminator_loss += loss_list[3] * x.shape[0]
 
     # End training cycle
 
