@@ -11,6 +11,7 @@ TO EXECUTE
 %autoreload 2
 import sys
 sys.path.insert(0, 'support')
+import wandb_training
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,6 +22,7 @@ from torch.utils.data import DataLoader
 
 from VAE_EEGNet import EEGFramework
 from support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Config dictionary
 
@@ -48,12 +50,12 @@ def get_train_config():
     train_config = dict(
         model_artifact_name = "vEEGNet",    # Name of the artifact used to save the models
         # Training settings
-        batch_size = 32,                    
+        batch_size = 35,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 2,                         # Number of epochs to train the model
+        epochs = 500,                       # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
-        optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
+        optimizer_weight_decay = 1e-5,      # Weight decay of the optimizer
         use_shifted_VAE_loss = False,
         L2_loss_type = 0,
         # Loss multiplication factor
@@ -63,11 +65,11 @@ def get_train_config():
         # Support stuff (device, log frequency etc)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
         log_freq = 1,
-        epoch_to_save_model = 1,
+        epoch_to_save_model = 5,
         measure_accuracy_during_training = True,
-        repetition = 3,                     # Number of time to repeat the training 
+        repetition = 1,                     # Number of time to repeat the training 
         print_var = True,
-        debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
+        debug = False,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
     
 

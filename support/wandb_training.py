@@ -55,7 +55,7 @@ def train_and_test_model_wandb(hidden_space = 16):
         wandb_config = cf.get_wandb_config('test_VAE_EEG_{}'.format(rep))
         df_metrics_list = test_model_wandb(eeg_framework, test_loader_list, train_config, wandb_config)
     
-    return model
+    return model, df_metrics_list
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
     # Create a folder (if not exist already) to store temporary file during training
