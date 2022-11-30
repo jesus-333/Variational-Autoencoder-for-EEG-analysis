@@ -9,9 +9,10 @@ Contain the function with the config for the training and to get model and data
 #&& Imports
 
 import torch
+from torch.utils.data import DataLoader
 
 from VAE_EEGNet import EEGFramework
-from support_datasets import PytorchDatasetEEGMergeSubject
+from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Config dictionary
 
@@ -75,13 +76,22 @@ def get_train_data(config):
                                                  normalize_trials = config['normalize_trials'], 
                                                  optimize_memory = False, device = config['device'])
     
-    # test_dataset = PytorchDatasetEEGMergeSubject(config['test_path'], idx_list = config['merge_list'], 
-    #                                              normalize_trials = config['normalize_trials'], 
-    #                                              optimize_memory = False, device = config['device'])
-    
     train_dataset, validation_dataset = split_dataset(full_dataset, config['percentage_split'])
 
     return train_dataset, validation_dataset
+
+def get_test_data(config, return_dataloader = True, batch_size = 32):
+    idx_list = [1,2,3,4,5,6,7,8,9]
+    data_list = []
+
+    for idx in idx_list:
+        path = config['path_test'] + '{}/'.format(idx)
+        dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = config['normalize_trials'])
+            
+        if return_dataloader: data_list.append(DataLoader(dataset_subject, batch_size = batch_size, shuffle = True))
+        else: data_list.append(dataset_subject)
+
+    return data_list
 
 def split_dataset(full_dataset, percentage_split):
     """

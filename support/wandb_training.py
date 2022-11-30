@@ -34,6 +34,9 @@ def train_and_test_model_wandb(hidden_space = 16):
     train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
     validation_dataloader   = DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
     loader_list             = [train_dataloader, validation_dataloader]
+    
+    # Get test data
+    test_loader_list = cf.get_test_data(dataset_config, return_dataloader = True, batch_size = train_config['batch_size'])
 
     # Variables
     C = train_dataset[0][0].shape[1] # Used for model creation
@@ -50,6 +53,7 @@ def train_and_test_model_wandb(hidden_space = 16):
     
         # Test the model
         wandb_config = cf.get_wandb_config('test_VAE_EEG_{}'.format(rep))
+        df_metrics_list = test_model_wandb(eeg_framework, test_loader_list, train_config, wandb_config)
     
     return model
 
@@ -135,6 +139,8 @@ def test_model_wandb(model, test_loader_list, config, wandb_config):
         add_metrics_to_artifacts('TMP_File/metrics_BEST_CLF.csv')
 
         run.log_artifact(metrics_artifact)
+
+        return df_END, df_BEST_TOT, df_BEST_VAL
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Train cycle function
