@@ -5,14 +5,22 @@
 Contain the function with the config for the training and to get model and data
 """
 
+"""
+TO EXECUTE
+%load_ext autoreload
+%autoreload 2
+import sys
+sys.path.insert(0, 'support')
+"""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#&& Imports
+#%% Imports
 
 import torch
 from torch.utils.data import DataLoader
 
 from VAE_EEGNet import EEGFramework
-from support.support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
+from support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Config dictionary
 
