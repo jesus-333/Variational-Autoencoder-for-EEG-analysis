@@ -7,7 +7,11 @@ Script to train the model with the wandb framework
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
+import sys
+import os
 import wandb
+import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
@@ -18,7 +22,7 @@ import config_file as cf
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Principal function
 
-def train_and_test_model(hidden_space = 16):
+def train_and_test_model_wandb(hidden_space = 16):
     # Get the various config
     dataset_config = cf.get_dataset_config()
     train_config = cf.get_train_config()
@@ -29,22 +33,30 @@ def train_and_test_model(hidden_space = 16):
     # Create dataloader
     train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
     validation_dataloader   = DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
-    loader_list = [train_dataloader, validation_dataloader]
+    loader_list             = [train_dataloader, validation_dataloader]
 
-    # Get the model
-    C = train_dataset[0][0].shape[1]
-    T = train_dataset[0][0].shape[2]
-    eeg_framework = cf.get_model(C, T, hidden_space)
+    # Variables
+    C = train_dataset[0][0].shape[1] # Used for model creation
+    T = train_dataset[0][0].shape[2] # Used for model creation
 
     # Train the model 
-
     for rep in range(train_config['repetition']):
+        # Create the model 
+        eeg_framework = cf.get_model(C, T, hidden_space)
+
+        # Train the model
         wandb_config = cf.get_wandb_config('train_VAE_EEG_{}'.format(rep))
         model = train_model_wandb(eeg_framework, loader_list, train_config, wandb_config)
+    
+        # Test the model
+        wandb_config = cf.get_wandb_config('test_VAE_EEG_{}'.format(rep))
     
     return model
 
 def train_model_wandb(model, loader_list, train_config, wandb_config):
+    # Create a folder (if not exist already) to store temporary file during training
+    os.makedirs('TMP_File', exist_ok = True)
+
     with wandb.init(project = wandb_config['project_name'], job_type = "train", config = train_config, name = wandb_config['run_name']) as run:
         train_config = wandb.config
 
@@ -79,6 +91,51 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
         
     return model
 
+
+def test_model_wandb(model, test_loader_list, config, wandb_config):
+    with wandb.init(project = wandb_config['project_name'], job_type = "test", name = wandb_config['run_name']) as run:
+        # Variable to save results
+        metrics_END = np.zeros(9, 5)
+        metrics_BEST_TOT = np.zeros(9, 5)
+        metrics_BEST_CLF = np.zeros(9, 5)
+
+        # Compute metrics at the end of the train
+        for i in range(len(test_loader_list)):
+            loader = loader_list[i]
+
+            metrics_END[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+            
+        # Compute metrics when the model reach the best loss
+        for i in range(len(test_loader_list)):
+            loader = loader_list[i]
+            
+            # Best total loss
+            model.load_state_dict(torch.load("TMP_File/model_BEST_TOTAL.pth"))
+            metrics_BEST_TOT[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+
+            # Best classifier loss
+            model.load_state_dict(torch.load("TMP_File/model_BEST_CLF.pth"))
+            metrics_BEST_CLF[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+        
+        # Save the matrix in pandas dataframe
+        columns_names = ["accuracy", "cohen_kappa", "sensitivity", "specificity", "f1"]
+        df_END = pd.DataFrame(data = metrics_END, index = [1,2,3,4,5,6,7,8,9], columns = columns_names)
+        df_BEST_TOT = pd.DataFrame(data = metrics_BEST_TOT, index = [1,2,3,4,5,6,7,8,9], columns = columns_names)
+        df_BEST_VAL = pd.DataFrame(data = metrics_BEST_CLF, index = [1,2,3,4,5,6,7,8,9], columns = columns_names)
+
+        # Save dataframe to CSV
+        df_END.to_csv('TMP_File/metrics_END.csv')
+        df_BEST_TOT.to_csv('TMP_File/metrics_BEST_TOT.csv')
+        df_BEST_VAL.to_csv('TMP_File/metrics_BEST_CLF.csv')
+        
+        # Create wandb artifact and save results
+        metrics_artifact = wandb.Artifact(model_artifact_name, type = "metrics")
+        add_metrics_to_artifacts('TMP_File/metrics_END.csv')
+        add_metrics_to_artifacts('TMP_File/metrics_BEST_TOT.csv')
+        add_metrics_to_artifacts('TMP_File/metrics_BEST_CLF.csv')
+
+        run.log_artifact(metrics_artifact)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Train cycle function
 
@@ -90,11 +147,13 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
     # Parameter used to save the model every x epoch
     if 'epoch_to_save_model' not in train_config: train_config['epoch_to_save_model'] = 1
     
+    # Variable used during the traing
     train_loader = loader_list[0]
     validation_loader = loader_list[1]
-
     log_dict = {}
-    # Check the type of model
+    best_loss_val_tot = sys.maxsize # Best total loss
+    best_loss_val_clf = sys.maxsize # Best classifier loss
+    
     for epoch in range(train_config['epochs']):
         # Save lr
         if train_config['use_scheduler']:
@@ -103,6 +162,16 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
         # Advance epoch for train set (backward pass) and validation (no backward pass)
         train_loss_list      = advance_epoch(model, optimizer, train_loader, train_config, True)
         validation_loss_list = advance_epoch(model, optimizer, validation_loader, train_config, False)
+        
+        # Save the new BEST model if a new minimum is reach for the validation loss (TOTAL)
+        if validation_loss_list[0] < best_loss_val_tot:
+            best_loss_val_tot = validation_loss_list[0]
+            torch.save(model.state_dict(), 'TMP_File/model_BEST_TOTAL.pth')
+
+        # Save the new BEST model if a new minimum is reach for the validation loss (CLF)
+        if validation_loss_list[3] < best_loss_val_clf:
+            best_loss_val_clf = validation_loss_list[3]
+            torch.save(model.state_dict(), 'TMP_File/model_BEST_CLF.pth')
         
         # Update the log with the epoch loss
         update_log_dict_loss(train_loss_list, log_dict, 'train')
@@ -131,7 +200,14 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
         if train_config['print_var']:
             print("Epoch:{}".format(epoch))
             print(get_loss_string(log_dict))
-        
+
+        # End training cycle
+    
+    # Save the model with the best loss on validation set
+    model_artifact.add_file('TMP_File/model_BEST_TOTAL.pth')
+    model_artifact.add_file('TMP_File/model_BEST_CLF.pth')
+    wandb.save()
+
 
 def advance_epoch(model, optimizer, loader, train_config, is_train):
     """
@@ -206,6 +282,9 @@ def add_model_to_artifact(model, artifact, model_name = "model.pth"):
     artifact.add_file(model_name)
     wandb.save(model_name)
 
+def add_metrics_to_artifacts(metrics_file_name, artifact):
+    artifact.add_file(metrics_file_name)
+    wandb.save(metrics_file_name)
 
 def update_log_dict_loss(loss_list, log_dict, label):
     tot_loss = loss_list[0]
@@ -248,11 +327,3 @@ def get_loss_string(log_dict):
     tmp_loss += "\t(VALID) Disc  Loss:\t" + str(float(log_dict['discriminator_loss_validation'])) + "\n"
 
     return tmp_loss
-
-
-def compute_label(eeg_framework, loader):
-    """
-    Method create to compute the label in a dataloader with the eeg_framework class
-    """
-
-

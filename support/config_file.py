@@ -41,13 +41,12 @@ def get_train_config():
         # Training settings
         batch_size = 32,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 2,                         # Number of epochs to train the model
+        epochs = 3,                         # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         use_shifted_VAE_loss = False,
         L2_loss_type = 0,
-        repetition = 1,                     # Number of time to repeat the training 
         # Loss multiplication factor
         alpha = 1,                          # Reconstruction
         beta = 1,                           # KL
@@ -57,6 +56,7 @@ def get_train_config():
         log_freq = 1,
         epoch_to_save_model = 1,
         measure_accuracy_during_training = True,
+        repetition = 3,                     # Number of time to repeat the training 
         print_var = True,
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
