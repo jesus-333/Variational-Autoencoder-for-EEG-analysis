@@ -50,16 +50,16 @@ def get_train_config():
     train_config = dict(
         model_artifact_name = "vEEGNet",    # Name of the artifact used to save the models
         # Training settings
-        batch_size = 35,                    
-        lr = 1e-2,                          # Learning rate (lr)
-        epochs = 500,                       # Number of epochs to train the model
-        use_scheduler = True,               # Use the lr scheduler
+        batch_size = 20,                    
+        lr = 1e-3,                          # Learning rate (lr)
+        epochs = 200,                       # Number of epochs to train the model
+        use_scheduler = False,               # Use the lr scheduler
         lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-5,      # Weight decay of the optimizer
         use_shifted_VAE_loss = False,
         L2_loss_type = 0,
         # Loss multiplication factor
-        alpha = 1,                          # Reconstruction
+        alpha = 0.1,                          # Reconstruction
         beta = 1,                           # KL
         gamma = 1,                          # Discrimination
         # Support stuff (device, log frequency etc)
@@ -74,6 +74,20 @@ def get_train_config():
     
 
     return train_config
+
+
+def get_metrics_config():
+    """
+    Config to download the metrics from wandb 
+    """
+
+    metrics_config = dict(
+        metrics_artifact_name = "jesus_333/VAE_EEG/Metrics",
+        version_list = [5, 6, 7],
+        metric_names = ["accuracy", "cohen_kappa", "sensitivity", "specificity", "f1"]
+    )
+
+    return metrics_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Model and data function

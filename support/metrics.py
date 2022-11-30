@@ -10,7 +10,10 @@ Contain the function to compute accuracy and other metrics
 
 import numpy as np
 import torch
+import pandas as pd
 from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+
+import os
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,7 +52,6 @@ def compute_label(eeg_framework, loader, device):
     predict_label = torch.cat(predict_label_list).cpu()
 
     return true_label, predict_label
-
 
 def compute_metrics_from_labels(true_label, predict_label):
     accuracy    = accuracy_score(true_label, predict_label)
@@ -96,3 +98,48 @@ def compute_specificity_binary(true_label, predict_label):
     specificity = TN / (TN + FP)
 
     return specificity
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Other function
+
+def get_results_from_wandb(config):
+    run = wandb.init()
+    
+    metrics_dict = create_metrics_dict()
+
+    for i in range(config['version_list']):
+        artifact = run.use_artifact('jesus_333/VAE_EEG/Metrics:v{}'.format(i), type='metrics')
+        metrics_dir = artifact.download()
+
+        tmp_metrics_END      = pd.read_csv(os.path.join(metrics_dir, 'metrics_END.csv')).to_numpy()
+        tmp_metrics_BEST_CLF = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_CLF.csv')).to_numpy()
+        tmp_metrics_BEST_TOT = pd.read_csv(os.path.join(metrics_dir, 'metrics_BEST_TOT.csv')).to_numpy()
+        
+        for metric in config['metrics_name']:
+            metrics_dict[metric]['END'][:, i] = tmp_metrics_END[metrics]
+            metrics_dict[metric]['BEST_CLF'][:, i] = tmp_metrics_BEST_CLF[metrics]
+            metrics_dict[metric]['BEST_TOT'][:, i] = tmp_metrics_BEST_TOT[metrics]
+
+    return metrics_dict
+
+
+def create_metrics_dict(config):
+    """
+    Create the dictionary to save all the results download from wandb
+    The dictionary has as key the metrics.
+    Each metrics is another dictionary with the results at the END of the training and when the BEST losses are reach
+    """
+
+    metrics_dict = {}
+
+    for metrics in config['metrics_name']:
+        metrics_dict[metrics] = {}
+        metrics_dict[metrics]['END'] = np.zeros(9, len(config['version_list']))
+        metrics_dict[metrics]['BEST_CLF'] = np.zeros(9, len(config['version_list']))
+        metrics_dict[metrics]['BEST_TOT'] = np.zeros(9, len(config['version_list']))
+    
+    return metrics_dict
+
+def aggregate_by_metrics():
+    pass
+    

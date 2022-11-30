@@ -97,7 +97,7 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
 
 
 def test_model_wandb(model, test_loader_list, config, wandb_config):
-    with wandb.init(project = wandb_config['project_name'], job_type = "test", name = wandb_config['run_name']) as run:
+    with wandb.init(project = wandb_config['project_name'], job_type = "test", config = config, name = wandb_config['run_name']) as run:
         # Variable to save results
         metrics_END = np.zeros((9, 5))
         metrics_BEST_TOT = np.zeros((9, 5))
