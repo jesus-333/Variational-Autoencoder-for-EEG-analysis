@@ -42,7 +42,7 @@ def get_train_config():
         # Training settings
         batch_size = 32,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 3,                         # Number of epochs to train the model
+        epochs = 2,                         # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.99,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
@@ -85,7 +85,7 @@ def get_test_data(config, return_dataloader = True, batch_size = 32):
     data_list = []
 
     for idx in idx_list:
-        path = config['path_test'] + '{}/'.format(idx)
+        path = config['test_path'] + '{}/'.format(idx)
         dataset_subject = PytorchDatasetEEGSingleSubject(path, normalize_trials = config['normalize_trials'])
             
         if return_dataloader: data_list.append(DataLoader(dataset_subject, batch_size = batch_size, shuffle = True))

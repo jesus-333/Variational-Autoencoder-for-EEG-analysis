@@ -99,19 +99,19 @@ def train_model_wandb(model, loader_list, train_config, wandb_config):
 def test_model_wandb(model, test_loader_list, config, wandb_config):
     with wandb.init(project = wandb_config['project_name'], job_type = "test", name = wandb_config['run_name']) as run:
         # Variable to save results
-        metrics_END = np.zeros(9, 5)
-        metrics_BEST_TOT = np.zeros(9, 5)
-        metrics_BEST_CLF = np.zeros(9, 5)
+        metrics_END = np.zeros((9, 5))
+        metrics_BEST_TOT = np.zeros((9, 5))
+        metrics_BEST_CLF = np.zeros((9, 5))
 
         # Compute metrics at the end of the train
         for i in range(len(test_loader_list)):
-            loader = loader_list[i]
+            loader = test_loader_list[i]
 
             metrics_END[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
             
         # Compute metrics when the model reach the best loss
         for i in range(len(test_loader_list)):
-            loader = loader_list[i]
+            loader = test_loader_list[i]
             
             # Best total loss
             model.load_state_dict(torch.load("TMP_File/model_BEST_TOTAL.pth"))
@@ -133,10 +133,10 @@ def test_model_wandb(model, test_loader_list, config, wandb_config):
         df_BEST_VAL.to_csv('TMP_File/metrics_BEST_CLF.csv')
         
         # Create wandb artifact and save results
-        metrics_artifact = wandb.Artifact(model_artifact_name, type = "metrics")
-        add_metrics_to_artifacts('TMP_File/metrics_END.csv')
-        add_metrics_to_artifacts('TMP_File/metrics_BEST_TOT.csv')
-        add_metrics_to_artifacts('TMP_File/metrics_BEST_CLF.csv')
+        metrics_artifact = wandb.Artifact('Metrics', type = "metrics")
+        add_metrics_to_artifacts('TMP_File/metrics_END.csv', metrics_artifact)
+        add_metrics_to_artifacts('TMP_File/metrics_BEST_TOT.csv', metrics_artifact)
+        add_metrics_to_artifacts('TMP_File/metrics_BEST_CLF.csv', metrics_artifact)
 
         run.log_artifact(metrics_artifact)
 
