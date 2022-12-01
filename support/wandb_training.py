@@ -198,7 +198,7 @@ def train_cycle(model, optimizer, loader_list, model_artifact, train_config, lr_
             update_log_dict_metrics(validation_metrics_list, log_dict, 'validation')
 
         # Save the model after the epoch
-        # N.b. When the variable epoch is 0 the model is trained for an epoch when arrive at this instructions.
+        # N.b. When the variable epoch is n the model is trained for n+1 epochs when arrive at this instructions.
         if (epoch + 1) % train_config['epoch_to_save_model'] == 0:
             add_model_to_artifact(model, model_artifact, "TMP_File/model_{}.pth".format(epoch + 1))
         
