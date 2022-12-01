@@ -6,48 +6,46 @@ Support functions related to the datasets
 
 """
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Imports
+
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
 
 from scipy.io import loadmat, savemat
-import scipy.signal
-from scipy.signal import resample
-
-# from braindecode.datasets.bbci import  BBCIDataset
-# from braindecode.datasets.moabb import HGD
-# from braindecode.datautil.windowers import create_windows_from_events, create_fixed_length_windows
+from scipy.signal import resample, butter, filtfilt
 
 import torch
-from torch import nn
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
 
-def downloadDataset(idx, path_save):
-    
-    # Download
-    a = HGD(idx)
-    
-    # Divide and save train and test set
-    for i in range(2): 
-        # i = 0 ----> Train set
-        # i = 1 ----> Test  set
-        tmp_dict = {0:'Train', 1:'Test'}
-        print("Set: ", tmp_dict[i])
-        
-        dataset = a.datasets[i]
-        
-        dataframe_version = dataset.raw.to_data_frame()
-        
-        events = dataset.raw.info['events']
-        
-        numpy_version = dataframe_version.to_numpy()
-       
-        tmp_dict = {'trial': numpy_version, 'events':events}
-        
-        if(i == 0): savemat(path_save + 'Train/' + str(idx) + '.mat', tmp_dict)
-        if(i == 1): savemat(path_save + 'Test/' + str(idx) + '.mat', tmp_dict)
+# def downloadDataset(idx, path_save):
+#     
+#     # Download
+#     a = HGD(idx)
+#     
+#     # Divide and save train and test set
+#     for i in range(2): 
+#         # i = 0 ----> Train set
+#         # i = 1 ----> Test  set
+#         tmp_dict = {0:'Train', 1:'Test'}
+#         print("Set: ", tmp_dict[i])
+#         
+#         dataset = a.datasets[i]
+#         
+#         dataframe_version = dataset.raw.to_data_frame()
+#         
+#         events = dataset.raw.info['events']
+#         
+#         numpy_version = dataframe_version.to_numpy()
+#        
+#         tmp_dict = {'trial': numpy_version, 'events':events}
+#         
+#         if(i == 0): savemat(path_save + 'Train/' + str(idx) + '.mat', tmp_dict)
+#         if(i == 1): savemat(path_save + 'Test/' + str(idx) + '.mat', tmp_dict)
 
 
 def filterSignal(data, fs, low_f, high_f, filter_order = 3):
@@ -61,9 +59,9 @@ def filterSignal(data, fs, low_f, high_f, filter_order = 3):
     if(low_bound > high_bound): low_bound, high_bound = high_bound, low_bound
     if(low_bound == high_bound): low_bound, high_bound = 0, 1
     
-    b, a = scipy.signal.butter(filter_order, [low_bound, high_bound], 'bandpass')
+    b, a = butter(filter_order, [low_bound, high_bound], 'bandpass')
     
-    filtered_data = scipy.signal.filtfilt(b, a, data.T)
+    filtered_data = filtfilt(b, a, data.T)
     return filtered_data.T
 
     # return scipy.signal.filtfilt(b, a, data)
