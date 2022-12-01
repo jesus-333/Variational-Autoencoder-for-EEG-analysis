@@ -22,6 +22,7 @@ from torch.utils.data import DataLoader
 
 from VAE_EEGNet import EEGFramework
 from support_datasets import PytorchDatasetEEGSingleSubject, PytorchDatasetEEGMergeSubject
+from wandb_sweep import get_uniform_distribution
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Config dictionary
@@ -88,6 +89,64 @@ def get_metrics_config():
     )
 
     return metrics_config
+
+def get_sweep_config(metric_name, metric_goal):
+    """
+    Get all the config for the wandb sweep.
+    Parameters:
+        - metric_name: (string) Contain the name of metric to optimize (i.e. litteraly the name of the metric as it saved in wandb)
+        - metric_goal: (string) Must have value \'maximize\' or \'minimize\'. Indicate if the metric has to be maximize or minimize
+    """
+
+    if metric_goal != 'maximize' and metric_goal != 'minimize':
+        raise ValueError('The metric_goal parameter must have value \'maximize\' or \'minimize\'')
+
+    sweep_config = dict(
+        # Fields needed by wandb
+        method = 'random',
+        metric = dict(
+            name = metric_name,
+            goal = metric_goal
+        ),
+        parameters = dict(
+            hidden_space_dimension = dict(
+                values = [2,8,16,64,128]
+            ),
+            batch_size = dict(
+                values = [20, 35, 50]
+            ),
+            epochs = dict(
+                values = [150, 200, 300]
+            ),
+            alpha = dict(
+                value = [0.1]
+            ),
+            beta  = get_uniform_distribution(1, 20),
+            gamma = get_uniform_distribution(1, 20),
+            L2_loss_type = dict(
+                values = [0,1,2]
+            ),
+            use_scheduler = dict(
+                values = [True, False]
+            ),
+            lr_decay_rate = dict(
+                value = 0.995
+            ),
+            normalize_trials = dict(
+                values = [True, False]
+            ),
+            filter_band = dict(
+                values = [(-1,-1), (0, 40), (4, 40)]
+            ),
+        ),
+        # - - - - - - - - - - - - - - -
+        # Other Fields
+        # wandb_config = get_wandb_config('train_sweep'),
+        # dataset_config = get_dataset_config(),
+        # train_config = get_train_config()
+    )
+
+    return sweep_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Model and data function

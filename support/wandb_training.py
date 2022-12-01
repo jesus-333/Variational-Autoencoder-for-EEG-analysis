@@ -23,6 +23,10 @@ import config_file as cf
 #%% Principal function
 
 def train_and_test_model_wandb(hidden_space = 16):
+    """
+    Train and test the model. The results are saved in two separate run of wandb
+    """
+
     # Get the various config
     dataset_config = cf.get_dataset_config()
     train_config = cf.get_train_config()
