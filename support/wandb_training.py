@@ -340,9 +340,3 @@ def get_loss_string(log_dict):
 
     return tmp_loss
 
-# TODO
-def generate_dataset_artifact():
-    with wandb.init(project = 'Jesus-Dataset', job_type = "train", config = train_config, name = 'load_dataset_D2a') as run:
-        dataset_artifact = wandb.Artifact("D2A", type = "Dataset", description = "Dataset D2A of the BCI Competition IV")
-        path = 'Dataset/D2A/'
-
