@@ -39,8 +39,11 @@ def VAE_loss(x, x_r_mean, x_r_std, mu_q, log_var, alpha = 1, beta = 1, L2_loss_t
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x_r_mean, x)
     elif(L2_loss_type == 1): recon_loss = L2Loss_row_by_row(x, x_r_mean, alpha) # P.s. The alpha is needed because it is applied to every row
-    elif(L2_loss_type == 2): recon_loss = advance_recon_loss(x, x_r_mean, x_r_std)
-        
+    elif(L2_loss_type == 2): 
+        # print(type(x))
+        # print(type(x_r_mean))
+        # print(type(x_r_std))
+        recon_loss = advance_recon_loss(x, x_r_mean, x_r_std)
     
     # print(recon_loss.shape, "aaa")
     
@@ -69,7 +72,7 @@ def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shi
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x_r, x)
     elif(L2_loss_type == 1): recon_loss = L2Loss_row_by_row(x, x_r, alpha) # P.s. The alpha is needed because it is applied to every row
-    elif(L2_loss_type == 2 or loss_type == 3): recon_loss = advance_recon_loss(x, x_r, L2_loss_type)
+    elif(L2_loss_type == 2 or L2_loss_type == 3): recon_loss = advance_recon_loss(x, x_r, L2_loss_type)
     
     # Total loss
     vae_loss = recon_loss * alpha + kl_loss * beta
@@ -110,7 +113,7 @@ def L2Loss_row_by_row(x, x_r, alpha = 1):
     return recon_loss
 
 
-def advance_recon_loss(x, x_r, std_r, loss_type):
+def advance_recon_loss(x, x_r, std_r):
     """
     Advance versione of the recontruction loss for the VAE when the output distribution is gaussian.
     Instead of the simple L2 loss we use the log-likelihood formula so we can also encode the variance in the output of the decoder.
@@ -132,8 +135,8 @@ def advance_recon_loss(x, x_r, std_r, loss_type):
     total_loss += (mse_core * mse_scale)
     
     # Variance part
-    if loss_type == 3:
-        total_loss += x[0].shape[0] * torch.log(std_r)
+    # if loss_type == 3:
+    #     total_loss += x[0].shape[0] * torch.log(std_r)
     
     return total_loss.mean()
     

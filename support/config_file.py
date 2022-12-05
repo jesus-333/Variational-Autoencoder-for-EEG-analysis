@@ -115,28 +115,29 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [2,8,16,64,128]
             ),
             batch_size = dict(
-                values = [20, 35, 50]
+                values = [30, 40, 50]
             ),
             epochs = dict(
-                # values = [150, 200, 300]
-                values = [1,2,3]
+                values = [150, 200, 300]
+                # values = [1,2,3] # Used for debug
             ),
-            alpha = dict(
-                value = 0.1
-            ),
+            # alpha = dict(
+            #     value = 0.1
+            # ),
+            alpha = get_uniform_distribution(0.05, 0.5),
             beta  = get_uniform_distribution(1, 20),
             gamma = get_uniform_distribution(1, 20),
             L2_loss_type = dict(
-                values = [0,1,2,3]
+                values = [0,1,2]
             ),
             use_scheduler = dict(
-                values = [True, False]
+                value = True
             ),
             lr_decay_rate = dict(
                 values = [1, 0.995]
             ),
             normalize_trials = dict(
-                value = True
+                values = [True, False]
             ),
             # filter_band = dict(
             #     values = [(-1,-1), (0, 40), (4, 40)]
