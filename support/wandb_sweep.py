@@ -40,14 +40,14 @@ def train_sweep(config = None):
         loader_list             = [train_dataloader, validation_dataloader]
         
         # Get test data
-        test_loader_list = cf.get_subject_data(dataset_config, 'test', return_dataloader = True, batch_size = train_config['batch_size'])
+        # test_loader_list = cf.get_subject_data(dataset_config, 'test', return_dataloader = True, batch_size = train_config['batch_size'])
 
         # Variables
         C = train_dataset[0][0].shape[1] # Used for model creation
         T = train_dataset[0][0].shape[2] # Used for model creation
      
         # Create the model 
-        model = cf.get_model(C, T, train_config['hidden_space'])
+        model = cf.get_model(C, T, train_config['hidden_space_dimension'])
         
         # Setup optimizer
         optimizer = torch.optim.AdamW(model.parameters(), lr = train_config['lr'], 
@@ -82,7 +82,8 @@ def train_sweep(config = None):
 #%% Dictionary correction (i.e. add the parameter select by the sweep to the dictionaries used during training)
 
 def correct_dataset_config(sweep_config, dataset_config):
-    key_to_copy = ['normalize_trials', 'filter_band']    
+    key_to_copy = ['normalize_trials', 'filter_band']
+    key_to_copy = ['normalize_trials']    
     for key in key_to_copy: dataset_config[key] = sweep_config[key] 
 
 def correct_train_config(sweep_config, train_config):

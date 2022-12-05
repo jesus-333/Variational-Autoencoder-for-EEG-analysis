@@ -116,7 +116,8 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [20, 35, 50]
             ),
             epochs = dict(
-                values = [150, 200, 300]
+                # values = [150, 200, 300]
+                values = [1,2,3]
             ),
             alpha = dict(
                 value = [0.1]
@@ -124,20 +125,20 @@ def get_sweep_config(metric_name, metric_goal):
             beta  = get_uniform_distribution(1, 20),
             gamma = get_uniform_distribution(1, 20),
             L2_loss_type = dict(
-                values = [0,1,2]
+                values = [0,1,2,3]
             ),
             use_scheduler = dict(
                 values = [True, False]
             ),
             lr_decay_rate = dict(
-                value = 0.995
+                values = [1, 0.995]
             ),
             normalize_trials = dict(
-                values = [True, False]
+                value = True
             ),
-            filter_band = dict(
-                values = [(-1,-1), (0, 40), (4, 40)]
-            ),
+            # filter_band = dict(
+            #     values = [(-1,-1), (0, 40), (4, 40)]
+            # ),
         ),
         # - - - - - - - - - - - - - - -
         # Other Fields

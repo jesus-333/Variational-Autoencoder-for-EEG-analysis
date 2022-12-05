@@ -260,10 +260,10 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
         else:
             with torch.no_grad():
                 # Forward pass
-                x_r, mu, log_var, predict_label = model(x)
+                x_r_mean, x_r_std, mu, log_var, predict_label = model(x)
             
                 # Loss evaluation
-                loss_list = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, 
+                loss_list = VAE_and_classifier_loss(x, x_r_mean, x_r_std, mu, log_var, true_label, predict_label, 
                                                     train_config['use_shifted_VAE_loss'], 
                                                     train_config['alpha'], train_config['beta'], train_config['gamma'], 
                                                     train_config['L2_loss_type'])

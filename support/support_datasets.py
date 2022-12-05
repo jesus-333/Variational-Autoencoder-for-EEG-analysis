@@ -379,10 +379,8 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
             
         # Set to real value
         self.normalize_trials = normalize_trials  
-        
+ 
 
-        
-        
     def __getitem__(self, idx):
         tmp_dict = loadmat(self.path_list[idx])
         

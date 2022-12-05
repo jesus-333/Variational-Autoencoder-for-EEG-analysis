@@ -32,9 +32,9 @@ class EEGNetVAE(nn.Module):
         
         z = self.reparametrize(mu, log_var)
         
-        x = self.decoder(z)
+        x_mean, x_std = self.decoder(z)
         
-        return x, mu, log_var
+        return x_mean, x_std, mu, log_var
     
     def reparametrize(self,mu,log_var):
         #Reparametrization Trick to allow gradients to backpropagate from the stochastic part of the model
@@ -131,8 +131,6 @@ class EEGNetDecoderV2(nn.Module):
         cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (tracking_input_dimension_list[0][1][2], 1), groups = 8, bias = False)
         
         batch_norm_4 = nn.BatchNorm2d(num_features = 8)
-        cnn_layer_4 = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
-        act_4 = nn.Sigmoid()
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # List of module (use for debugging)
@@ -152,19 +150,32 @@ class EEGNetDecoderV2(nn.Module):
         module_list.append(cnn_layer_3)
 
         module_list.append(batch_norm_4)
-        module_list.append(cnn_layer_4)
-        # module_list.append(act_4)
+        # module_list.append(cnn_layer_4)
         
         self.conv_decoder = nn.Sequential(*module_list)
         
-        
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
+        # self.std_output_layer  = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False)
+        self.std_output_layer = nn.Sequential(
+            nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
+            nn.Linear(512, 1),
+            nn.Flatten(),
+            nn.Linear(22, 1)
+        )
+
+
     def forward(self, z):
         x = self.fc_decoder(z)
         x = torch.reshape(x, self.shape_input_conv_decoder)
         
         x = self.conv_decoder(x)
+
+        x_mean = self.mean_output_layer(x)
+        x_std = self.std_output_layer(x)
         
-        return x
+        return x_mean, x_std
     
 #%% Classifier
 
@@ -214,7 +225,7 @@ class EEGFramework(nn.Module):
         
     def forward(self, x):
         # Foraward pass through VAE
-        x_r, mu, log_var = self.vae(x)
+        x_r_mean, x_r_std, mu, log_var = self.vae(x)
                 
         # (OPTIONAL) Reparametrization for classification
         if(self.use_reparametrization_for_classification): z = self.vae.reparametrize(mu, log_var)
@@ -224,7 +235,7 @@ class EEGFramework(nn.Module):
         label = self.classifier(z)
         
         # Return reconstructed input, mu and log variance vectors and label of the input.
-        return x_r, mu, log_var, label
+        return x_r_mean, x_r_std, mu, log_var, label
 
     def classify(self, x, return_as_index = True):
         mu, log_var = self.vae.encoder(x)
