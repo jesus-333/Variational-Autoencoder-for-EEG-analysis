@@ -34,7 +34,8 @@ def get_dataset_config():
         merge_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = False,
         percentage_split = 0.9,
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
+        # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
+        device = "cuda" if torch.cuda.is_available() else "cpu",
     )
 
     return dataset_config
@@ -64,7 +65,8 @@ def get_train_config():
         beta = 1,                           # KL
         gamma = 2,                          # Discrimination
         # Support stuff (device, log frequency etc)
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
+        # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
+        device = "cuda" if torch.cuda.is_available() else "cpu",
         log_freq = 1,
         epoch_to_save_model = 5,
         measure_metrics_during_training = True,
@@ -120,7 +122,7 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [1,2,3]
             ),
             alpha = dict(
-                value = [0.1]
+                value = 0.1
             ),
             beta  = get_uniform_distribution(1, 20),
             gamma = get_uniform_distribution(1, 20),

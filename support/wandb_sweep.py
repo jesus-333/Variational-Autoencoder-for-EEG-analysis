@@ -20,11 +20,10 @@ from wandb_training import train_cycle, add_model_to_artifact
 
 def train_sweep(config = None):
     # Get other config not included in the ones used for the sweep
-    wandb_config = cf.get_wandb_config('train_sweep')
     dataset_config = cf.get_dataset_config()
     train_config = cf.get_train_config()
 
-    with wandb.init(project = wandb_config['project_name'], job_type = "train", config = config) as run:
+    with wandb.init(project = "VAE_EEG", job_type = "train", config = config) as run:
         config = wandb.config
 
         # "Correct" dictionaries
@@ -58,7 +57,7 @@ def train_sweep(config = None):
             lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
         else:
             lr_scheduler = None
-            
+        print("5")
         # Setup artifact to save model
         model_artifact_name = train_config['model_artifact_name'] + '_trained'
         metadata = dict(train_config = train_config, dataset_config = dataset_config)
@@ -68,7 +67,7 @@ def train_sweep(config = None):
         
         # Print the training device
         if train_config['print_var']: print("Model trained on: {}".format(train_config['device']))
-
+        
         # Train model
         wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
         model.to(train_config['device'])

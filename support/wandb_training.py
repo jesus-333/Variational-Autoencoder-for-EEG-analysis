@@ -243,10 +243,10 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
             optimizer.zero_grad()
             
             # Networks forward pass
-            x_r, mu, log_var, predict_label = model(x)
+            x_r_mean, x_r_std, mu, log_var, predict_label = model(x)
             
             # Loss evaluation
-            loss_list = VAE_and_classifier_loss(x, x_r, mu, log_var, true_label, predict_label, 
+            loss_list = VAE_and_classifier_loss(x, x_r_mean, x_r_std, mu, log_var, true_label, predict_label, 
                                                 train_config['use_shifted_VAE_loss'], 
                                                 train_config['alpha'], train_config['beta'], train_config['gamma'], 
                                                 train_config['L2_loss_type'])
@@ -339,3 +339,10 @@ def get_loss_string(log_dict):
     tmp_loss += "\t(VALID) Disc  Loss:\t" + str(float(log_dict['discriminator_loss_validation'])) + "\n"
 
     return tmp_loss
+
+# TODO
+def generate_dataset_artifact():
+    with wandb.init(project = 'Jesus-Dataset', job_type = "train", config = train_config, name = 'load_dataset_D2a') as run:
+        dataset_artifact = wandb.Artifact("D2A", type = "Dataset", description = "Dataset D2A of the BCI Competition IV")
+        path = 'Dataset/D2A/'
+
