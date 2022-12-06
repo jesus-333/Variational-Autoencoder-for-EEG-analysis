@@ -89,7 +89,8 @@ def correct_train_config(sweep_config, train_config):
     key_to_copy = [
         'alpha', 'beta', 'gamma',
         'hidden_space_dimension', 
-        'batch_size', 'epochs', 'use_scheduler', 'L2_loss_type',
+        'batch_size', 'epochs', 'use_scheduler', 
+        'L2_loss_type', 'use_shifted_VAE_loss'
         'lr_decay_rate'
     ]
 

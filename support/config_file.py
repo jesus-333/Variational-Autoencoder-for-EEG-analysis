@@ -112,23 +112,20 @@ def get_sweep_config(metric_name, metric_goal):
         ),
         parameters = dict(
             hidden_space_dimension = dict(
-                values = [2,8,16,64,128]
+                values = [2,8,16,64]
             ),
             batch_size = dict(
-                values = [30, 40, 50]
+                values = [40, 50]
             ),
             epochs = dict(
-                values = [150, 200, 300]
+                values = [150, 200, 300, 500]
                 # values = [1,2,3] # Used for debug
             ),
-            # alpha = dict(
-            #     value = 0.1
-            # ),
             alpha = get_uniform_distribution(0.05, 0.5),
-            beta  = get_uniform_distribution(1, 20),
-            gamma = get_uniform_distribution(1, 20),
+            beta  = get_uniform_distribution(2, 30),
+            gamma = get_uniform_distribution(2, 30),
             L2_loss_type = dict(
-                values = [0,1,2]
+                values = [0,1]
             ),
             use_scheduler = dict(
                 value = True
@@ -137,6 +134,9 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [1, 0.995]
             ),
             normalize_trials = dict(
+                values = [True, False]
+            ),
+            use_shifted_VAE_loss = dict(
                 values = [True, False]
             ),
             # filter_band = dict(

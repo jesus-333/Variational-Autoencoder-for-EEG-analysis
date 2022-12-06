@@ -37,23 +37,18 @@ def VAE_loss(x, x_r_mean, x_r_std, mu_q, log_var, alpha = 1, beta = 1, L2_loss_t
     # TODO return to normal recon loss
     if(L2_loss_type == 0):
         recon_loss_criterion = nn.MSELoss()
-        recon_loss = recon_loss_criterion(x_r_mean, x)
-    elif(L2_loss_type == 1): recon_loss = L2Loss_row_by_row(x, x_r_mean, alpha) # P.s. The alpha is needed because it is applied to every row
-    elif(L2_loss_type == 2): 
-        # print(type(x))
-        # print(type(x_r_mean))
-        # print(type(x_r_std))
-        recon_loss = advance_recon_loss(x, x_r_mean, x_r_std)
-    
-    # print(recon_loss.shape, "aaa")
+        recon_loss = recon_loss_criterion(x_r_mean, x) * alpha
+    elif(L2_loss_type == 1): 
+        recon_loss = L2Loss_row_by_row(x, x_r_mean, alpha) # P.s. The alpha is needed because it is applied to every row
+    elif(L2_loss_type == 2 or L2_loss_type == 3): 
+        recon_loss = advance_recon_loss(x, x_r_mean, x_r_std, L2_loss_type) * alpha
     
     # Total loss
-    if(L2_loss_type == 1): vae_loss = recon_loss + kl_loss * beta
-    else: vae_loss = recon_loss * alpha + kl_loss * beta  
+    vae_loss = recon_loss + kl_loss * beta
     
-    return vae_loss, recon_loss * alpha, kl_loss * beta
+    return vae_loss, recon_loss, kl_loss * beta
 
-def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shift_from_center = 0.5, L2_loss_type = 0):
+def shifted_VAE_loss(x, x_r_mean, x_r_std, mu_q, log_var, true_label, alpha = 1, beta = 1, shift_from_center = 0.5, L2_loss_type = 0):
     """
     Modified VAE loss where each class is econded with a different distribution.
     In this case the Kullback for each class is different.
@@ -70,12 +65,14 @@ def shifted_VAE_loss(x, x_r, mu_q, log_var, true_label, alpha = 1, beta = 1, shi
     # Reconstruction loss
     if(L2_loss_type == 0):
         recon_loss_criterion = nn.MSELoss()
-        recon_loss = recon_loss_criterion(x_r, x)
-    elif(L2_loss_type == 1): recon_loss = L2Loss_row_by_row(x, x_r, alpha) # P.s. The alpha is needed because it is applied to every row
-    elif(L2_loss_type == 2 or L2_loss_type == 3): recon_loss = advance_recon_loss(x, x_r, L2_loss_type)
+        recon_loss = recon_loss_criterion(x_r_mean, x) * alpha
+    elif(L2_loss_type == 1): 
+        recon_loss = L2Loss_row_by_row(x, x_r_mean, alpha) # P.s. The alpha is needed because it is applied to every row
+    elif(L2_loss_type == 2 or L2_loss_type == 3): 
+        recon_loss = advance_recon_loss(x, x_r_mean, x_r_std, L2_loss_type) * alpha
     
     # Total loss
-    vae_loss = recon_loss * alpha + kl_loss * beta
+    vae_loss = recon_loss + kl_loss * beta
     
     return vae_loss, recon_loss, kl_loss * beta
 
@@ -101,6 +98,8 @@ def L2Loss_row_by_row(x, x_r, alpha = 1):
         x_i = x[i, 0]
         x_r_i = x_r[i, 0]
         
+        tmp_loss = torch.zeros(1).to(x.device)
+        
         # Cycle through channels
         for ch in range(x_r_i.shape[0]):
             # Extract channel
@@ -108,12 +107,14 @@ def L2Loss_row_by_row(x, x_r, alpha = 1):
             x_r_i_ch = x_r_i[ch]
             
             # Evaluate loss
-            recon_loss += alpha * recon_loss_criterion(x_i_ch, x_r_i_ch)
-    
-    return recon_loss
+            tmp_loss += (alpha * recon_loss_criterion(x_i_ch, x_r_i_ch))
+        
+        recon_loss += (tmp_loss / x_r_i.shape[0])
+
+    return recon_loss / x_r.shape[0]
 
 
-def advance_recon_loss(x, x_r, std_r):
+def advance_recon_loss(x, x_r, std_r, loss_type):
     """
     Advance versione of the recontruction loss for the VAE when the output distribution is gaussian.
     Instead of the simple L2 loss we use the log-likelihood formula so we can also encode the variance in the output of the decoder.
@@ -130,14 +131,14 @@ def advance_recon_loss(x, x_r, std_r):
     total_loss = 0
     
     # MSE part
-    mse_core = torch.pow((x - x_r), 2).sum(1)/ x.shape[1]
+    mse_core = torch.pow((x - x_r), 2).sum((3,2))/ x.shape[1]
     mse_scale = (x[0].shape[0]/(2 * torch.pow(std_r, 2)))
     total_loss += (mse_core * mse_scale)
     
     # Variance part
-    # if loss_type == 3:
-    #     total_loss += x[0].shape[0] * torch.log(std_r)
-    
+    if loss_type == 3:
+        variance = x[0].shape[0] * torch.log(std_r)
+        total_loss += variance
     return total_loss.mean()
     
 
@@ -191,8 +192,8 @@ def classifierLoss(predict_label, true_label):
 def VAE_and_classifier_loss(x, x_r_mean, x_r_std, mu, log_var, true_label, predict_label, use_shifted_VAE_loss = False, alpha = 1, beta = 1, gamma = 1, L2_loss_type = 0):
     # VAE loss (reconstruction + kullback)
     if(use_shifted_VAE_loss):
-        shift_from_center = 0.7
-        vae_loss, recon_loss, kl_loss = shifted_VAE_loss(x, x_r_mean, mu, log_var, true_label, alpha, beta, shift_from_center, L2_loss_type)
+        shift_from_center = 0.88
+        vae_loss, recon_loss, kl_loss = shifted_VAE_loss(x, x_r_mean, x_r_std, mu, log_var, true_label, alpha, beta, shift_from_center, L2_loss_type)
     else:
         vae_loss, recon_loss, kl_loss = VAE_loss(x, x_r_mean, x_r_std, mu, log_var, alpha, beta, L2_loss_type)
     
