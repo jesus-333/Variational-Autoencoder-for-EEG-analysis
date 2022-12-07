@@ -27,6 +27,23 @@ from wandb_sweep import get_uniform_distribution
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Config dictionary
 
+def get_moabb_dataset_config():
+    dataset_config = dict(
+        # Frequency filtering settings
+        filter_data = True,
+        fmin = 0,
+        fmax = 125,
+        # Resampling settings
+        resample_data = True,
+        resample_freq = 256,
+        # Other
+        n_classes = 4,
+        normalize_trials = False,
+        percentage_split = 0.9,
+    )
+
+    return dataset_config
+
 def get_dataset_config():
     dataset_config = dict(
         train_path = 'Dataset/D2A/v2_raw_128/Train/',

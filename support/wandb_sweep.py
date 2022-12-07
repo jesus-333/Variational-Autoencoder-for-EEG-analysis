@@ -14,25 +14,28 @@ from torch.utils.data import DataLoader
 
 import config_file as cf
 from wandb_training import train_cycle, add_model_to_artifact
+import moabb_dataset as md
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Train function
 
 def train_sweep(config = None):
     # Get other config not included in the ones used for the sweep
-    dataset_config = cf.get_dataset_config()
+    # dataset_config = cf.get_dataset_config()
+    dataset_config = cf.get_moabb_dataset_config()
     train_config = cf.get_train_config()
 
     with wandb.init(project = "VAE_EEG", job_type = "train", config = config) as run:
         config = wandb.config
 
         # "Correct" dictionaries
-        correct_dataset_config(config, dataset_config)
-        correct_train_config(config, train_config)
+        correct_config(config, dataset_config)
+        correct_config(config, train_config)
         
         # Get the training data
-        train_dataset, validation_dataset = cf.get_train_data(dataset_config)
-        
+        # train_dataset, validation_dataset = cf.get_train_data(dataset_config)
+        train_dataset, validation_dataset = md.get_train_data()
+
         # Create dataloader
         train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
         validation_dataloader   = DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
@@ -96,6 +99,10 @@ def correct_train_config(sweep_config, train_config):
 
     for key in key_to_copy: train_config[key] = sweep_config[key] 
 
+def correct_config(sweep_config, other_config):
+    for key in other_config:
+        if key in sweep_config:
+            other_config[key] = sweep_config[key]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Other function
