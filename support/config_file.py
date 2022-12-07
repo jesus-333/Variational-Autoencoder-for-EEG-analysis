@@ -112,13 +112,13 @@ def get_sweep_config(metric_name, metric_goal):
         ),
         parameters = dict(
             hidden_space_dimension = dict(
-                values = [2,8,16,64]
+                values = [2,8,16,22,64]
             ),
             batch_size = dict(
-                values = [40, 50]
+                values = [35, 40, 50]
             ),
             epochs = dict(
-                values = [150, 200, 300, 500]
+                values = [200, 300, 500]
                 # values = [1,2,3] # Used for debug
             ),
             alpha = get_uniform_distribution(0.05, 0.5),
@@ -139,15 +139,7 @@ def get_sweep_config(metric_name, metric_goal):
             use_shifted_VAE_loss = dict(
                 values = [True, False]
             ),
-            # filter_band = dict(
-            #     values = [(-1,-1), (0, 40), (4, 40)]
-            # ),
         ),
-        # - - - - - - - - - - - - - - -
-        # Other Fields
-        # wandb_config = get_wandb_config('train_sweep'),
-        # dataset_config = get_dataset_config(),
-        # train_config = get_train_config()
     )
 
     return sweep_config
