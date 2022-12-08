@@ -38,6 +38,7 @@ def get_moabb_dataset_config():
         resample_freq = 256,
         # Other
         n_classes = 4,
+        subjects_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = False,
         percentage_split = 0.9,
     )
@@ -156,6 +157,8 @@ def get_sweep_config(metric_name, metric_goal):
             use_shifted_VAE_loss = dict(
                 values = [True, False]
             ),
+            fmax = get_uniform_distribution(40, 125, True),
+            resample_freq = get_uniform_distribution(128, 512)
         ),
     )
 

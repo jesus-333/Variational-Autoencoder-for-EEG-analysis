@@ -107,12 +107,11 @@ def correct_config(sweep_config, other_config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Other function
 
-def get_uniform_distribution(min:float, max:float) -> dict:
+def get_uniform_distribution(min:float, max:float, quantize = False) -> dict:
     tmp_dict = dict(
-        distribution = 'uniform',
+        distribution = 'q_uniform' if quantize else 'uniform',
         min = min,
         max = max
     )
 
     return tmp_dict
-

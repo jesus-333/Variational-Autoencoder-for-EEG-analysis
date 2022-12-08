@@ -74,7 +74,7 @@ def check_config(config):
     if 'resampling_freq' not in config: config['resampling_data'] = False
     if config['resampling_freq'] <= 0: raise ValueError('The resampling_freq must be a positive value')
 
-def get_moabb_data(dataset, paradigm, config):
+def get_moabb_data(dataset, paradigm, config, type_dataset):
     """
     Return the raw data from the moabb package of the specified dataset and paradigm
     N.b. dataset and paradigm must be object of the moabb library
@@ -89,7 +89,16 @@ def get_moabb_data(dataset, paradigm, config):
     paradigm.n_classes = config['n_classes']
 
     # Get the raw data
-    raw_data, raw_labels = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
+    raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
+
+    # Select train/test data
+    if type_dataset == 'train':
+        idx_type = info['session'].to_numpy() == 'session_T'
+    elif type_dataset == 'test':
+        idx_type = info['session'].to_numpy() == 'session_E'
+
+    raw_data = raw_data[idx_type]
+    raw_labels = raw_labels[idx_type]
 
     return raw_data, raw_labels
 
