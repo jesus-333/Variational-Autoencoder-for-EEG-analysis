@@ -7,8 +7,6 @@ from torch.utils.data import Dataset, DataLoader
 import moabb.datasets as mb
 import moabb.paradigms as mp
 
-from config_file import split_dataset
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Dataset 2A BCI Competition IV
 
@@ -131,4 +129,13 @@ def convert_label(raw_labels):
 
     return new_labels
         
-        
+def split_dataset(full_dataset, percentage_split):
+    """
+    Split a dataset in 2 
+    """
+
+    size_train = int(len(full_dataset) * percentage_split) 
+    size_val = len(full_dataset) - size_train
+    train_dataset, validation_dataset = torch.utils.data.random_split(full_dataset, [size_train, size_val])
+    
+    return train_dataset, validation_dataset
