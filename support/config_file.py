@@ -11,7 +11,7 @@ TO EXECUTE
 %autoreload 2
 import sys
 sys.path.insert(0, 'support')
-import wandb_training
+import config file as cf
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

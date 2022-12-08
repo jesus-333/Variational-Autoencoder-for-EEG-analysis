@@ -155,15 +155,22 @@ class EEGNetDecoderV2(nn.Module):
         self.conv_decoder = nn.Sequential(*module_list)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+        
+        # Layer to compute the mean
         self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
-        # self.std_output_layer  = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False)
-        self.std_output_layer = nn.Sequential(
-            nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
-            nn.Linear(512, 1),
-            nn.Flatten(),
-            nn.Linear(22, 1)
-        )
+        
+        # Evaluate the final dimensio of the output
+        # dumb_shape = self.shape_input_conv_decoder
+        # dumb_shape[0] = 1
+        # dumb_output_shape = self.conv_decoder(torch.rand(dumb_shape)).shape
+        # 
+        # # Layer to compute the std 
+        # self.std_output_layer = nn.Sequential(
+        #     nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
+        #     nn.Linear(dumb_output_shape[-1], 1),
+        #     nn.Flatten(),
+        #     nn.Linear(22, 1)
+        # )
 
 
     def forward(self, z):
@@ -173,7 +180,8 @@ class EEGNetDecoderV2(nn.Module):
         x = self.conv_decoder(x)
 
         x_mean = self.mean_output_layer(x)
-        x_std = self.std_output_layer(x)
+        # x_std = self.std_output_layer(x)
+        x_std = torch.ones(1).to(x_mean.device)
         
         return x_mean, x_std
     

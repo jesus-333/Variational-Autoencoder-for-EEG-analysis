@@ -5,6 +5,17 @@
 Contain function used to config the wandb sweep and during the sweep train
 """
 
+"""
+TO EXECUTE
+%load_ext autoreload
+%autoreload 2
+import sys
+sys.path.insert(0, 'support')
+import config file as cf
+import wandb_sweep
+import wandb
+"""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
