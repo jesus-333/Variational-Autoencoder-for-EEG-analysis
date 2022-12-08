@@ -29,12 +29,12 @@ def train_sweep(config = None):
         config = wandb.config
 
         # "Correct" dictionaries
-        correct_config(config, dataset_config)
-        correct_config(config, train_config)
+        correct_dataset_config(config, dataset_config)
+        correct_train_config(config, train_config)
         
         # Get the training data
         # train_dataset, validation_dataset = cf.get_train_data(dataset_config)
-        train_dataset, validation_dataset = md.get_train_data()
+        train_dataset, validation_dataset = md.get_train_data(dataset_config)
 
         # Create dataloader
         train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
@@ -47,7 +47,7 @@ def train_sweep(config = None):
         # Variables
         C = train_dataset[0][0].shape[1] # Used for model creation
         T = train_dataset[0][0].shape[2] # Used for model creation
-     
+        
         # Create the model 
         model = cf.get_model(C, T, train_config['hidden_space_dimension'])
         

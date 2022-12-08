@@ -158,7 +158,7 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [True, False]
             ),
             fmax = get_uniform_distribution(40, 125, True),
-            resample_freq = get_uniform_distribution(128, 512)
+            resample_freq = get_uniform_distribution(128, 512, True)
         ),
     )
 
