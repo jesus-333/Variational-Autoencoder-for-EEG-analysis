@@ -11,7 +11,7 @@ TO EXECUTE
 %autoreload 2
 import sys
 sys.path.insert(0, 'support')
-import config file as cf
+import config_file as cf
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,12 +76,12 @@ def get_train_config():
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.995,               # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-5,      # Weight decay of the optimizer
-        use_shifted_VAE_loss = True,
+        use_shifted_VAE_loss = False,
         L2_loss_type = 0,                   # 0 ---> Simple MSE, 2 ---> Advance MSE (used likelihood formulation)
         # Loss multiplication factor
-        alpha = 0.1,                          # Reconstruction
+        alpha = 1,                          # Reconstruction
         beta = 1,                           # KL
-        gamma = 2,                          # Discrimination
+        gamma = 1,                          # Discrimination
         # Support stuff (device, log frequency etc)
         # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
         device = "cuda" if torch.cuda.is_available() else "cpu",
@@ -129,11 +129,12 @@ def get_sweep_config(metric_name, metric_goal):
             goal = metric_goal
         ),
         parameters = dict(
-            hidden_space_dimension = dict(
-                values = [2,8,16,22,64]
-            ),
+            # hidden_space_dimension = dict(
+            #     values = [2,8,16,22,64]
+            # ),
+            hidden_space_dimension = get_uniform_distribution(2, 70, True),
             batch_size = dict(
-                values = [35, 40, 50]
+                values = [35, 40, 45, 50]
             ),
             epochs = dict(
                 values = [200, 300, 500]
@@ -158,7 +159,7 @@ def get_sweep_config(metric_name, metric_goal):
                 values = [True, False]
             ),
             fmax = get_uniform_distribution(40, 125, True),
-            resample_freq = get_uniform_distribution(128, 512, True)
+            resample_freq = get_uniform_distribution(128, 250, True)
         ),
     )
 

@@ -53,6 +53,10 @@ def generate_D2A_artifact():
         dataset_artifact_test = wandb.Artifact("D2A", type = "Dataset", description = "Testing dataset 2A (D2A) of the BCI Competition IV")
         add_D2A_file_to_artifact(dataset_artifact_test, path, 'Test', 9)
         run.log_artifact(dataset_artifact_test)
+
+        dataset_artifact_label = wandb.Artifact("D2A", type = "Dataset", description = "True labels of dataset 2A (D2A) of the BCI Competition IV")
+        add_true_label_file(dataset_artifact_label, 9)
+        run.log_artifact(dataset_artifact_label)
         
 def add_D2A_file_to_artifact(artifact, path, dataset_type, n_subject):
     path = path + dataset_type + '/'
@@ -70,3 +74,17 @@ def add_D2A_file_to_artifact(artifact, path, dataset_type, n_subject):
         # Add label to artifact
         artifact.add_file(path + label_file_name)
         wandb.save(path + label_file_name)
+
+def add_true_label_file(artifact, n_subject):
+    path = 'C:/Users/albi2/Documents/GitHub/Variational-Autoencoder-for-EEG-analysis/Dataset/D2A/true_labels_2a'
+
+    for i in range(n_subject):
+        # Train label
+        file_name = 'A0{}T.mat'
+        artifact.add_file(path + file_name)
+        wandb.save(path + file_name)
+        
+        # Test label
+        file_name = 'A0{}E.mat'
+        artifact.add_file(path + file_name)
+        wandb.save(path + file_name)

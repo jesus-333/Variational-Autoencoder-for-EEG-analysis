@@ -141,6 +141,31 @@ def create_metrics_dict(config):
     
     return metrics_dict
 
-def aggregate_by_metrics():
-    pass
+
+def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
+    """
+    Function to compute the metrics given a path containing the pth file with the weights of the network.
+    For each pth file load the weight and computer the metrics
+    """
+
+    file_list = os.listdir(path)
     
+    metrics_per_file = []
+    for file in file_list:
+        print(file)
+
+        # Crete path to the file 
+        complete_path = path + '/' + file
+        
+        # Load weights
+        model.load_state_dict(torch.load(complete_path))
+        
+        metrics_list = []
+        for loader in loader_list:
+            tmp_metrics = compute_metrics(model, loader, device)
+            metrics_list.append(tmp_metrics)
+        
+        metrics_per_file.append(metrics_list)
+
+    return metrics_per_file
+

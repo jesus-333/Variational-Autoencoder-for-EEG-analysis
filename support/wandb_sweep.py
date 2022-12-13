@@ -11,7 +11,7 @@ TO EXECUTE
 %autoreload 2
 import sys
 sys.path.insert(0, 'support')
-import config file as cf
+import config_file as cf
 import wandb_sweep
 import wandb
 """
