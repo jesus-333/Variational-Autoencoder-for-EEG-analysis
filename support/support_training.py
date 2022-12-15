@@ -27,6 +27,7 @@ def VAE_loss(x, x_r_mean, x_r_std, mu_q, log_var, alpha = 1, beta = 1, L2_loss_t
     mu_p = torch.zeros(mu_q.shape).to(mu_q.device) # Mean of the target gaussian distribution
     sigma_q = torch.sqrt(torch.exp(log_var)) # standard deviation obtained from the VAE
     kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
+    # kl_loss = KL_Loss_v2(sigma_q, mu_q) #  TODO REMOVE
     # N.b. Due to implementation reasons I pass to the function the STANDARD DEVIATION, i.e. the NON-SQUARED VALUE
     # When the variance is needed inside the function the sigmas are eventually squared
     
@@ -181,6 +182,21 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     
     return kl_loss.sum(dim = 1).mean(dim = 0)
 
+def KL_Loss_v2(sigma, mu):
+    # Sample from hidden space 
+    noise = torch.randn(size = (mu.size(0),mu.size(1)))
+    noise = noise.type_as(mu) # Setting z to be .cuda when using GPU training 
+    z_sample = mu + sigma * noise
+    
+    # Sample from normal distribution
+    normal_sample = torch.randn(size = (mu.size(0),mu.size(1))).type_as(mu) 
+    
+
+    # Compute KL
+    criterion = nn.KLDivLoss(reduction = "batchmean", log_target = True)
+    kl_loss = criterion(z_sample.log(), normal_sample.log())
+
+    return kl_loss
 
 def classifierLoss(predict_label, true_label):
     classifier_loss_criterion = torch.nn.NLLLoss()

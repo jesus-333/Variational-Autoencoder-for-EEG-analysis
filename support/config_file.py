@@ -12,6 +12,8 @@ TO EXECUTE
 import sys
 sys.path.insert(0, 'support')
 import config_file as cf
+loader_list = cf.get_subject_data(cf.get_dataset_config(), 'train')
+model = cf.get_model(22, 512, 16)
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -160,7 +160,7 @@ class EEGNetDecoderV2(nn.Module):
         self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
         
         # Evaluate the final dimensio of the output
-        dumb_shape = self.shape_input_conv_decoder
+        dumb_shape = [i for i in self.shape_input_conv_decoder] # Copy the shape in a new list (i.e. the original list is not modified)
         dumb_shape[0] = 1
         dumb_output_shape = self.conv_decoder(torch.rand(dumb_shape)).shape
 
