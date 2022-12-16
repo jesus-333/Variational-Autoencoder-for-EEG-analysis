@@ -12,7 +12,7 @@ import moabb.paradigms as mp
 
 def get_train_data(config):
     # Get data and labels
-    data, labels = get_D2a_data(config)
+    data, labels = get_D2a_data(config, 'train')
     
     # Create Pytorch dataset
     full_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
@@ -22,7 +22,15 @@ def get_train_data(config):
     
     return train_dataset, validation_dataset
 
-def get_D2a_data(config):
+def get_test_data(config):
+    data, labels = get_D2a_data(config, 'test')
+    
+    # Create Pytorch dataset
+    test_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
+    
+    return test_dataset
+
+def get_D2a_data(config, type_dataset):
     check_config(config)
     
     # Select the dataset
@@ -32,7 +40,7 @@ def get_D2a_data(config):
     paradigm = mp.MotorImagery()
 
     # Get the data
-    raw_data, raw_labels = get_moabb_data(dataset, paradigm, config, 'train')
+    raw_data, raw_labels = get_moabb_data(dataset, paradigm, config, type_dataset)
     
     # Select channels
     data = raw_data[:, 0:22, :]
