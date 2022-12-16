@@ -73,10 +73,9 @@ def check_config(config):
         if 'fmin' not in config or 'fmax' not in config: raise ValueError('If you want to filter the data you must specify the lower (fmin) and upper (fmax) frequency bands  of the filter')
     
     # Check the resampling settings
-    if 'resample' not in config: config['resample'] = False
     if 'resample_data' not in config: config['resample_data'] = False
 
-    if config['resample'] or  config['resample_data']:
+    if config['resample_data']:
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
 
@@ -86,7 +85,7 @@ def get_moabb_data(dataset, paradigm, config, type_dataset):
     N.b. dataset and paradigm must be object of the moabb library
     """
 
-    if config['resample']: paradigm.resample = config['resample_freq']
+    if config['resample_data']: paradigm.resample = config['resample_freq']
 
     if config['filter_data']: 
         paradigm.fmin = config['fmin']

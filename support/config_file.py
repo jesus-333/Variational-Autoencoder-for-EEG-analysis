@@ -37,7 +37,7 @@ def get_moabb_dataset_config():
         fmax = 125,
         # Resampling settings
         resample_data = True,
-        resample_freq = 256,
+        resample_freq = 128,
         # Other
         n_classes = 4,
         subjects_list = [1,2,3,4,5,6,7,8,9],
