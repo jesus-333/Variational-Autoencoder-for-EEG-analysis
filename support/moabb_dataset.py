@@ -74,8 +74,9 @@ def check_config(config):
     
     # Check the resampling settings
     if 'resample' not in config: config['resample'] = False
+    if 'resample_data' not in config: config['resample_data'] = False
 
-    if config['resample']:
+    if config['resample'] or  config['resample_data']:
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
 

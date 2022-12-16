@@ -167,8 +167,8 @@ class EEGNetDecoderV2(nn.Module):
         # Layer to compute the std 
         self.std_output_layer = nn.Sequential(
             nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
-            # nn.Linear(dumb_output_shape[-1], 1),
-            nn.Linear(512, 1),
+            nn.Linear(dumb_output_shape[-1], 1),
+            # nn.Linear(512, 1),
             nn.Flatten(),
             nn.Linear(22, 1)
         )
