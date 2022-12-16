@@ -85,7 +85,7 @@ def get_moabb_data(dataset, paradigm, config, type_dataset):
     N.b. dataset and paradigm must be object of the moabb library
     """
 
-    if config['resample']: paradigm.resample = config['resampe_freq']
+    if config['resample']: paradigm.resample = config['resample_freq']
 
     if config['filter_data']: 
         paradigm.fmin = config['fmin']

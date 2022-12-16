@@ -191,6 +191,7 @@ def computeTrialD2(data, event_matrix, fs, windows_length = 4, remove_corrupt = 
     
     for i in range(trials.shape[0]):
         trials[i, :, :] = data[:, event_start[i] + windows_sample]
+        
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create the label vector
     labels = event_type[event_type != 768]

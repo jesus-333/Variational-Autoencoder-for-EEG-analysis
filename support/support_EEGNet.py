@@ -52,7 +52,7 @@ def getParameters(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 
 
 #%% Encoder EEGNet
 
-def getParametersEncoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
+def getParametersEncoder(activation_function = 3, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
     
     kernel_1 = (1, 64)
     kernel_2 = (C, 1)
@@ -92,7 +92,7 @@ def getParametersEncoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 
 
 #%% Decoder EEGNet
 
-def getParametersDecoder(activation_function = 2, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
+def getParametersDecoder(activation_function = 3, C = 22, T = 512, F_1 = 8, D = 2, F_2 = 16):
     
     kernel_1 = (-1, -64)
     kernel_2 = (-128, -1)

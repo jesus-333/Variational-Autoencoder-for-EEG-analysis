@@ -269,7 +269,7 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
                                                     train_config['L2_loss_type'])
                 total_loss = loss_list[0]    
 
-        # cccumulate the  loss
+        # Accumulate the  loss
         tot_loss += total_loss * x.shape[0]
         tot_recon_loss += loss_list[1] * x.shape[0]
         tot_kl_loss += loss_list[2] * x.shape[0]

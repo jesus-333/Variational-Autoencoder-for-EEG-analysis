@@ -118,7 +118,7 @@ class EEGNetDecoderV2(nn.Module):
         # Convolutional section of the decoder 
         drop_1 = nn.Dropout(p = 0.5)
         upsample_layer_1 = nn.Upsample(size = tracking_input_dimension_list[-2][1][2:4])
-        act_1 = nn.SELU()
+        act_1 = nn.ELU()
         batch_norm_1 = nn.BatchNorm2d(num_features = 16)
         cnn_layer_1 = nn.ConvTranspose2d(in_channels = 16, out_channels = 16, kernel_size = (1,1), bias = False)
         
@@ -126,7 +126,7 @@ class EEGNetDecoderV2(nn.Module):
         
         drop_3 = nn.Dropout(p = 0.5)
         upsample_layer_3 = nn.Upsample(size = tracking_input_dimension_list[1][1][2:4])
-        act_3 = nn.SELU()
+        act_3 = nn.ELU()
         batch_norm_3 = nn.BatchNorm2d(num_features = 16)
         cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (tracking_input_dimension_list[0][1][2], 1), groups = 8, bias = False)
         
@@ -196,7 +196,7 @@ class CLF_V1(nn.Module):
         # ORIGINAL STRUCTURE
         self.classifier = nn.Sequential(
             nn.Linear(n_input_neurons, 64),
-            nn.SELU(),
+            nn.ELU(),
             nn.Linear(64, 4),
             nn.LogSoftmax(dim = 1)
         )

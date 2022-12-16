@@ -27,7 +27,7 @@ start_second = 2
 end_second = 6
 quantization_step = 255
 
-exp_avg                   = True
+exp_avg                   = False
 filtering                 = True
 normalize_minmax          = False
 normalize_standardization = False
@@ -41,7 +41,7 @@ average_perturb           = False
 false_freq_list           = [55, 75]
 snr                       = 10 
 
-folder_name = 'v2_filtered_128_exp avg'
+folder_name = 'v2_test'
 # folder_name = 'v2_raw_perturb_250_2class_snr10'
 
 path_1_train = 'v1/Train/' 
@@ -57,7 +57,7 @@ labels_list = []
 
 idx_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # idx_list = [2, 3]
-# idx_list = [8]
+idx_list = [5]
 
 #%% Transformation
 
@@ -66,7 +66,6 @@ for idx in idx_list:
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Train set
-    
     data, event_matrix = loadDatasetD2(path_1_train, idx)
     
     # Filtering
@@ -91,7 +90,6 @@ for idx in idx_list:
     # Compute trials
     trials, labels = computeTrialD2(data, event_matrix, fs, start_second = start_second, end_second = end_second)
     
-
     # Downsampling
     if(resampling_trials): trials =  resampling(trials, fs, new_freq, axis = 2)
     

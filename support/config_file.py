@@ -47,6 +47,23 @@ def get_moabb_dataset_config():
 
     return dataset_config
 
+def get_artifact_dataset_config(type_dataset, folder_to_save = 'v2'):
+    dataset_config = dict(
+        # Version
+        type_dataset = type_dataset,
+        # Frequency filtering settings
+        filter_data = True,
+        fmin = 0,
+        fmax = 125,
+        # Resampling settings
+        resample_data = True,
+        resample_freq = 256,
+        # Other
+        folder_to_save = folder_to_save
+    )
+
+    return dataset_config
+
 def get_dataset_config():
     dataset_config = dict(
         train_path = 'Dataset/D2A/v2_raw_128/Train/',
@@ -168,7 +185,7 @@ def get_sweep_config(metric_name, metric_goal):
     return sweep_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Model and data function
+#%% Model and data function
 
 def get_train_data(config):
     """

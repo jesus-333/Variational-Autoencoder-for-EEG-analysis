@@ -39,7 +39,7 @@ def train_sweep(config = None):
     with wandb.init(project = "VAE_EEG", job_type = "train", config = config) as run:
         config = wandb.config
 
-        # "Correct" dictionaries
+        # "Correct" dictionaries with the parameters from the sweep
         correct_dataset_config(config, dataset_config)
         correct_train_config(config, train_config)
         
