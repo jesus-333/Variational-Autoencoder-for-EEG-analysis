@@ -66,40 +66,51 @@ for idx in idx_list:
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Train set
+<<<<<<< Updated upstream
     data, event_matrix = loadDatasetD2(path_1_train, idx)
+=======
     
-    # Filtering
-    if(filtering):
-        data = filterSignal(data, fs, low_band, high_band)
+    # data, event_matrix = loadDatasetD2(path_1_train, idx)
+>>>>>>> Stashed changes
     
-    # Applying expontential moving average
-    if(exp_avg):
-        # mean_0 = np.mean(data[0:1000, :], axis = 0)
-        # variance_0 = np.var(data[0:1000, :], axis = 0)
-        data = applyExponentialAverageV2(data)
+    # # Filtering
+    # if(filtering):
+    #     data = filterSignal(data, fs, low_band, high_band)
     
-    # Normalization minmax
-    if(normalize_minmax): 
-        # N.B. In this way you normalize considering all trial as a single registration so a single trial can have a max lower than 1
-        data = normalize(data)
+    # # Applying expontential moving average
+    # if(exp_avg):
+    #     # mean_0 = np.mean(data[0:1000, :], axis = 0)
+    #     # variance_0 = np.var(data[0:1000, :], axis = 0)
+    #     data = applyExponentialAverageV2(data)
     
-    # Normalization (x - E(X))/std(x)
-    if(normalize_standardization):
-        data = standardize(data)
+    # # Normalization minmax
+    # if(normalize_minmax): 
+    #     # N.B. In this way you normalize considering all trial as a single registration so a single trial can have a max lower than 1
+    #     data = normalize(data)
     
-    # Compute trials
-    trials, labels = computeTrialD2(data, event_matrix, fs, start_second = start_second, end_second = end_second)
+    # # Normalization (x - E(X))/std(x)
+    # if(normalize_standardization):
+    #     data = standardize(data)
     
+    # # Compute trials
+    # trials, labels = computeTrialD2(data, event_matrix, fs, start_second = start_second, end_second = end_second)
+    
+<<<<<<< Updated upstream
     # Downsampling
     if(resampling_trials): trials =  resampling(trials, fs, new_freq, axis = 2)
+=======
+
+    # # Downsampling
+    # if(resampling_trials): trials =  resampling(trials, fs, new_freq, axis = 2)
+>>>>>>> Stashed changes
     
-    # Quantization
-    if(quantize_trials): trials = quantizeTrials(trials, step = quantization_step)
+    # # Quantization
+    # if(quantize_trials): trials = quantizeTrials(trials, step = quantization_step)
     
-    # Command fro v1 to v2
-    saveTrialsForSubject(path_2_train, idx, trials, labels)
+    # # Command fro v1 to v2
+    # saveTrialsForSubject(path_2_train, idx, trials, labels)
     
-    print("Subject {} - Train set Finish".format(idx))
+    # print("Subject {} - Train set Finish".format(idx))
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Test set
     
