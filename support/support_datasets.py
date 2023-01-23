@@ -69,7 +69,7 @@ def filterSignal(data, fs, low_f, high_f, filter_order = 3):
 
 def resampling(trial, original_fs, new_fs, axis = 2):
     downsampling_factor = original_fs / new_fs
-    signal_downsampled = scipy.signal.resample(trial, int(trial.shape[axis]/downsampling_factor), axis = axis)
+    signal_downsampled = resample(trial, int(trial.shape[axis]/downsampling_factor), axis = axis)
     
     return signal_downsampled
 
@@ -354,6 +354,7 @@ class PytorchDatasetEEGSingleSubject(torch.utils.data.Dataset):
         self.file_list = tmp_list[0][2]
         
         self.path_list = []
+        
         
         for i in range(len(self.file_list)): 
             file = self.file_list[i]
