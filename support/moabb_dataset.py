@@ -46,7 +46,7 @@ def get_D2a_data(config, type_dataset):
     data = raw_data[:, 0:22, :]
 
     # Convert labels
-    labels =  convert_label(raw_labels)
+    labels = convert_label(raw_labels)
 
     return data, labels
 

@@ -131,6 +131,7 @@ class EEGNetDecoderV2(nn.Module):
         cnn_layer_3 = nn.ConvTranspose2d(in_channels = 16, out_channels = 8, kernel_size = (tracking_input_dimension_list[0][1][2], 1), groups = 8, bias = False)
         
         batch_norm_4 = nn.BatchNorm2d(num_features = 8)
+        cnn_layer_4 = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # List of module (use for debugging)
@@ -183,7 +184,9 @@ class EEGNetDecoderV2(nn.Module):
 
         x_mean = self.mean_output_layer(x)
         x_std = self.std_output_layer(x)
-        # x_std = torch.ones(1).to(x_mean.device)
+        
+        # x_mean = x
+        # x_std = torch.ones(x_mean.shape)
         
         return x_mean, x_std
     

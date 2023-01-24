@@ -127,6 +127,116 @@ max_avg_accuracy = np.max(avg_accuracy_per_file)
 
 print(max_avg_accuracy)
 
+#%% PSD
+
+import support_visualization as sv
+
+version = 23
+epoch_file = 'END'
+
+# config = metrics.get_config_PSD()
+config = dict(
+    device = 'cuda', 
+    fs = 128, # Origina sampling frequency
+    window_length = 0.5 # Length of the window in second
+)
+
+path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
+model.load_state_dict(torch.load(path))
+
+psd_original, psd_reconstructed, f = metrics.psd_reconstructed_output(model, test_data, 7, config)
+print(psd_original.shape)
+
+plot_config = dict(
+    figsize = (15, 10),
+    ch_list = ['C3', 'C4'],
+    color_list = ['red', 'blue'],
+    x_freq = f,
+    font_size = 16,
+)
+
+sv.plot_psd_V1(psd_original, psd_reconstructed, plot_config)
+
+#%% PSD (2)
+
+import support_visualization as sv
+
+version = 55
+epoch_file = 'END'
+
+# config = metrics.get_config_PSD()
+config = dict(
+    device = 'cuda', 
+    fs = 128, # Origina sampling frequency
+    window_length = 0.5 # Length of the window in second
+)
+
+path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
+model.load_state_dict(torch.load(path))
+
+psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, test_data, 0, config)
+psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, test_data, 127, config)
+
+psd_original_list = [psd_original_1, psd_original_2]
+psd_reconstructed_list = [psd_reconstructed_1, psd_reconstructed_2]
+
+plot_config = dict(
+    figsize = (15, 10),
+    ch_list = ['C3', 'C4'],
+    color_list = ['red', 'blue'],
+    x_freq = f,
+    font_size = 16,
+)
+
+# sv.plot_psd_V2(psd_original_list, psd_reconstructed_list, plot_config)
+
+import matplotlib.pyplot as plt
+channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
+channel_list = np.asarray(channel_list)
+plt.figure(figsize = (15, 10))
+
+idx_ch = channel_list == 'C3'
+plt.plot(f, psd_reconstructed_1[idx_ch].squeeze(), label = 'C3 - RIGHT')
+plt.plot(f, psd_reconstructed_2[idx_ch].squeeze(), label = 'C3 - LEFT')
+
+idx_ch = channel_list == 'C4'
+plt.plot(f, psd_reconstructed_1[idx_ch].squeeze(), label = 'C4 - RIGHT')
+plt.plot(f, psd_reconstructed_2[idx_ch].squeeze(), label = 'C4 - LEFT')
+
+plt.legend()
+plt.tight_layout()
+
+#%%
+
+for i in range(1):
+
+    sample = test_data[i][0].unsqueeze(0)
+    label =  test_data[i][1].unsqueeze(0)
+    if label == 0: label = 'LEFT'
+    if label == 1: label = 'RIGHT'
+    if label == 2: label = 'FOOT'
+    if label == 3: label = 'TONGUE'
+    
+    x_r_mean, x_r_std, mu, log_var, _ = model(sample)
+    
+    x = sample.cpu().squeeze().detach().numpy()
+    x_r = x_r_mean.cpu().squeeze().detach().numpy()
+    
+    f = np.linspace(0, 4, x.shape[1])
+    plt.figure(figsize = (15, 10))
+    
+    idx_ch = channel_list == 'C3'
+    plt.plot(f, x_r[0], label = 'Reconstructed')
+    plt.title(label)
+    
+    idx_ch = channel_list == 'C4'
+    plt.plot(f, x[0].squeeze(), label = 'Original')
+    
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
 #%% END
 
 run = wandb.init()

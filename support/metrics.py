@@ -14,8 +14,10 @@ import pandas as pd
 from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
 import os
 import wandb
+import scipy.signal as signal
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Function to compute the metrics 
 
 def compute_metrics(eeg_framework, loader, device):
     true_label, predict_label = compute_label(eeg_framework, loader, device)
@@ -100,7 +102,7 @@ def compute_specificity_binary(true_label, predict_label):
     return specificity
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% Other function
+#%% Function to compute the metrics given data/model
 
 def get_results_from_wandb(config):
     run = wandb.init(project = "content")
@@ -168,4 +170,59 @@ def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
         metrics_per_file.append(metrics_list)
 
     return metrics_per_file
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Reconstructed signal
+
+def get_config_PSD():
+    config = dict(
+        device = 'cuda', 
+        fs = 128, # Origina sampling frequency
+        window_length = 0.25 # Length of the window in second
+    )
+    
+    return config
+
+def psd_reconstructed_output(model, dataset, idx, config):
+    sample = dataset[idx][0].unsqueeze(0).to(config['device'])
+    label = dataset[idx][1]
+    
+    if label == 0: print('LEFT')
+    if label == 1: print('RIGHT')
+    if label == 2: print('FOOT')
+    if label == 3: print('TONGUE')
+    
+    model.eval()
+    model.to(config['device'])
+    
+    x_r_mean, x_r_std, mu, log_var, label = model(sample)
+    
+    x = sample.cpu().squeeze().detach().numpy()
+    x_r = x_r_mean.cpu().squeeze().detach().numpy()
+    
+    psd_list = []
+    psd_r_list = []
+    
+    for i in range(x_r.shape[0]):
+        # Get i-th channel for original data and recostructed data
+        tmp_x_ch    = x[i]
+        tmp_x_r_ch  = x_r[i]
+        
+        # Get the parameter for the PSD computation
+        fs = config['fs']
+        nperseg = config['fs'] * config['window_length']
+        
+        # Compute the PSD
+        f, x_psd = signal.welch(tmp_x_ch, fs = fs, nperseg = nperseg)
+        f, x_r_psd = signal.welch(tmp_x_r_ch, fs = fs, nperseg = nperseg)
+        
+        # Save the results
+        psd_list.append(x_psd)
+        psd_r_list.append(x_r_psd)
+    
+    psd_original = np.asarray(psd_list)
+    psd_reconstructed = np.asarray(psd_r_list)
+    
+    return psd_original, psd_reconstructed, f
+    
 

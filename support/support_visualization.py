@@ -75,3 +75,69 @@ def visualizeHiddenSpace(mu_list, std_list, idx_hidden_space = (0,1), sampling =
             plt.scatter(x, y, c = 'green', s = s, alpha = alpha)
         elif(label == 3): 
             plt.scatter(x, y, c = 'orange', s = s, alpha = alpha)
+            
+#%%
+
+def plot_psd_V1(psd_original, psd_reconstructed, config):
+    """
+    Compare the PSD of the original signal and of the reconstructed signal in separate plot
+    """
+    
+    fig, ax = plt.subplots(2, len(config['ch_list']), figsize = (15, 10))
+    
+    channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
+    channel_list = np.asarray(channel_list)
+    
+    for i in range(len(config['ch_list'])):
+        idx_ch = channel_list == config['ch_list'][i]
+    
+        ax[0, i].plot(config['x_freq'], psd_original[idx_ch].squeeze(), 
+                      color = config['color_list'][i])
+        ax[1, i].plot(config['x_freq'], psd_reconstructed[idx_ch].squeeze(), 
+                      color = config['color_list'][i])
+        
+        ax[0, i].set_xlabel('Frequency [Hz]')
+        ax[1, i].set_xlabel('Frequency [Hz]')
+        
+        ax[0, i].set_ylabel('PSD')
+        ax[1, i].set_ylabel('PSD')
+                
+        ax[0, i].set_title('Original - ' + config['ch_list'][i])
+        ax[1, i].set_title('Reconstructed - ' + config['ch_list'][i])
+    
+    if 'font_size' in config: plt.rcParams.update({'font.size': config['font_size']})
+    plt.tight_layout()
+    
+    
+def plot_psd_V2(psd_original_list, psd_reconstructed_list, config):
+    fig, ax = plt.subplots(1, len(config['ch_list']), figsize = (15, 10))
+    
+    channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
+    channel_list = np.asarray(channel_list)
+    
+    for i in  range(len(config['ch_list'])):
+        for j in range(len(psd_original_list)):
+            psd_original = psd_original_list[j]
+            psd_reconstructed = psd_reconstructed_list[j]
+            
+            idx_ch = channel_list == config['ch_list'][i]
+        
+            ax[i].plot(config['x_freq'], psd_original[idx_ch].squeeze(), 
+                          color = config['color_list'][i], label = 'Original')
+            ax[i].plot(config['x_freq'], psd_reconstructed[idx_ch].squeeze(), 
+                          color = config['color_list'][i], label = 'Reconstructed')
+            
+            ax[i].set_xlabel('Frequency')
+            ax[i].set_xlabel('Frequency')
+            
+            ax[i].set_ylabel('PSD')
+            ax[i].set_ylabel('PSD')
+            
+            
+            ax[i].set_title(config['ch_list'][i])
+            ax[i].set_title(config['ch_list'][i])
+            
+            ax[i].legend()
+    
+    if 'font_size' in config: plt.rcParams.update({'font.size': config['font_size']})
+    plt.tight_layout()
