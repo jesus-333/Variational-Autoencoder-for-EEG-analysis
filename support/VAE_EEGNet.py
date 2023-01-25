@@ -151,14 +151,14 @@ class EEGNetDecoderV2(nn.Module):
         module_list.append(cnn_layer_3)
 
         module_list.append(batch_norm_4)
-        # module_list.append(cnn_layer_4)
+        module_list.append(cnn_layer_4)
         
         self.conv_decoder = nn.Sequential(*module_list)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         
         # Layer to compute the mean
-        self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
+        # self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32), bias = False)
         
         # Evaluate the final dimensio of the output
         dumb_shape = [i for i in self.shape_input_conv_decoder] # Copy the shape in a new list (i.e. the original list is not modified)
@@ -166,14 +166,14 @@ class EEGNetDecoderV2(nn.Module):
         dumb_output_shape = self.conv_decoder(torch.rand(dumb_shape)).shape
         print(dumb_output_shape)
         
-        # Layer to compute the std 
-        self.std_output_layer = nn.Sequential(
-            nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
-            nn.Linear(dumb_output_shape[-1] - 1, 1),
-            # nn.Linear(512, 1),
-            nn.Flatten(),
-            nn.Linear(22, 1)
-        )
+        # # Layer to compute the std 
+        # self.std_output_layer = nn.Sequential(
+        #     nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
+        #     nn.Linear(dumb_output_shape[-1] - 1, 1),
+        #     # nn.Linear(512, 1),
+        #     nn.Flatten(),
+        #     nn.Linear(22, 1)
+        # )
 
 
     def forward(self, z):
@@ -182,11 +182,11 @@ class EEGNetDecoderV2(nn.Module):
         
         x = self.conv_decoder(x)
 
-        x_mean = self.mean_output_layer(x)
-        x_std = self.std_output_layer(x)
+        # x_mean = self.mean_output_layer(x)
+        # x_std = self.std_output_layer(x)
         
-        # x_mean = x
-        # x_std = torch.ones(x_mean.shape)
+        x_mean = x
+        x_std = torch.ones(x_mean.shape)
         
         return x_mean, x_std
     
