@@ -195,6 +195,7 @@ model.load_state_dict(torch.load(path))
 psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, test_data, 7, config)
 psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, test_data, 0, config)
 psd_original_3, psd_reconstructed_3, f = metrics.psd_reconstructed_output(model, test_data, 433, config)
+psd_original_4, psd_reconstructed_4, f = metrics.psd_reconstructed_output(model, test_data, 999, config)
 
 
 psd_original_list = [psd_original_1, psd_original_2, psd_original_3]
@@ -281,6 +282,9 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
+idx_foot_1 = channel_list == 'FC3'
+idx_foot_2 = channel_list == 'FC4'
+
 psd = psd_reconstructed_1
 plt.figure(figsize = (15,10))
 
@@ -290,21 +294,23 @@ plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
          label = 'C4', linewidth = 2, color = 'blue')
 plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,  
          label = 'CZ', linewidth = 2, color = 'green')
+plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_1]/2).squeeze()), linestyle = 'dotted' ,  
+         label = '(FC3 + FC4)/2', linewidth = 2, color = 'black')
 
 legend_properties = {'weight':'bold'}
 plt.legend()
 
 plt.xlabel("Frequency [Hz]", fontweight='bold')
 plt.ylabel(r'PSD [$\mathbf{\mu V^2}$/Hz]', fontweight='bold')
-plt.rcParams.update({'font.size': 18})
-# plt.ylim([0, 0.37])
-plt.xlim([0, 30])
-plt.yscale('log')
+plt.rcParams.update({'font.size': 22})
+plt.ylim([0, 0.37])
+plt.xlim([0, 15])
+# plt.yscale('log')
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
-name = 'right_30_log'
+name = 'RH_15'
 
 file_type = 'png'
 filename = "{}.{}".format(name, file_type) 
@@ -334,6 +340,7 @@ model.load_state_dict(state_dict)
 left_list = []
 right_list = []
 foot_list = []
+tongue_list = []
 
 for i in range(1000):
 
@@ -347,6 +354,7 @@ for i in range(1000):
     if label == 'LEFT': left_list.append(i)
     if label == 'RIGHT': right_list.append(i)
     if label == 'FOOT': foot_list.append(i)
+    if label == 'TONGUE': tongue_list.append(i)
     
 model.eval()
 tmp_list = left_list
@@ -356,13 +364,15 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
-# idx_foot = 
+idx_foot_1 = channel_list == 'FC3'
+idx_foot_2 = channel_list == 'FC4'
 
 n_el = 50
 
 avg_c3 = np.zeros(T)
 avg_c4 = np.zeros(T)
 avg_cz = np.zeros(T)
+avg_tongue = np.zeros(T)
 
 model.cuda()
 
@@ -378,10 +388,12 @@ for i in range(n_el):
     avg_c3 += x_r[idx_C3].squeeze()
     avg_c4 += x_r[idx_C4].squeeze()
     avg_cz += x_r[idx_CZ].squeeze()
+    avg_tongue += (x_r[idx_foot_1] + x_r[idx_foot_1]/2).squeeze()
     
 avg_c3 /= n_el
 avg_c4 /= n_el
 avg_cz /= n_el
+avg_tongue /= n_el
 
 print(np.mean(avg_c3), np.mean(avg_c4), np.mean(avg_cz))
 
@@ -394,16 +406,18 @@ plt.plot(t, avg_c4, linestyle = 'dashed' ,
          label = 'C4', linewidth = 2, color = 'blue')
 plt.plot(t, avg_cz, linestyle = 'dashdot' ,  
          label = 'CZ', linewidth = 2, color = 'green')
+plt.plot(t, avg_tongue, linestyle = 'dotted' ,  
+         label = '(FC3 + FC4)/2', linewidth = 2, color = 'black')
 
 plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
-plt.ylabel(r'Amplitude [$\mathbf{V^2}$]', fontweight='bold')
+plt.ylabel(r'Amplitude [$\mathbf{\mu V^2}$]', fontweight='bold')
 plt.xlim([0, 4])
-plt.rcParams.update({'font.size': 18})
+plt.rcParams.update({'font.size': 22})
 plt.tight_layout()
 plt.grid(True)
 
-name = 'average_reconstructed_c3_vs_c4_vs_cz_left_50'
+name = 'average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
 
 file_type = 'png'
 filename = "{}.{}".format(name, file_type) 
