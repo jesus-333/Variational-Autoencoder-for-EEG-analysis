@@ -26,13 +26,15 @@ class EEGNet(nn.Module):
         
         use_bias = config['use_bias']
         D = config['D']
-        stride = config['stride'] if stride in config else 1
+        stride = config['stride'] if 'stride' in config else 1
+        stride = 1
+        padding = 0 if stride != 1 else 'same'
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
 
         self.temporal_filter = nn.Sequential(
-            nn.Conv2d(1, config['filter_1'], kernel_size = config['c_kernel_1'], padding = 'same', bias = use_bias, stride = 1),
+            nn.Conv2d(1, config['filter_1'], kernel_size = config['c_kernel_1'], padding = padding, bias = use_bias, stride = stride),
             nn.BatchNorm2d(config['filter_1']),
         )
         

@@ -9,9 +9,11 @@ Contain the function with the config for the training and to get model and data
 TO EXECUTE
 %load_ext autoreload
 %autoreload 2
+
 import sys
 sys.path.insert(0, 'support')
 import config_file as cf
+
 loader_list = cf.get_subject_data(cf.get_dataset_config(), 'train')
 model = cf.get_model(22, 512, 16)
 """
@@ -71,7 +73,6 @@ def get_dataset_config():
         merge_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = False,
         percentage_split = 0.9,
-        # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
         device = "cuda" if torch.cuda.is_available() else "cpu",
     )
 
