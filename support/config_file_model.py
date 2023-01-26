@@ -10,7 +10,7 @@ Contain the function with the config for the model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
 
-def get_config_vEEGNet_encoder():
+def get_config_vEEGNet_encoder(C = 22, T = 512):
     config = dict(
         # EEGNet 1
         temporal_kernel_1 = (1, 64),
@@ -22,8 +22,8 @@ def get_config_vEEGNet_encoder():
         temporal_kernel_3 = (1, 4),
         stride_3 = 1,
         # Other
-        C = 22,
-        T = 512,
+        C = C,
+        T = T,
         hidden_space_dimension = 64
     )
 

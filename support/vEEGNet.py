@@ -87,7 +87,7 @@ class Decoder(nn.Module):
 
     def forward(self, x):
         
-        x_r_mean, x_r_std = self.encoder(x)
+        x_r_mean, x_r_std = self.decoder(x)
 
         return x_r_mean, x_r_std
 
