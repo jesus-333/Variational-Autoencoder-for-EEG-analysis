@@ -73,7 +73,7 @@ artifact_dir = artifact.download()
 hidden_space_dimension = artifact.metadata['train_config']['hidden_space_dimension']
 
 tmp_path = './artifacts/vEEGNet_trained-v{}'.format(version)
-network_weight_list = os.listdir(tmp_path)
+# network_weight_list = os.listdir(tmp_path)
 
 #%% create Dataset (d2a old)
 
@@ -110,6 +110,8 @@ T = test_data[0][0].shape[2]
 #%% create Dataset (moabb)
 
 dataset_config = cf.get_moabb_dataset_config()
+dataset_config['normalize_trials'] = True
+
 train_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
 
@@ -150,7 +152,7 @@ print(max_avg_accuracy)
 
 import support_visualization as sv
 
-version = 55
+version = 97
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
@@ -186,14 +188,14 @@ epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
 config = dict(
-    device = 'cuda', 
+    device = 'cpu', 
     fs = 128, # Origina sampling frequency
     window_length = 2, # Length of the window in second
     second_overlap = 1.75
 )
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
-model.load_state_dict(torch.load(path))
+model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
 
 psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, test_data, 7, config)
 psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, test_data, 0, config)
@@ -225,6 +227,8 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
+device = 'cpu'
+
 idx = 7
 left_list = [0]
 right_list = [1]
@@ -238,7 +242,7 @@ if label == 2: label = 'FOOT'
 if label == 3: label = 'TONGUE'
 print(label)
 
-x_r_mean, x_r_std, mu, log_var, _ = model(sample.cuda())
+x_r_mean, x_r_std, mu, log_var, _ = model(sample.to(device))
 
 x = sample.cpu().squeeze().detach().numpy()
 x_r = x_r_mean.cpu().squeeze().detach().numpy()
@@ -259,7 +263,7 @@ plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
 plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
 plt.xlim([0, 4])
-plt.ylim([-5, 5])
+# plt.ylim([-5, 5])
 plt.rcParams.update({'font.size': 18})
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
