@@ -64,13 +64,15 @@ print(best_kappa)
 
 #%% Download network 
 
+version = 97
+
 run = wandb.init()
-artifact = run.use_artifact('jesus_333/VAE_EEG/vEEGNet_trained:v21', type='model')
+artifact = run.use_artifact('jesus_333/VAE_EEG/vEEGNet_trained:v{}'.format(version), type='model')
 artifact_dir = artifact.download()
 
 hidden_space_dimension = artifact.metadata['train_config']['hidden_space_dimension']
 
-tmp_path = './artifacts/vEEGNet_trained-v55'
+tmp_path = './artifacts/vEEGNet_trained-v{}'.format(version)
 network_weight_list = os.listdir(tmp_path)
 
 #%% create Dataset (d2a old)
@@ -108,7 +110,6 @@ T = test_data[0][0].shape[2]
 #%% create Dataset (moabb)
 
 dataset_config = cf.get_moabb_dataset_config()
-# dataset_config['resample_freq'] = 149
 train_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
 
@@ -125,7 +126,7 @@ import VAE_EEGNet
 
 model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension, 
                                 use_reparametrization_for_classification = False, 
-                                print_var = False, tracking_input_dimension = False) 
+                                print_var = True, tracking_input_dimension = True) 
 
 
 metrics_per_file = metrics.compute_metrics_given_path(model, loader_list, 
@@ -156,7 +157,8 @@ epoch_file = 'END'
 config = dict(
     device = 'cuda', 
     fs = 128, # Origina sampling frequency
-    window_length = 0.5 # Length of the window in second
+    window_length = 2, # Length of the window in second
+    second_overlap = 0
 )
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
@@ -179,14 +181,15 @@ sv.plot_psd_V1(psd_original, psd_reconstructed, plot_config)
 
 import support_visualization as sv
 
-version = 23
+version = 97
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
 config = dict(
     device = 'cuda', 
     fs = 128, # Origina sampling frequency
-    window_length = 0.5 # Length of the window in second
+    window_length = 2, # Length of the window in second
+    second_overlap = 1.75
 )
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
@@ -195,8 +198,8 @@ model.load_state_dict(torch.load(path))
 psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, test_data, 7, config)
 psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, test_data, 0, config)
 psd_original_3, psd_reconstructed_3, f = metrics.psd_reconstructed_output(model, test_data, 433, config)
-psd_original_4, psd_reconstructed_4, f = metrics.psd_reconstructed_output(model, test_data, 999, config)
-
+psd_original_4, psd_reconstructed_4, f = metrics.psd_reconstructed_output(model, test_data, 997, config)
+print(len(psd_reconstructed_4))
 
 psd_original_list = [psd_original_1, psd_original_2, psd_original_3]
 psd_reconstructed_list = [psd_reconstructed_1, psd_reconstructed_2, psd_reconstructed_3]
@@ -222,12 +225,13 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
-idx = 1
+idx = 7
 left_list = [0]
 right_list = [1]
 
 sample = test_data[idx][0].unsqueeze(0)
 label =  test_data[idx][1].unsqueeze(0)
+
 if label == 0: label = 'LEFT'
 if label == 1: label = 'RIGHT'
 if label == 2: label = 'FOOT'
@@ -243,9 +247,9 @@ x_r = x_r_mean.cpu().squeeze().detach().numpy()
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
-plt.plot(t, x[idx_CZ].squeeze(), linestyle = 'solid' , 
+plt.plot(t, x[idx_C3].squeeze(), linestyle = 'solid' , 
          label = 'Original signal', linewidth = 2, color = 'grey', alpha = 0.55)
-plt.plot(t, x_r[idx_CZ].squeeze(), linestyle = 'solid' ,  
+plt.plot(t, x_r[idx_C3].squeeze(), linestyle = 'solid' ,  
          label = 'Reconstructed Signal', linewidth = 2, color = 'black')
 
 
@@ -255,7 +259,7 @@ plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
 plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
 plt.xlim([0, 4])
-plt.ylim([-20, 20])
+plt.ylim([-5, 5])
 plt.rcParams.update({'font.size': 18})
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
@@ -263,13 +267,13 @@ plt.grid(True)
 
 name = 'original vs reconstructed_CZ_single trial'
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
 #%% PLOT PSD 
 
@@ -286,6 +290,8 @@ idx_foot_1 = channel_list == 'FC3'
 idx_foot_2 = channel_list == 'FC4'
 
 psd = psd_reconstructed_1
+name = 'LH_25'
+
 plt.figure(figsize = (15,10))
 
 plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' , 
@@ -295,7 +301,7 @@ plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
 plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,  
          label = 'CZ', linewidth = 2, color = 'green')
 plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_1]/2).squeeze()), linestyle = 'dotted' ,  
-         label = '(FC3 + FC4)/2', linewidth = 2, color = 'black')
+         label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
 
 legend_properties = {'weight':'bold'}
 plt.legend()
@@ -303,32 +309,31 @@ plt.legend()
 plt.xlabel("Frequency [Hz]", fontweight='bold')
 plt.ylabel(r'PSD [$\mathbf{\mu V^2}$/Hz]', fontweight='bold')
 plt.rcParams.update({'font.size': 22})
-plt.ylim([0, 0.37])
-plt.xlim([0, 15])
-# plt.yscale('log')
+# plt.ylim([0, 0.37])
+# plt.xlim([0, 25])
+plt.yscale('log')
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
-name = 'RH_15'
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
 #%%
 
-version = 21
+version = 97
 epoch_file = 'END'
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
 state_dict = torch.load(path)
 
-hidden_space_dimension = int(state_dict['vae.encoder.fc_encoder.bias'].shape[0] / 2) 
+hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4) 
 
 model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension, 
                                 use_reparametrization_for_classification = False, 
@@ -357,7 +362,10 @@ for i in range(1000):
     if label == 'TONGUE': tongue_list.append(i)
     
 model.eval()
-tmp_list = left_list
+
+tmp_list = foot_list
+name = 'FE_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
+
 channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
 channel_list = np.asarray(channel_list)
 idx_C3 = channel_list == 'C3'
@@ -407,17 +415,15 @@ plt.plot(t, avg_c4, linestyle = 'dashed' ,
 plt.plot(t, avg_cz, linestyle = 'dashdot' ,  
          label = 'CZ', linewidth = 2, color = 'green')
 plt.plot(t, avg_tongue, linestyle = 'dotted' ,  
-         label = '(FC3 + FC4)/2', linewidth = 2, color = 'black')
+         label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
 
 plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
-plt.ylabel(r'Amplitude [$\mathbf{\mu V^2}$]', fontweight='bold')
+plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
 plt.xlim([0, 4])
 plt.rcParams.update({'font.size': 22})
 plt.tight_layout()
 plt.grid(True)
-
-name = 'average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
 
 file_type = 'png'
 filename = "{}.{}".format(name, file_type) 

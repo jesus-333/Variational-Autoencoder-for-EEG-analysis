@@ -100,7 +100,7 @@ class decoder_simple(nn.Module):
     def forward(self,x):
         return x
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Decoder
+#%% VAE
 
 class VAE(nn.Module):
     def __init__(self, config_encoder, config_decoder):

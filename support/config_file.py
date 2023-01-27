@@ -39,7 +39,7 @@ def get_moabb_dataset_config():
         fmax = 125,
         # Resampling settings
         resample_data = True,
-        resample_freq = 127.9,
+        resample_freq = 128,
         # Other
         n_classes = 4,
         subjects_list = [1,2,3,4,5,6,7,8,9],
@@ -90,12 +90,12 @@ def get_train_config():
     train_config = dict(
         model_artifact_name = "vEEGNet",    # Name of the artifact used to save the models
         # Training settings
-        batch_size = 15,                    
-        lr = 1e-2,                          # Learning rate (lr)
-        epochs = 500,                       # Number of epochs to train the model
-        use_scheduler = True,               # Use the lr scheduler
+        batch_size = 30,                    
+        lr = 7 * 1e-4,                          # Learning rate (lr)
+        epochs = 300,                       # Number of epochs to train the model
+        use_scheduler = False,               # Use the lr scheduler
         lr_decay_rate = 0.995,               # Parameter of the lr exponential scheduler
-        optimizer_weight_decay = 1e-5,      # Weight decay of the optimizer
+        optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         use_shifted_VAE_loss = False,
         L2_loss_type = 0,                   # 0 ---> Simple MSE, 2 ---> Advance MSE (used likelihood formulation)
         # Loss multiplication factor
@@ -110,7 +110,7 @@ def get_train_config():
         measure_metrics_during_training = True,
         repetition = 1,                     # Number of time to repeat the training 
         print_var = True,
-        debug = False,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
+        debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
     
 
@@ -180,6 +180,39 @@ def get_sweep_config(metric_name, metric_goal):
             ),
             fmax = get_uniform_distribution(40, 125, True),
             resample_freq = get_uniform_distribution(128, 250, True)
+        ),
+    )
+
+    return sweep_config
+
+def get_sweep_config_2(metric_name, metric_goal):
+    """
+    Get all the config for the wandb sweep.
+    Parameters:
+        - metric_name: (string) Contain the name of metric to optimize (i.e. litteraly the name of the metric as it saved in wandb)
+        - metric_goal: (string) Must have value \'maximize\' or \'minimize\'. Indicate if the metric has to be maximize or minimize
+    """
+
+    if metric_goal != 'maximize' and metric_goal != 'minimize':
+        raise ValueError('The metric_goal parameter must have value \'maximize\' or \'minimize\'')
+
+    sweep_config = dict(
+        # Fields needed by wandb
+        method = 'random',
+        metric = dict(
+            name = metric_name,
+            goal = metric_goal
+        ),
+        parameters = dict(
+            alpha = get_uniform_distribution(0.05, 1),
+            beta  = get_uniform_distribution(2, 30),
+            gamma = get_uniform_distribution(2, 30),
+            lr_decay_rate = dict(
+                value = 1
+            ),
+            hidden_space_dimension = dict(
+                value = 64
+            ),
         ),
     )
 

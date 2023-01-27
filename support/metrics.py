@@ -211,10 +211,11 @@ def psd_reconstructed_output(model, dataset, idx, config):
         # Get the parameter for the PSD computation
         fs = config['fs']
         nperseg = config['fs'] * config['window_length']
+        noverlap = config['fs'] * config['second_overlap']
         
         # Compute the PSD
-        f, x_psd = signal.welch(tmp_x_ch, fs = fs, nperseg = nperseg)
-        f, x_r_psd = signal.welch(tmp_x_r_ch, fs = fs, nperseg = nperseg)
+        f, x_psd = signal.welch(tmp_x_ch, fs = fs, nperseg = nperseg, noverlap = noverlap)
+        f, x_r_psd = signal.welch(tmp_x_r_ch, fs = fs, nperseg = nperseg, noverlap = noverlap)
         
         # Save the results
         psd_list.append(x_psd)

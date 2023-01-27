@@ -22,17 +22,17 @@ def VAE_loss(x, x_r_mean, x_r_std, mu_q, log_var, alpha = 1, beta = 1, L2_loss_t
 
     """
     
+    # TODO CHECK
     # Kullback-Leibler Divergence
-    sigma_p = torch.ones(log_var.shape).to(log_var.device) # Standard deviation of the target standard distribution
-    mu_p = torch.zeros(mu_q.shape).to(mu_q.device) # Mean of the target gaussian distribution
-    sigma_q = torch.sqrt(torch.exp(log_var)) # standard deviation obtained from the VAE
-    kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
-    # kl_loss = KL_Loss_v2(sigma_q, mu_q) #  TODO REMOVE
-    # N.b. Due to implementation reasons I pass to the function the STANDARD DEVIATION, i.e. the NON-SQUARED VALUE
+    # sigma_p = torch.ones(log_var.shape).to(log_var.device) # Standard deviation of the target standard distribution
+    # mu_p = torch.zeros(mu_q.shape).to(mu_q.device) # Mean of the target gaussian distribution
+    # sigma_q = torch.sqrt(torch.exp(log_var)) # standard deviation obtained from the VAE
+    # kl_loss = KL_Loss(sigma_p, mu_p, sigma_q, mu_q)
     # When the variance is needed inside the function the sigmas are eventually squared
     
     # Old KL Loss (Simplified version with sigma_p = 1 and mu_p = 0)
     # kl_loss =  (-0.5 * (1 + log_var - torch.exp(log_var) - mu**2).sum(dim = 1)).mean(dim = 0)
+    kl_loss = -0.5 * torch.sum(1 + log_var - mu_q.pow(2) - log_var.exp())
     
     # Reconstruction loss 
     # TODO return to normal recon loss
@@ -182,21 +182,6 @@ def KL_Loss(sigma_p, mu_p, sigma_q, mu_q):
     
     return kl_loss.sum(dim = 1).mean(dim = 0)
 
-def KL_Loss_v2(sigma, mu):
-    # Sample from hidden space 
-    noise = torch.randn(size = (mu.size(0),mu.size(1)))
-    noise = noise.type_as(mu) # Setting z to be .cuda when using GPU training 
-    z_sample = mu + sigma * noise
-    
-    # Sample from normal distribution
-    normal_sample = torch.randn(size = (mu.size(0),mu.size(1))).type_as(mu) 
-    
-
-    # Compute KL
-    criterion = nn.KLDivLoss(reduction = "batchmean", log_target = True)
-    kl_loss = criterion(z_sample.log(), normal_sample.log())
-
-    return kl_loss
 
 def classifierLoss(predict_label, true_label):
     classifier_loss_criterion = torch.nn.NLLLoss()
@@ -218,12 +203,6 @@ def VAE_and_classifier_loss(x, x_r_mean, x_r_std, mu, log_var, true_label, predi
     
     # Total loss
     total_loss = vae_loss + classifier_loss * gamma
-    
-    # print("Print Loss:")
-    # print("Total:", total_loss)
-    # print("Class:", classifier_loss)
-    # print("Recon:", recon_loss)
-    # print("kl:   ", kl_loss)
     
     return total_loss, recon_loss, kl_loss, classifier_loss * gamma
 

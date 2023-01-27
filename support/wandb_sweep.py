@@ -23,6 +23,7 @@ import wandb
 import torch
 from torch.utils.data import DataLoader
 
+import numpy as np
 import config_file as cf
 from wandb_training import train_cycle, add_model_to_artifact
 import moabb_dataset as md
@@ -35,22 +36,31 @@ def train_sweep(config = None):
     # dataset_config = cf.get_dataset_config()
     dataset_config = cf.get_moabb_dataset_config()
     train_config = cf.get_train_config()
+    
+    #TODO REMOVE
+    train_config['lr'] = np.random.choice([1e-3, 7 * 1e-4, 3 * 1e-4])
+    # train_config['batch_size'] = np.random.choice([int(15), int(30), int(45)])
 
     with wandb.init(project = "VAE_EEG", job_type = "train", config = config) as run:
+        # Config from the sweep
         config = wandb.config
+        print("Start Sweep")
 
         # "Correct" dictionaries with the parameters from the sweep
         correct_dataset_config(config, dataset_config)
         correct_train_config(config, train_config)
+        print("Update config with sweep parameters")
         
         # Get the training data
         # train_dataset, validation_dataset = cf.get_train_data(dataset_config)
         train_dataset, validation_dataset = md.get_train_data(dataset_config)
+        print("Dataset created")
 
         # Create dataloader
         train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
         validation_dataloader   = DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
         loader_list             = [train_dataloader, validation_dataloader]
+        print("Dataloader created")
         
         # Get test data
         # test_loader_list = cf.get_subject_data(dataset_config, 'test', return_dataloader = True, batch_size = train_config['batch_size'])
@@ -61,6 +71,7 @@ def train_sweep(config = None):
         
         # Create the model 
         model = cf.get_model(C, T, train_config['hidden_space_dimension'])
+        print("Model created")
         
         # Setup optimizer
         optimizer = torch.optim.AdamW(model.parameters(), lr = train_config['lr'], 
@@ -71,7 +82,7 @@ def train_sweep(config = None):
             lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
         else:
             lr_scheduler = None
-        print("5")
+        
         # Setup artifact to save model
         model_artifact_name = train_config['model_artifact_name'] + '_trained'
         metadata = dict(train_config = train_config, dataset_config = dataset_config)
@@ -96,7 +107,10 @@ def train_sweep(config = None):
 
 def correct_dataset_config(sweep_config, dataset_config):
     key_to_copy = ['normalize_trials', 'filter_band']
-    key_to_copy = ['normalize_trials']    
+    key_to_copy = ['normalize_trials']
+    
+    key_to_copy = []
+        
     for key in key_to_copy: dataset_config[key] = sweep_config[key] 
 
 def correct_train_config(sweep_config, train_config):
@@ -106,6 +120,10 @@ def correct_train_config(sweep_config, train_config):
         'batch_size', 'epochs', 'use_scheduler', 
         'L2_loss_type', 'use_shifted_VAE_loss',
         'lr_decay_rate'
+    ]
+    key_to_copy = [
+        'alpha', 'beta', 'gamma',
+        'lr_decay_rate', 'hidden_space_dimension'
     ]
 
     for key in key_to_copy: train_config[key] = sweep_config[key] 

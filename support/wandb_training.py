@@ -270,9 +270,9 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
                 total_loss = loss_list[0]    
 
         # Accumulate the  loss
-        tot_loss += total_loss * x.shape[0]
-        tot_recon_loss += loss_list[1] * x.shape[0]
-        tot_kl_loss += loss_list[2] * x.shape[0]
+        tot_loss        += total_loss   * x.shape[0]
+        tot_recon_loss  += loss_list[1] * x.shape[0]
+        tot_kl_loss     += loss_list[2] * x.shape[0]
         tot_discriminator_loss += loss_list[3] * x.shape[0]
 
     # End training cycle

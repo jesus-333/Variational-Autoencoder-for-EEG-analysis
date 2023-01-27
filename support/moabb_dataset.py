@@ -62,7 +62,7 @@ class EEG_Dataset(Dataset):
         
         # (OPTIONAL) Normalize
         if normalize:
-            self.data = (self.data - self.data.min())/(self.data.max() - self.data.min())
+            self.data = (self.data - self.data.min())/(self.data.max() - self.data.min()) * (1 - (-1)) + (-1)
 
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]    

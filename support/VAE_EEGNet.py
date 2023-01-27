@@ -200,17 +200,17 @@ class CLF_V1(nn.Module):
         super().__init__()
         
         # ORIGINAL STRUCTURE
-        self.classifier = nn.Sequential(
-            nn.Linear(n_input_neurons, 64),
-            nn.ELU(),
-            nn.Linear(64, 4),
-            nn.LogSoftmax(dim = 1)
-        )
-        
         # self.classifier = nn.Sequential(
-        #     nn.Linear(n_input_neurons, 4),
+        #     nn.Linear(n_input_neurons, 64),
+        #     nn.ELU(),
+        #     nn.Linear(64, 4),
         #     nn.LogSoftmax(dim = 1)
         # )
+        
+        self.classifier = nn.Sequential(
+            nn.Linear(n_input_neurons, 4),
+            nn.LogSoftmax(dim = 1)
+        )
         
     def forward(self, x): 
         return self.classifier(x)
