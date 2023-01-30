@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+import scipy
 from scipy.io import loadmat, savemat
 from scipy.signal import resample, butter, filtfilt
 

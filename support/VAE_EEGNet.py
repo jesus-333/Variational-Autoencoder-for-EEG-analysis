@@ -218,6 +218,8 @@ class CLF_V1(nn.Module):
 
 #%% VAE + Classifier
 
+# TODO  Ora classifica solo con la media e non con tutto z. Se non funziona rimandare allo stato originale
+
 class EEGFramework(nn.Module):
     
     def __init__(self, C, T, hidden_space_dimension, use_reparametrization_for_classification = False, print_var = False, tracking_input_dimension = False):
@@ -231,7 +233,7 @@ class EEGFramework(nn.Module):
 
         # Classifier (Discriminator) definition        
         if(use_reparametrization_for_classification): self.classifier = CLF_V1(hidden_space_dimension)
-        else: self.classifier = CLF_V1(hidden_space_dimension * 2)
+        else: self.classifier = CLF_V1(hidden_space_dimension)
         
         self.use_reparametrization_for_classification = use_reparametrization_for_classification
         
@@ -250,7 +252,7 @@ class EEGFramework(nn.Module):
         else: z = torch.cat((mu, log_var), dim = 1)
         
         # Classification of VAE output
-        label = self.classifier(z)
+        label = self.classifier(mu)
         
         # Return reconstructed input, mu and log variance vectors and label of the input.
         return x_r_mean, x_r_std, mu, log_var, label
@@ -258,7 +260,7 @@ class EEGFramework(nn.Module):
     def classify(self, x, return_as_index = True):
         mu, log_var = self.vae.encoder(x)
         z = torch.cat((mu, log_var), dim = 1)
-        label = self.classifier(z)
+        label = self.classifier(mu)
 
         if return_as_index:
             predict_prob = torch.squeeze(torch.exp(label).detach())

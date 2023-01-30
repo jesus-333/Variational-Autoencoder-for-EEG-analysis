@@ -64,7 +64,7 @@ print(best_kappa)
 
 #%% Download network 
 
-version = 97
+version = 124
 
 run = wandb.init()
 artifact = run.use_artifact('jesus_333/VAE_EEG/vEEGNet_trained:v{}'.format(version), type='model')
@@ -110,7 +110,7 @@ T = test_data[0][0].shape[2]
 #%% create Dataset (moabb)
 
 dataset_config = cf.get_moabb_dataset_config()
-train_data = md.get_train_data(dataset_config)
+train_data, validation_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
 
 C = test_data[0][0].shape[1]
@@ -181,7 +181,7 @@ sv.plot_psd_V1(psd_original, psd_reconstructed, plot_config)
 
 import support_visualization as sv
 
-version = 97
+version = 124
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
@@ -195,10 +195,12 @@ config = dict(
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
 model.load_state_dict(torch.load(path))
 
-psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, test_data, 7, config)
-psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, test_data, 0, config)
-psd_original_3, psd_reconstructed_3, f = metrics.psd_reconstructed_output(model, test_data, 433, config)
-psd_original_4, psd_reconstructed_4, f = metrics.psd_reconstructed_output(model, test_data, 997, config)
+data_for_psd = test_data
+
+psd_original_1, psd_reconstructed_1, f = metrics.psd_reconstructed_output(model, data_for_psd, 7, config)
+psd_original_2, psd_reconstructed_2, f = metrics.psd_reconstructed_output(model, data_for_psd, 0, config)
+psd_original_3, psd_reconstructed_3, f = metrics.psd_reconstructed_output(model, data_for_psd, 433, config)
+psd_original_4, psd_reconstructed_4, f = metrics.psd_reconstructed_output(model, data_for_psd, 997, config)
 print(len(psd_reconstructed_4))
 
 psd_original_list = [psd_original_1, psd_original_2, psd_original_3]
@@ -225,9 +227,17 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
-idx = 7
+idx = 0
 left_list = [0]
 right_list = [1]
+device = 'cpu'
+
+version = 124
+epoch_file = 'END'
+path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
+model.load_state_dict(torch.load(path))
+
+name = 'RH_original vs reconstructed_C4_single trial'
 
 sample = test_data[idx][0].unsqueeze(0)
 label =  test_data[idx][1].unsqueeze(0)
@@ -238,7 +248,8 @@ if label == 2: label = 'FOOT'
 if label == 3: label = 'TONGUE'
 print(label)
 
-x_r_mean, x_r_std, mu, log_var, _ = model(sample.cuda())
+model.to(device)
+x_r_mean, x_r_std, mu, log_var, _ = model(sample.to(device))
 
 x = sample.cpu().squeeze().detach().numpy()
 x_r = x_r_mean.cpu().squeeze().detach().numpy()
@@ -247,9 +258,9 @@ x_r = x_r_mean.cpu().squeeze().detach().numpy()
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
-plt.plot(t, x[idx_C3].squeeze(), linestyle = 'solid' , 
-         label = 'Original signal', linewidth = 2, color = 'grey', alpha = 0.55)
-plt.plot(t, x_r[idx_C3].squeeze(), linestyle = 'solid' ,  
+plt.plot(t, x[idx_C4].squeeze(), linestyle = 'solid' , 
+          label = 'Original signal', linewidth = 2, color = 'grey', alpha = 0.55)
+plt.plot(t, x_r[idx_C4].squeeze(), linestyle = 'solid' ,  
          label = 'Reconstructed Signal', linewidth = 2, color = 'black')
 
 
@@ -259,21 +270,20 @@ plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
 plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
 plt.xlim([0, 4])
-plt.ylim([-5, 5])
+# plt.ylim([-5, 5])
 plt.rcParams.update({'font.size': 18})
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
-name = 'original vs reconstructed_CZ_single trial'
 
-# file_type = 'png'
-# filename = "{}.{}".format(name, file_type) 
-# plt.savefig(filename, format=file_type)
+file_type = 'png'
+filename = "{}.{}".format(name, file_type) 
+plt.savefig(filename, format=file_type)
 
-# file_type = 'eps'
-# filename = "{}.{}".format(name, file_type) 
-# plt.savefig(filename, format=file_type)
+file_type = 'eps'
+filename = "{}.{}".format(name, file_type) 
+plt.savefig(filename, format=file_type)
 
 #%% PLOT PSD 
 
@@ -289,8 +299,8 @@ idx_CZ = channel_list == 'Cz'
 idx_foot_1 = channel_list == 'FC3'
 idx_foot_2 = channel_list == 'FC4'
 
-psd = psd_reconstructed_1
-name = 'LH_25'
+psd = psd_reconstructed_4
+name = 'FE_30'
 
 plt.figure(figsize = (15,10))
 
@@ -310,24 +320,23 @@ plt.xlabel("Frequency [Hz]", fontweight='bold')
 plt.ylabel(r'PSD [$\mathbf{\mu V^2}$/Hz]', fontweight='bold')
 plt.rcParams.update({'font.size': 22})
 # plt.ylim([0, 0.37])
-# plt.xlim([0, 25])
-plt.yscale('log')
+plt.xlim([0, 30])
+# plt.yscale('log')
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
+file_type = 'png'
+filename = "{}.{}".format(name, file_type) 
+plt.savefig(filename, format=file_type)
 
-# file_type = 'png'
-# filename = "{}.{}".format(name, file_type) 
-# plt.savefig(filename, format=file_type)
-
-# file_type = 'eps'
-# filename = "{}.{}".format(name, file_type) 
-# plt.savefig(filename, format=file_type)
+file_type = 'eps'
+filename = "{}.{}".format(name, file_type) 
+plt.savefig(filename, format=file_type)
 
 #%%
 
-version = 97
+version = 124
 epoch_file = 'END'
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
@@ -363,8 +372,8 @@ for i in range(1000):
     
 model.eval()
 
-tmp_list = foot_list
-name = 'FE_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
+tmp_list = left_list
+name = 'LH_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
 
 channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
 channel_list = np.asarray(channel_list)
@@ -425,13 +434,13 @@ plt.rcParams.update({'font.size': 22})
 plt.tight_layout()
 plt.grid(True)
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type) 
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type) 
+# plt.savefig(filename, format=file_type)
 
 #%% END
 

@@ -34,7 +34,7 @@ from wandb_sweep import get_uniform_distribution
 def get_moabb_dataset_config():
     dataset_config = dict(
         # Frequency filtering settings
-        filter_data = True,
+        filter_data = False,
         fmin = 0,
         fmax = 125,
         # Resampling settings
@@ -43,7 +43,7 @@ def get_moabb_dataset_config():
         # Other
         n_classes = 4,
         subjects_list = [1,2,3,4,5,6,7,8,9],
-        normalize_trials = False,
+        normalize_trials = True,
         percentage_split = 0.9,
     )
 
@@ -71,7 +71,7 @@ def get_dataset_config():
         train_path = 'Dataset/D2A/v2_raw_128/Train/',
         test_path = 'Dataset/D2A/v2_raw_128/Test/',
         merge_list = [1,2,3,4,5,6,7,8,9],
-        normalize_trials = False,
+        normalize_trials = True,
         percentage_split = 0.9,
         device = "cuda" if torch.cuda.is_available() else "cpu",
     )

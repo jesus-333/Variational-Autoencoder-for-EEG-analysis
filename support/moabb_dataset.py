@@ -62,13 +62,30 @@ class EEG_Dataset(Dataset):
         
         # (OPTIONAL) Normalize
         if normalize:
-            self.data = (self.data - self.data.min())/(self.data.max() - self.data.min()) * (1 - (-1)) + (-1)
-
+            # self.data = (self.data - self.data.min())/(self.data.max() - self.data.min()) * (1 - (-1)) + (-1)
+            self.normalize_channel_by_channel(-1, 1)
+            
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]    
     
     def __len__(self):
         return len(self.labels)
+    
+    def normalize_channel_by_channel(self, a, b):
+        """
+        Normalize each channel so the value are between a and b
+        """
+        
+        # N.b. self.data.shape = [trials, 1 , channels, eeg samples]
+        # The dimension with the 1 is needed because the conv2d require a 3d tensor input
+        
+        for i in range(self.data.shape[0]): # Cycle over samples
+            for j in range(self.data.shape[2]): # Cycle over channels
+                tmp_ch = self.data[i, 0, j]
+                
+                normalize_ch = ((tmp_ch - tmp_ch.min()) / (tmp_ch.max() - tmp_ch.min())) * (b - a) + a
+                
+                self.data[i, 0, j] = normalize_ch
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Other

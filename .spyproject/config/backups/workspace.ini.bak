@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['TMP_TEST.py', 'support\\support_visualization.py', 'support\\moabb_dataset.py', 'support\\VAE_EEGNet.py', 'support\\support_datasets.py']
+recent_files = ['TMP_TEST.py', 'support\\support_visualization.py', 'support\\moabb_dataset.py', 'support\\VAE_EEGNet.py', 'support\\support_datasets.py', 'support\\config_file.py']
 
 [main]
 version = 0.2.0

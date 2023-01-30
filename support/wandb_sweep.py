@@ -40,8 +40,10 @@ def train_sweep(config = None):
     #TODO REMOVE
     train_config['lr'] = np.random.choice([1e-3, 7 * 1e-4, 3 * 1e-4])
     # train_config['batch_size'] = np.random.choice([int(15), int(30), int(45)])
+    
+    notes = "Falso sweep con parametri già settati. Inoltre classifico solo la media"
 
-    with wandb.init(project = "VAE_EEG", job_type = "train", config = config) as run:
+    with wandb.init(project = "VAE_EEG", job_type = "train", config = config, notes = notes) as run:
         # Config from the sweep
         config = wandb.config
         print("Start Sweep")
@@ -51,10 +53,16 @@ def train_sweep(config = None):
         correct_train_config(config, train_config)
         print("Update config with sweep parameters")
         
+        train_config['alpha'] = 1
+        train_config['beta'] = 1
+        train_config['gamma'] = 1
+        print(train_config)
+        
         # Get the training data
         # train_dataset, validation_dataset = cf.get_train_data(dataset_config)
         train_dataset, validation_dataset = md.get_train_data(dataset_config)
         print("Dataset created")
+        print("dataset_config['normalize_trials']: ", dataset_config['normalize_trials'])
 
         # Create dataloader
         train_dataloader        = DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
