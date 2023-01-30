@@ -36,22 +36,22 @@ best_version = ''
 best_accuracy = 0
 
 for version in version_list:
-    
+
     for name in name_list:
         path = 'artifacts\Metrics-v{}\{}'.format(version, name)
-        
+
         data = pd.read_csv(path)
-        
+
         accuracy = data['accuracy'].to_numpy()
         kappa = data['cohen_kappa']
-        
+
         if np.mean(accuracy) > best_accuracy:
             best_accuracy = np.mean(accuracy)
             best_sub = name
             best_version = version
-            
+
     # print(version, best_accuracy)
-    
+
 
 path = 'artifacts\Metrics-v{}\{}'.format(best_version, best_sub)
 best_accuracy = pd.read_csv(path)['accuracy'].to_numpy()
@@ -62,7 +62,7 @@ print(best_version)
 print(best_accuracy)
 print(best_kappa)
 
-#%% Download network 
+#%% Download network
 
 version = 124
 
@@ -73,7 +73,7 @@ artifact_dir = artifact.download()
 hidden_space_dimension = artifact.metadata['train_config']['hidden_space_dimension']
 
 tmp_path = './artifacts/vEEGNet_trained-v{}'.format(version)
-network_weight_list = os.listdir(tmp_path)
+# network_weight_list = os.listdir(tmp_path)
 
 #%% create Dataset (d2a old)
 
@@ -88,11 +88,11 @@ loader_list = []
 #     dataset_path = 'Dataset/D2A/v2_raw_128/Test/{}/'.format(subj)
 #     test_data = support_datasets.PytorchDatasetEEGSingleSubject(dataset_path, normalize_trials = False)
 #     test_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
-    
+
 #     dataset_path = 'Dataset/D2A/v2_raw_128/Train/{}/'.format(subj)
 #     train_data = support_datasets.PytorchDatasetEEGSingleSubject(dataset_path, normalize_trials = False)
 #     train_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
-    
+
 #     loader_list.append(test_loader)
 
 
@@ -103,7 +103,7 @@ test_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
 dataset_path = 'Dataset/D2A/v2_raw_128/Train/'
 train_data = support_datasets.PytorchDatasetEEGMergeSubject(dataset_path, subject_list, normalize_trials = False, optimize_memory = False)
 train_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
-    
+
 C = test_data[0][0].shape[1]
 T = test_data[0][0].shape[2]
 
@@ -124,18 +124,18 @@ loader_list = [test_loader]
 
 import VAE_EEGNet
 
-model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension, 
-                                use_reparametrization_for_classification = False, 
-                                print_var = True, tracking_input_dimension = True) 
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = True, tracking_input_dimension = True)
 
 
-metrics_per_file = metrics.compute_metrics_given_path(model, loader_list, 
+metrics_per_file = metrics.compute_metrics_given_path(model, loader_list,
                                                       tmp_path, device = 'cuda')
 
 #%%
 
 accuracy_list = []
-for el in metrics_per_file: 
+for el in metrics_per_file:
     tmp_metrics = np.asarray(el)
     accuracy_list.append(tmp_metrics[:, 0])
 
@@ -150,12 +150,12 @@ print(max_avg_accuracy)
 
 import support_visualization as sv
 
-version = 55
+version = 97
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
 config = dict(
-    device = 'cuda', 
+    device = 'cuda',
     fs = 128, # Origina sampling frequency
     window_length = 2, # Length of the window in second
     second_overlap = 0
@@ -186,14 +186,14 @@ epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
 config = dict(
-    device = 'cuda', 
+    device = 'cpu',
     fs = 128, # Origina sampling frequency
     window_length = 2, # Length of the window in second
     second_overlap = 1.75
 )
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
-model.load_state_dict(torch.load(path))
+model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
 
 data_for_psd = test_data
 
@@ -258,9 +258,9 @@ x_r = x_r_mean.cpu().squeeze().detach().numpy()
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
-plt.plot(t, x[idx_C4].squeeze(), linestyle = 'solid' , 
+plt.plot(t, x[idx_C4].squeeze(), linestyle = 'solid' ,
           label = 'Original signal', linewidth = 2, color = 'grey', alpha = 0.55)
-plt.plot(t, x_r[idx_C4].squeeze(), linestyle = 'solid' ,  
+plt.plot(t, x_r[idx_C4].squeeze(), linestyle = 'solid' ,
          label = 'Reconstructed Signal', linewidth = 2, color = 'black')
 
 
@@ -278,14 +278,14 @@ plt.grid(True)
 
 
 file_type = 'png'
-filename = "{}.{}".format(name, file_type) 
+filename = "{}.{}".format(name, file_type)
 plt.savefig(filename, format=file_type)
 
 file_type = 'eps'
-filename = "{}.{}".format(name, file_type) 
+filename = "{}.{}".format(name, file_type)
 plt.savefig(filename, format=file_type)
 
-#%% PLOT PSD 
+#%% PLOT PSD
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -304,13 +304,13 @@ name = 'FE_30'
 
 plt.figure(figsize = (15,10))
 
-plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' , 
+plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' ,
          label = 'C3', linewidth = 2, color = 'red')
-plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,  
+plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
          label = 'C4', linewidth = 2, color = 'blue')
-plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,  
+plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,
          label = 'CZ', linewidth = 2, color = 'green')
-plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_1]/2).squeeze()), linestyle = 'dotted' ,  
+plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_1]/2).squeeze()), linestyle = 'dotted' ,
          label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
 
 legend_properties = {'weight':'bold'}
@@ -327,11 +327,11 @@ plt.tight_layout()
 plt.grid(True)
 
 file_type = 'png'
-filename = "{}.{}".format(name, file_type) 
+filename = "{}.{}".format(name, file_type)
 plt.savefig(filename, format=file_type)
 
 file_type = 'eps'
-filename = "{}.{}".format(name, file_type) 
+filename = "{}.{}".format(name, file_type)
 plt.savefig(filename, format=file_type)
 
 #%%
@@ -342,11 +342,11 @@ epoch_file = 'END'
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
 state_dict = torch.load(path)
 
-hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4) 
+hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4)
 
-model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension, 
-                                use_reparametrization_for_classification = False, 
-                                print_var = False, tracking_input_dimension = False) 
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = False, tracking_input_dimension = False)
 
 
 model.load_state_dict(state_dict)
@@ -364,12 +364,12 @@ for i in range(1000):
     if label == 1: label = 'RIGHT'
     if label == 2: label = 'FOOT'
     if label == 3: label = 'TONGUE'
-    
+
     if label == 'LEFT': left_list.append(i)
     if label == 'RIGHT': right_list.append(i)
     if label == 'FOOT': foot_list.append(i)
     if label == 'TONGUE': tongue_list.append(i)
-    
+
 model.eval()
 
 tmp_list = left_list
@@ -398,7 +398,7 @@ for i in range(n_el):
     label =  test_data[tmp_list[i]][1].unsqueeze(0)
 
     x_r_mean, x_r_std, mu, log_var, _ = model(sample.cuda())
-    
+
     x   = sample.cpu().squeeze().detach().numpy()
     x_r = x_r_mean.cpu().squeeze().detach().numpy()
 
@@ -406,7 +406,7 @@ for i in range(n_el):
     avg_c4 += x_r[idx_C4].squeeze()
     avg_cz += x_r[idx_CZ].squeeze()
     avg_tongue += (x_r[idx_foot_1] + x_r[idx_foot_1]/2).squeeze()
-    
+
 avg_c3 /= n_el
 avg_c4 /= n_el
 avg_cz /= n_el
@@ -417,13 +417,13 @@ print(np.mean(avg_c3), np.mean(avg_c4), np.mean(avg_cz))
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
-plt.plot(t, avg_c3, linestyle = 'solid' , 
+plt.plot(t, avg_c3, linestyle = 'solid' ,
          label = 'C3', linewidth = 2, color = 'red', )
-plt.plot(t, avg_c4, linestyle = 'dashed' ,  
+plt.plot(t, avg_c4, linestyle = 'dashed' ,
          label = 'C4', linewidth = 2, color = 'blue')
-plt.plot(t, avg_cz, linestyle = 'dashdot' ,  
+plt.plot(t, avg_cz, linestyle = 'dashdot' ,
          label = 'CZ', linewidth = 2, color = 'green')
-plt.plot(t, avg_tongue, linestyle = 'dotted' ,  
+plt.plot(t, avg_tongue, linestyle = 'dotted' ,
          label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
 
 plt.legend()
@@ -435,11 +435,11 @@ plt.tight_layout()
 plt.grid(True)
 
 # file_type = 'png'
-# filename = "{}.{}".format(name, file_type) 
+# filename = "{}.{}".format(name, file_type)
 # plt.savefig(filename, format=file_type)
 
 # file_type = 'eps'
-# filename = "{}.{}".format(name, file_type) 
+# filename = "{}.{}".format(name, file_type)
 # plt.savefig(filename, format=file_type)
 
 #%% END
