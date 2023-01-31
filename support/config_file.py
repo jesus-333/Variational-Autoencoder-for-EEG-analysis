@@ -43,6 +43,7 @@ def get_moabb_dataset_config():
         # Other
         n_classes = 4,
         subjects_list = [1,2,3,4,5,6,7,8,9],
+        subject_by_subject_normalization = True,
         normalize_trials = True,
         percentage_split = 0.9,
     )

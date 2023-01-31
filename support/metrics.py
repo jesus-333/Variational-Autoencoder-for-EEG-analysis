@@ -11,7 +11,7 @@ Contain the function to compute accuracy and other metrics
 import numpy as np
 import torch
 import pandas as pd
-from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix, multilabel_confusion_matrix
 import os
 import wandb
 import scipy.signal as signal
@@ -61,8 +61,9 @@ def compute_metrics_from_labels(true_label, predict_label):
     sensitivity = recall_score(true_label, predict_label, average = 'weighted')
     specificity = compute_specificity_multiclass(true_label, predict_label)
     f1          = f1_score(true_label, predict_label, average = 'weighted')
+    confusion_matrix = multilabel_confusion_matrix(true_label, predict_label)
 
-    return accuracy, cohen_kappa, sensitivity, specificity, f1
+    return accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix
 
 
 def compute_specificity_multiclass(true_label, predict_label, weight_sum = True):
@@ -152,7 +153,14 @@ def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
 
     file_list = os.listdir(path)
     
-    metrics_per_file = []
+    metrics_per_file = dict(
+        accuracy = [],
+        cohen_kappa = [], 
+        sensitivity = [],
+        specificity = [],
+        f1 = [], 
+        confusion_matrix = []
+    )
     for file in file_list:
         print(file)
 
@@ -161,13 +169,16 @@ def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
         
         # Load weights
         model.load_state_dict(torch.load(complete_path))
-        
-        metrics_list = []
+
         for loader in loader_list:
-            tmp_metrics = compute_metrics(model, loader, device)
-            metrics_list.append(tmp_metrics)
-        
-        metrics_per_file.append(metrics_list)
+            accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix = compute_metrics(model, loader, device)
+            
+            metrics_per_file['accuracy'].append(accuracy)
+            metrics_per_file['cohen_kappa'].append(cohen_kappa)
+            metrics_per_file['sensitivity'].append(sensitivity)
+            metrics_per_file['specificity'].append(specificity)
+            metrics_per_file['f1'].append(f1)
+            metrics_per_file['confusion_matrix'].append(confusion_matrix)
 
     return metrics_per_file
 

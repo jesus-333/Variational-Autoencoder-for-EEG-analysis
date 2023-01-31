@@ -277,13 +277,13 @@ plt.tight_layout()
 plt.grid(True)
 
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
 #%% PLOT PSD
 
@@ -299,19 +299,41 @@ idx_CZ = channel_list == 'Cz'
 idx_foot_1 = channel_list == 'FC3'
 idx_foot_2 = channel_list == 'FC4'
 
-psd = psd_reconstructed_4
+psd = psd_reconstructed_1
 name = 'FE_30'
 
 plt.figure(figsize = (15,10))
 
-plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' ,
-         label = 'C3', linewidth = 2, color = 'red')
-plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
-         label = 'C4', linewidth = 2, color = 'blue')
-plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,
-         label = 'CZ', linewidth = 2, color = 'green')
-plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_1]/2).squeeze()), linestyle = 'dotted' ,
-         label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
+# plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' ,
+#          label = 'C3', linewidth = 2, color = 'red')
+# plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
+#          label = 'C4', linewidth = 2, color = 'blue')
+# plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,
+#          label = 'CZ', linewidth = 2, color = 'green')
+# plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_2]/2).squeeze()), linestyle = 'dotted' ,
+#          label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
+
+tmp_psd_1 = psd_reconstructed_4
+tmp_psd_2 = psd_original_4
+tmp_idx = idx_C4
+name = 'FE_C4_PSD_Reconstructed vs original' 
+
+tmp_psd_1 = tmp_psd_1[tmp_idx].squeeze()
+tmp_psd_2 = tmp_psd_2[tmp_idx].squeeze()
+
+# tmp_psd_1 = tmp_psd_1[idx_foot_1].squeeze() + tmp_psd_1[idx_foot_2].squeeze()
+# tmp_psd_2 = tmp_psd_2[idx_foot_1].squeeze() + tmp_psd_2[idx_foot_2].squeeze()
+
+tmp_psd_1 = (tmp_psd_1 - tmp_psd_1.min()) / (tmp_psd_1.max() - tmp_psd_1.min())
+tmp_psd_2 = (tmp_psd_2 - tmp_psd_2.min()) / (tmp_psd_2.max() - tmp_psd_2.min())
+
+# tmp_psd_1 /= tmp_psd_1.max()
+# tmp_psd_2 /= tmp_psd_2.max()
+
+plt.plot(f, tmp_psd_1, linestyle = 'dashed' ,
+         label = 'Reconstructed', linewidth = 2, color = 'black')
+plt.plot(f, tmp_psd_2, linestyle = 'solid' ,
+          label = 'Original signal', linewidth = 2, color = 'grey')
 
 legend_properties = {'weight':'bold'}
 plt.legend()
@@ -320,7 +342,7 @@ plt.xlabel("Frequency [Hz]", fontweight='bold')
 plt.ylabel(r'PSD [$\mathbf{\mu V^2}$/Hz]', fontweight='bold')
 plt.rcParams.update({'font.size': 22})
 # plt.ylim([0, 0.37])
-plt.xlim([0, 30])
+plt.xlim([0, 40])
 # plt.yscale('log')
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()

@@ -62,7 +62,6 @@ class EEG_Dataset(Dataset):
         
         # (OPTIONAL) Normalize
         if normalize:
-            # self.data = (self.data - self.data.min())/(self.data.max() - self.data.min()) * (1 - (-1)) + (-1)
             self.normalize_channel_by_channel(-1, 1)
             
     def __getitem__(self, idx):
@@ -103,7 +102,9 @@ def check_config(config):
     if config['resample_data']:
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
-
+        
+    if 'subject_by_subject_normalization' not in config: config['subject_by_subject_normalization'] = False
+        
 def get_moabb_data(dataset, paradigm, config, type_dataset):
     """
     Return the raw data from the moabb package of the specified dataset and paradigm
@@ -120,7 +121,14 @@ def get_moabb_data(dataset, paradigm, config, type_dataset):
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
-
+    
+    # Normalize each subject, separately, between 0 and 1
+    if config['subject_by_subject_normalization']:
+        for subject in config['subjects_list']:
+            tmp_idx = info['subject'] == subject
+            raw_data[tmp_idx] = (raw_data[tmp_idx] - raw_data[tmp_idx].min()) / (raw_data[tmp_idx].max() - raw_data[tmp_idx].min())
+        print(raw_data.min(), raw_data.max())
+        
     # Select train/test data
     if type_dataset == 'train':
         idx_type = info['session'].to_numpy() == 'session_T'

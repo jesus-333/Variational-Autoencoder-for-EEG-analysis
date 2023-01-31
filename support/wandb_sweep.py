@@ -41,7 +41,7 @@ def train_sweep(config = None):
     train_config['lr'] = np.random.choice([1e-3, 7 * 1e-4, 3 * 1e-4])
     # train_config['batch_size'] = np.random.choice([int(15), int(30), int(45)])
     
-    notes = "Falso sweep con parametri già settati. Inoltre classifico solo la media"
+    notes = "Falso sweep con parametri già settati"
 
     with wandb.init(project = "VAE_EEG", job_type = "train", config = config, notes = notes) as run:
         # Config from the sweep
@@ -54,8 +54,8 @@ def train_sweep(config = None):
         print("Update config with sweep parameters")
         
         train_config['alpha'] = 1
-        train_config['beta'] = 1
-        train_config['gamma'] = 1
+        train_config['beta'] = 2
+        train_config['gamma'] = 20
         print(train_config)
         
         # Get the training data
