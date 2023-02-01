@@ -110,6 +110,8 @@ T = test_data[0][0].shape[2]
 #%% create Dataset (moabb)
 
 dataset_config = cf.get_moabb_dataset_config()
+dataset_config['normalize_trials'] = False
+dataset_config['subject_by_subject_normalization'] = False
 train_data, validation_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
 
@@ -117,6 +119,7 @@ C = test_data[0][0].shape[1]
 T = test_data[0][0].shape[2]
 print("C = {}\nT = {}".format(C, T))
 
+train_loader = torch.utils.data.DataLoader(train_data, batch_size = 32)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
 loader_list = [test_loader]
 
@@ -145,6 +148,28 @@ avg_accuracy_per_file = np.mean(accuracy, 0)
 max_avg_accuracy = np.max(avg_accuracy_per_file)
 
 print(max_avg_accuracy)
+
+#%% Classification 2
+
+import VAE_EEGNet
+
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = True, tracking_input_dimension = True)
+
+version = 92
+epoch = 'BEST_TOTAL'
+tmp_path = './artifacts/vEEGNet_trained:v{}/model_{}.pth'.format(version, epoch)
+model.load_state_dict(torch.load(tmp_path, map_location=torch.device('cpu')))
+
+# Order of metrics
+# accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix
+
+metrics_train = metrics.compute_metrics(model, train_loader, 'cpu')
+metrics_test = metrics.compute_metrics(model, test_loader, 'cpu')
+
+print("Accuracy (TRAIN):\t{}".format(metrics_train[0]))
+print("Accuracy (TEST) :\t{}".format(metrics_test[0]))
 
 #%% PSD
 
