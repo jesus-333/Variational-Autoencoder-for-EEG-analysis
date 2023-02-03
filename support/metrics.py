@@ -61,7 +61,8 @@ def compute_metrics_from_labels(true_label, predict_label):
     sensitivity = recall_score(true_label, predict_label, average = 'weighted')
     specificity = compute_specificity_multiclass(true_label, predict_label)
     f1          = f1_score(true_label, predict_label, average = 'weighted')
-    confusion_matrix = multilabel_confusion_matrix(true_label, predict_label)
+    # confusion_matrix = multilabel_confusion_matrix(true_label, predict_label)
+    confusion_matrix = compute_multiclass_confusion_matrix(true_label, predict_label)
 
     return accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix
 
@@ -101,6 +102,25 @@ def compute_specificity_binary(true_label, predict_label):
     specificity = TN / (TN + FP)
 
     return specificity
+
+def compute_multiclass_confusion_matrix(true_label, predict_label):
+    # Create the confusion matrix
+    confusion_matrix = np.zeros((4, 4))
+    
+    # Iterate through labels
+    for i in range(len(true_label)):
+        # Get the true and predicts labels
+        # Notes that the labels are saved as number from 0 to 3 so can be used as index
+        tmp_true = true_label[i]
+        tmp_predict = predict_label[i]
+        
+        confusion_matrix[tmp_true, tmp_predict] += 1
+    
+    # Normalize between 0 and 1
+    confusion_matrix /= len(true_label)
+    
+    
+    return confusion_matrix
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Function to compute the metrics given data/model
@@ -168,7 +188,7 @@ def compute_metrics_given_path(model, loader_list, path, device = 'cpu'):
         complete_path = path + '/' + file
         
         # Load weights
-        model.load_state_dict(torch.load(complete_path))
+        model.load_state_dict(torch.load(complete_path, map_location=torch.device('cpu')))
 
         for loader in loader_list:
             accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix = compute_metrics(model, loader, device)
