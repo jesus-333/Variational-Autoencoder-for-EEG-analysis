@@ -31,6 +31,9 @@ class MBEEGNet(nn.Module):
         """
         Implementation of MBEEGNet in PyTorch.
         
+        Respect the origina version this only extract a vector of features and NOT CLASSIFY them.
+        To classify see MBEEGNet_Classifier.
+
         The original paper is: 
         A Multibranch of Convolutional Neural Network Models for Electroencephalogram-Based Motor Imagery Classification
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8773854/
@@ -58,11 +61,25 @@ class MBEEGNet(nn.Module):
         self.eegnet_3 = EEGNet.EEGNet(eegnet_config) 
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # Feedforward (map to latent space/classification)
 
 
     def forward(self, x):
+        # TODO
        return x
+
+
+class MBEEGNet_Classifier(nn.Module):
+
+    def __init__(self, config):
+        """
+        MBEEGNet + classifier
+        """
+        
+        self.mbeegnet = MBEEGNet(config)
+
+
+    def forward(self, x):
+        return x
 
     def compute_number_of_neurons(self, C, T):
         """
