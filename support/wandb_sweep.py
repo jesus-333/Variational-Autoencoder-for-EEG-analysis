@@ -14,6 +14,8 @@ sys.path.insert(0, 'support')
 import config_file as cf
 import wandb_sweep
 import wandb
+
+#wandb.agent(sweep_id, wandb_sweep.train_sweep, count = 3)
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -41,7 +43,7 @@ def train_sweep(config = None):
     train_config['lr'] = np.random.choice([1e-3, 7 * 1e-4, 3 * 1e-4])
     # train_config['batch_size'] = np.random.choice([int(15), int(30), int(45)])
     
-    notes = "Falso sweep con parametri già settati"
+    notes = "Falso sweep con parametri già settati. Test decoder con ultimo kernel a 4"
 
     with wandb.init(project = "VAE_EEG", job_type = "train", config = config, notes = notes) as run:
         # Config from the sweep

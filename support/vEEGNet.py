@@ -99,6 +99,7 @@ class decoder_simple(nn.Module):
 
     def forward(self,x):
         return x
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% VAE
 

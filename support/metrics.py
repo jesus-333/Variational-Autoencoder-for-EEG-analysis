@@ -216,8 +216,8 @@ def psd_reconstructed_output(model, dataset, idx, config):
     
     for i in range(x_r.shape[0]):
         # Get i-th channel for original data and recostructed data
-        tmp_x_ch    = x[i]
-        tmp_x_r_ch  = x_r[i]
+        tmp_x_ch    = x[i, 5:-5]
+        tmp_x_r_ch  = x_r[i, 5:-5]
         
         # Get the parameter for the PSD computation
         fs = config['fs']

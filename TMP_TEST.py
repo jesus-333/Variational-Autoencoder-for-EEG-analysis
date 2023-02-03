@@ -15,6 +15,13 @@ import os
 import VAE_EEGNet
 import matplotlib
 import matplotlib.pyplot as plt
+import scipy
+
+def filter_signale(input_signal, order = 20):
+    b, a = scipy.signal.butter(N = order, Wn = 15, btype = 'lowpass', fs = 128)
+    output_signal = scipy.signal.filtfilt(b, a, input_signal)
+    
+    return output_signal
 
 #%% Metrics download
 
@@ -64,7 +71,7 @@ print(best_kappa)
 
 #%% Download network
 
-version = 124
+version = 135
 
 run = wandb.init()
 artifact = run.use_artifact('jesus_333/VAE_EEG/vEEGNet_trained:v{}'.format(version), type='model')
@@ -130,14 +137,14 @@ model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
 
 
 metrics_per_file = metrics.compute_metrics_given_path(model, loader_list,
-                                                      tmp_path, device = 'cuda')
+                                                      tmp_path, device = 'cpu')
 
 #%%
 
-accuracy_list = []
-for el in metrics_per_file:
-    tmp_metrics = np.asarray(el)
-    accuracy_list.append(tmp_metrics[:, 0])
+accuracy_list = metrics_per_file['accuracy']
+# for el in metrics_per_file:
+#     tmp_metrics = np.asarray(el)
+#     accuracy_list.append(tmp_metrics[:, 0])
 
 accuracy = np.asarray(accuracy_list).T
 
@@ -181,7 +188,7 @@ sv.plot_psd_V1(psd_original, psd_reconstructed, plot_config)
 
 import support_visualization as sv
 
-version = 124
+version = 122
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
@@ -193,7 +200,8 @@ config = dict(
 )
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
-model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+state_dict = torch.load(path, map_location=torch.device('cpu'))
+model.load_state_dict(state_dict)
 
 data_for_psd = test_data
 
@@ -221,23 +229,29 @@ plot_config = dict(
 import matplotlib
 import matplotlib.pyplot as plt
 
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = True, tracking_input_dimension = True)
+
 channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
 channel_list = np.asarray(channel_list)
 idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
-idx = 0
+idx = 997
 left_list = [0]
 right_list = [1]
 device = 'cpu'
 
-version = 124
+version = 23
 epoch_file = 'END'
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
-model.load_state_dict(torch.load(path))
+state_dict = torch.load(path)
+model.load_state_dict(state_dict)
 
-name = 'RH_original vs reconstructed_C4_single trial'
+name = '2_FE_original vs reconstructed_C4_normalized_FILTERED'
+name = 'TMP_File/PLOT TMP/' + name
 
 sample = test_data[idx][0].unsqueeze(0)
 label =  test_data[idx][1].unsqueeze(0)
@@ -254,13 +268,20 @@ x_r_mean, x_r_std, mu, log_var, _ = model(sample.to(device))
 x = sample.cpu().squeeze().detach().numpy()
 x_r = x_r_mean.cpu().squeeze().detach().numpy()
 
+tmp_x = x[idx_C4].squeeze()
+
+tmp_xr = x_r[idx_C4].squeeze()
+tmp_xr = (tmp_xr - tmp_xr.min())/(tmp_xr.max() - tmp_xr.min()) * 2 - 1
+
+tmp_x = filter_signale(tmp_x, order = 20)
+tmp_xr = filter_signale(tmp_xr, order = 20)
 
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
-plt.plot(t, x[idx_C4].squeeze(), linestyle = 'solid' ,
+plt.plot(t, tmp_x, linestyle = 'solid' ,
           label = 'Original signal', linewidth = 2, color = 'grey', alpha = 0.55)
-plt.plot(t, x_r[idx_C4].squeeze(), linestyle = 'solid' ,
+plt.plot(t, tmp_xr, linestyle = 'solid' ,
          label = 'Reconstructed Signal', linewidth = 2, color = 'black')
 
 
@@ -269,21 +290,22 @@ plt.legend()
 
 plt.xlabel("Time [s]", fontweight='bold')
 plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
+plt.ylabel(r'Normalized Amplitude', fontweight='bold')
 plt.xlim([0, 4])
-# plt.ylim([-5, 5])
+# plt.ylim([0.029, 0.03])
 plt.rcParams.update({'font.size': 18})
 plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
 
-# file_type = 'png'
-# filename = "{}.{}".format(name, file_type)
-# plt.savefig(filename, format=file_type)
+file_type = 'png'
+filename = "{}.{}".format(name, file_type)
+plt.savefig(filename, format=file_type)
 
-# file_type = 'eps'
-# filename = "{}.{}".format(name, file_type)
-# plt.savefig(filename, format=file_type)
+file_type = 'eps'
+filename = "{}.{}".format(name, file_type)
+plt.savefig(filename, format=file_type)
 
 #%% PLOT PSD
 
@@ -299,41 +321,41 @@ idx_CZ = channel_list == 'Cz'
 idx_foot_1 = channel_list == 'FC3'
 idx_foot_2 = channel_list == 'FC4'
 
-psd = psd_reconstructed_1
+psd = psd_reconstructed_4
 name = 'FE_30'
 
 plt.figure(figsize = (15,10))
 
-# plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' ,
-#          label = 'C3', linewidth = 2, color = 'red')
-# plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
-#          label = 'C4', linewidth = 2, color = 'blue')
-# plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,
-#          label = 'CZ', linewidth = 2, color = 'green')
-# plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_2]/2).squeeze()), linestyle = 'dotted' ,
-#          label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
+plt.plot(f, psd[idx_C3].squeeze(), linestyle = 'solid' ,
+          label = 'C3', linewidth = 2, color = 'red')
+plt.plot(f, psd[idx_C4].squeeze(), linestyle = 'dashed' ,
+          label = 'C4', linewidth = 2, color = 'blue')
+plt.plot(f, psd[idx_CZ].squeeze(), linestyle = 'dashdot' ,
+          label = 'CZ', linewidth = 2, color = 'green')
+plt.plot(f, ((psd[idx_foot_1] + psd[idx_foot_2]/2).squeeze()), linestyle = 'dotted' ,
+          label = r'$\overline{FC34}$', linewidth = 2, color = 'black')
 
-tmp_psd_1 = psd_reconstructed_4
-tmp_psd_2 = psd_original_4
+tmp_psd_1 = psd_reconstructed_3
+tmp_psd_2 = psd_original_3
 tmp_idx = idx_C4
 name = 'FE_C4_PSD_Reconstructed vs original' 
 
-tmp_psd_1 = tmp_psd_1[tmp_idx].squeeze()
-tmp_psd_2 = tmp_psd_2[tmp_idx].squeeze()
+# tmp_psd_1 = tmp_psd_1[tmp_idx].squeeze()
+# tmp_psd_2 = tmp_psd_2[tmp_idx].squeeze()
 
 # tmp_psd_1 = tmp_psd_1[idx_foot_1].squeeze() + tmp_psd_1[idx_foot_2].squeeze()
 # tmp_psd_2 = tmp_psd_2[idx_foot_1].squeeze() + tmp_psd_2[idx_foot_2].squeeze()
 
-tmp_psd_1 = (tmp_psd_1 - tmp_psd_1.min()) / (tmp_psd_1.max() - tmp_psd_1.min())
-tmp_psd_2 = (tmp_psd_2 - tmp_psd_2.min()) / (tmp_psd_2.max() - tmp_psd_2.min())
+# tmp_psd_1 = (tmp_psd_1 - tmp_psd_1.min()) / (tmp_psd_1.max() - tmp_psd_1.min())
+# tmp_psd_2 = (tmp_psd_2 - tmp_psd_2.min()) / (tmp_psd_2.max() - tmp_psd_2.min())
 
 # tmp_psd_1 /= tmp_psd_1.max()
 # tmp_psd_2 /= tmp_psd_2.max()
 
-plt.plot(f, tmp_psd_1, linestyle = 'dashed' ,
-         label = 'Reconstructed', linewidth = 2, color = 'black')
-plt.plot(f, tmp_psd_2, linestyle = 'solid' ,
-          label = 'Original signal', linewidth = 2, color = 'grey')
+# plt.plot(f, tmp_psd_1, linestyle = 'dashed' ,
+#           label = 'Reconstructed', linewidth = 2, color = 'black')
+# plt.plot(f, tmp_psd_2, linestyle = 'solid' ,
+#           label = 'Original signal', linewidth = 2, color = 'grey')
 
 legend_properties = {'weight':'bold'}
 plt.legend()
@@ -348,23 +370,23 @@ plt.rcParams["font.weight"] = "bold"
 plt.tight_layout()
 plt.grid(True)
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
 #%%
 
-version = 124
+version = 23
 epoch_file = 'END'
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
 state_dict = torch.load(path)
 
-hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4)
+# hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4)
 
 model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
                                 use_reparametrization_for_classification = False,
@@ -394,8 +416,9 @@ for i in range(1000):
 
 model.eval()
 
-tmp_list = left_list
-name = 'LH_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
+tmp_list = foot_list
+name = '3_FE_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
+name = 'TMP_File/PLOT TMP/' + name
 
 channel_list = ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']
 channel_list = np.asarray(channel_list)
@@ -456,13 +479,13 @@ plt.rcParams.update({'font.size': 22})
 plt.tight_layout()
 plt.grid(True)
 
-# file_type = 'png'
-# filename = "{}.{}".format(name, file_type)
-# plt.savefig(filename, format=file_type)
+file_type = 'png'
+filename = "{}.{}".format(name, file_type)
+plt.savefig(filename, format=file_type)
 
-# file_type = 'eps'
-# filename = "{}.{}".format(name, file_type)
-# plt.savefig(filename, format=file_type)
+file_type = 'eps'
+filename = "{}.{}".format(name, file_type)
+plt.savefig(filename, format=file_type)
 
 #%% END
 
