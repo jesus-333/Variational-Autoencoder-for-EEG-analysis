@@ -117,8 +117,9 @@ T = test_data[0][0].shape[2]
 #%% create Dataset (moabb)
 
 dataset_config = cf.get_moabb_dataset_config()
-dataset_config['normalize_trials'] = False
-dataset_config['subject_by_subject_normalization'] = False
+dataset_config['normalize_trials'] = True
+dataset_config['subject_by_subject_normalization'] = True
+
 train_data, validation_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
 
@@ -138,11 +139,10 @@ model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
                                 use_reparametrization_for_classification = False,
                                 print_var = True, tracking_input_dimension = True)
 
-
 metrics_per_file = metrics.compute_metrics_given_path(model, loader_list,
                                                       tmp_path, device = 'cpu')
 
-#%%
+#%% Classification 1
 
 accuracy_list = metrics_per_file['accuracy']
 # for el in metrics_per_file:
@@ -164,8 +164,8 @@ model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
                                 use_reparametrization_for_classification = False,
                                 print_var = True, tracking_input_dimension = True)
 
-version = 92
-epoch = 'BEST_TOTAL'
+version = 129
+epoch = 'END'
 tmp_path = './artifacts/vEEGNet_trained:v{}/model_{}.pth'.format(version, epoch)
 model.load_state_dict(torch.load(tmp_path, map_location=torch.device('cpu')))
 
