@@ -42,9 +42,11 @@ config = dict(
 ```
 
 # MBEEGNet
-This repository offer our own implementation of MBEEGNet ([mdpi][./README_list_of_file.md#[MBEEGNet_mdpi]], [pubmed][EEGNet_Journal]).
+This repository offer our own implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi]], [pubmed][MBEEGNet_pubmed]).
 
 
 <!-- Reference Link -->
 [EEGNet_Journal]: https://iopscience.iop.org/article/10.1088/1741-2552/aace8c
 [EEGNet_Arxiv]: https://arxiv.org/abs/1611.08024
+[MBEEGNet_mdpi]: https://www.mdpi.com/2079-6374/12/1/22
+[MBEEGNet_pubmed]: https://pubmed.ncbi.nlm.nih.gov/35049650/
