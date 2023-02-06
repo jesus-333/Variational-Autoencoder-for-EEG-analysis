@@ -10,7 +10,7 @@ Contain the config for the various models
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
 
-def get_config_EEGNet(C):
+def get_config_EEGNet(C: int) -> dict:
     config = dict(
         # Convolution: kernel size
         c_kernel_1 = (1, 64),
@@ -33,7 +33,7 @@ def get_config_EEGNet(C):
 
     return config
 
-def get_config_MBEEGNet(C, T):
+def get_config_MBEEGNet(C: int, T:int) -> dict:
     config = dict(
         # EEGNet 1
         temporal_kernel_1 = (1, 64),

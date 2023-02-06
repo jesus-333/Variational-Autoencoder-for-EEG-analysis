@@ -15,7 +15,7 @@ from torch import nn
 
 class EEGNet(nn.Module):
     
-    def __init__(self, config):
+    def __init__(self, config: dict):
         """
         Implementation of EEGNet in PyTorch.
         
@@ -87,8 +87,15 @@ class EEGNet(nn.Module):
         if self.flatten_output: return x.flatten(1)
         else: return x
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Other funcion
 
-def get_activation(activation_name):
+def get_activation(activation_name: dict):
+    """
+    Receive a string and return the relative activation function in pytorch.
+    Implemented for relu, elu, selu, gelu
+    """
+
     if activation_name.lower() == 'relu':
         return nn.ReLU()
     elif activation_name.lower() == 'elu':
@@ -102,5 +109,5 @@ def get_activation(activation_name):
         raise ValueError(error_message)
 
 def count_trainable_parameters(layer):
-    n_paramters = sum(p.numel() for p in  self.temporal_filter.parameters() if p.requires_grad)
+    n_paramters = sum(p.numel() for p in  layer.parameters() if p.requires_grad)
     return n_paramters
