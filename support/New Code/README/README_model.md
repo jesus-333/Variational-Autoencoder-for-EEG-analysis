@@ -10,13 +10,13 @@ config = dict(
 model = model_name.model_name(config)
 ```
 
-Example of complete config dictionary are presented in the file `config_file.py`.
+Example of complete config dictionary are presented in the file `config_model.py`.
 Note that when you create a specific model you need to insert in the dictionary all the parameters required inside the constructor. 
 
 # EEGNet
-This repository offer its own implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet]).
+This repository offer our own implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet_Journal]).
 
-The model is defined in the file `EEGNet.py`. Note that this is a slight modificatino from the original network because the final output is the feature vector and not directly the label of the input signal.
+The model is defined in the file `EEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal.
 
 Example of config file:
 ```python
@@ -32,7 +32,7 @@ config = dict(
     p_kernel_1 = (1, 4),
     p_kernel_2 = (1, 8),
     # Other parameters
-    C = C, # Number of EEG Channels
+    C = 22, # Number of EEG Channels
     D = 2, # Depth multipliers
     activation = 'elu',
     use_bias = False,
@@ -41,11 +41,8 @@ config = dict(
 )
 ```
 
-
-
-
-
-
+# MBEEGNet
+This repository offer our own implementation of MBEEGNet ([mdpi][./README_list_of_file.md#[MBEEGNet_mdpi]], [pubmed][EEGNet_Journal]).
 
 
 <!-- Reference Link -->
