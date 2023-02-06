@@ -64,8 +64,13 @@ class MBEEGNet(nn.Module):
 
 
     def forward(self, x):
-        # TODO
-       return x
+        x1 = self.eegnet_1(x)
+        x2 = self.eegnet_2(x)
+        x3 = self.eegnet_3(x)
+
+        x = torch.cat((x1, x2, x3), 1)
+
+        return x
 
 
 class MBEEGNet_Classifier(nn.Module):
@@ -76,9 +81,19 @@ class MBEEGNet_Classifier(nn.Module):
         """
         
         self.mbeegnet = MBEEGNet(config)
+        
+        input_neurons = self.compute_number_of_neurons(config['C'], config['T'])
+        self.classifier = nn.Sequential(
+            nn.Linear(input_neurons, config['n_classes']),
+            nn.LogSoftmax()
+        )
 
 
     def forward(self, x):
+        x = self.mbeegnet(x)
+
+        x = self.classifier(x)
+
         return x
 
     def compute_number_of_neurons(self, C, T):
