@@ -106,3 +106,12 @@ class MBEEGNet_Classifier(nn.Module):
         input_neurons = len(x.flatten())
 
         return input_neurons
+    
+    def classify(self, x, return_as_index = True):
+        label = self.forward(x)
+
+        if return_as_index:
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
+
+        return label
