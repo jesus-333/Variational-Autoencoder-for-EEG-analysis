@@ -67,7 +67,7 @@ def train_and_test_model(dataset_config, train_config, model_artifact = None):
 
     # Create a folder (if not exist already) to store temporary file during training
     os.makedirs(train_config['path_to_save_model'], exist_ok = True)
-    
+
     # (OPTIONAL)
     if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
 

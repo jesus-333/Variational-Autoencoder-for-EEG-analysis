@@ -18,7 +18,8 @@ def get_moabb_dataset_config():
         resample_freq = 128,
         # Other
         n_classes = 4,
-        subjects_list = [1,2,3,4,5,6,7,8,9],
+        # subjects_list = [1,2,3,4,5,6,7,8,9],
+        subjects_list = [3],
         normalize_trials = True,
         percentage_split = 0.9,
     )

@@ -17,8 +17,8 @@ import wandb
 # Function to download/load file inside artifact
 
 def add_file_to_artifact(artifact, file_name):
-    artifact.add_file(model_name)
-    wandb.save(model_name)
+    artifact.add_file(file_name)
+    wandb.save(file_name)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function related to load classification metrics
