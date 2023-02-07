@@ -121,13 +121,6 @@ def get_moabb_data(dataset, paradigm, config, type_dataset):
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
-    
-    # Normalize each subject, separately, between 0 and 1
-    if config['subject_by_subject_normalization']:
-        for subject in config['subjects_list']:
-            tmp_idx = info['subject'] == subject
-            raw_data[tmp_idx] = (raw_data[tmp_idx] - raw_data[tmp_idx].min()) / (raw_data[tmp_idx].max() - raw_data[tmp_idx].min())
-        print(raw_data.min(), raw_data.max())
         
     # Select train/test data
     if type_dataset == 'train':

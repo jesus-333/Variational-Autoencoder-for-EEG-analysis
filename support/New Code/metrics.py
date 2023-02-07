@@ -19,20 +19,20 @@ import scipy.signal as signal
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Function to compute the metrics 
 
-def compute_metrics(eeg_framework, loader, device):
-    true_label, predict_label = compute_label(eeg_framework, loader, device)
+def compute_metrics(model, loader, device):
+    true_label, predict_label = compute_label(model, loader, device)
 
     metrics_list = compute_metrics_from_labels(true_label, predict_label)
 
     return metrics_list
 
-def compute_label(eeg_framework, loader, device):
+def compute_label(model, loader, device):
     """
-    Method create to compute the label in a dataloader with the eeg_framework class
+    Method create to compute the label in a dataloader with the model class
     """
     
-    eeg_framework.eval()
-    eeg_framework.to(device)
+    model.eval()
+    model.to(device)
 
     true_label_list = []
     predict_label_list = []
@@ -43,7 +43,7 @@ def compute_label(eeg_framework, loader, device):
         tmp_true_label = batch[1]
         
         # Compute predicted labels
-        tmp_predict_label = eeg_framework.classify(x)
+        tmp_predict_label = model.classify(x)
         
         # Save predicted and true labels
         true_label_list.append(tmp_true_label)

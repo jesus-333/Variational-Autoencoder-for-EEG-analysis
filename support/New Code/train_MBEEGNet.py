@@ -10,12 +10,18 @@ Script with the function to train MBEEGNet as classifier
 
 # Python library
 import torch
-import sys
 import wandb
+import os
+import sys
 
 # Custom functions
 import wandb_support
 import metrics
+import dataset
+import MBEEGNet
+
+# Config files
+import config_model
 
 """
 %load_ext autoreload
@@ -26,7 +32,56 @@ import sys
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None, model_artifact = None):
+def train_and_test_model(dataset_config, train_config, model_artifact = None):
+    # Get the training data
+    train_dataset, validation_dataset = dataset.get_train_data(dataset_config)
+    
+    # Create dataloader
+    train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
+    validation_dataloader   = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
+    loader_list             = [train_dataloader, validation_dataloader]
+    
+    # Get EEG Channels and number of samples
+    C = train_dataset[0][0].shape[1] 
+    T = train_dataset[0][0].shape[2]
+    
+    # Create model
+    model_config = config_model.get_config_MBEEGNet_classifier(C, T, 4)
+    model = MBEEGNet.MBEEGNet_Classifier(model_config)
+    model.to(train_config['device'])
+    
+    # Declare loss function
+    loss_function = torch.nn.NLLLoss()
+
+    # Setup optimizer
+    optimizer = torch.optim.AdamW(model.parameters(), 
+                                  lr = train_config['lr'], 
+                                  weight_decay = train_config['optimizer_weight_decay']
+                                  )
+
+    # Setup lr scheduler
+    if train_config['use_scheduler'] == True:
+        lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
+    else:
+        lr_scheduler = None
+
+    # Create a folder (if not exist already) to store temporary file during training
+    os.makedirs(train_config['path_to_save_model'], exist_ok = True)
+    
+    # (OPTIONAL)
+    if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
+
+    # Train the model
+    train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
+    
+    # TODO
+    # test(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
+
+    return model
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None, model_artifact = None):
     """
     Function with the training cycle
     """
@@ -54,7 +109,7 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
 
         # Advance epoch for train set (backward pass) and validation (no backward pass)
         train_loss      = train_epoch(model, loss_function, optimizer, train_loader, train_config)
-        validation_loss = validation_epoch(model, loss_function, optimizer, validation_loader, train_config)
+        validation_loss = validation_epoch(model, loss_function, validation_loader, train_config)
         
         # Save the new BEST model if a new minimum is reach for the validation loss
         if validation_loss < best_loss_val:
@@ -118,6 +173,10 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
     if train_config['wandb_training']:
         wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth'))
 
+
+def test():
+    pass
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Epochs function
 
@@ -138,9 +197,9 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config):
         
         # Networks forward pass
         predict_label = model(x)
-            
+        
         # Loss evaluation
-        batch_train_loss = loss_function(true_label, predict_label)
+        batch_train_loss = loss_function(predict_label, true_label)
     
         # Backward/Optimization pass
         batch_train_loss.backward()
@@ -173,7 +232,7 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
             predict_label = model(x)
 
             # Loss evaluation
-            batch_validation_loss = loss_function(true_label, predict_label)
+            batch_validation_loss = loss_function(predict_label, true_label)
             
             # Accumulate loss
             validation_loss += batch_validation_loss * x.shape[0]
@@ -181,7 +240,8 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
     # Compute final loss
     validation_loss = validation_loss / len(validation_loader.sampler)
     
-    return validation_loader
+    return validation_loss
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Other function
 
