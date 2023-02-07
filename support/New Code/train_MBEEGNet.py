@@ -59,7 +59,7 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
         # Save the new BEST model if a new minimum is reach for the validation loss
         if validation_loss < best_loss_val:
             best_loss_val = validation_loss
-            torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], 'BEST_model.pth'))
+            torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth'))
 
         # Save the model after the epoch
         # N.b. When the variable epoch is n the model is trained for n + 1 epochs when arrive at this instructions.
@@ -67,7 +67,7 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
             torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        # (OPTIONAL) Function
+        # (OPTIONAL) Optional step during the training
 
         # (OPTIONAL) Measure the various metrics
         if train_config['measure_metrics_during_training']:
@@ -83,7 +83,6 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
 
             # Update scheduler
             lr_scheduler.step()
-        
 
         # (OPTIONAL) Print loss 
         if train_config['print_var']:
@@ -91,9 +90,13 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
             print("\t Train loss        = {}".format(train_loss.detach().cpu().float()))
             print("\t Validation loss   = {}".format(validation_loss.detach().cpu().float()))
 
+            if lr_scheduler is not None: print("\t Learning rate     = {}".format(optimizer.param_groups[0]['lr']))
+            if train_config['measure_metrics_during_training']:
+                print("\t Accuracy (TRAIN)  = {}".format(train_metrics_list[0]))
+                print("\t Accuracy (VALID)  = {}".format(validation_metrics_list[0]))
 
         # (OPTIONAL) Log data on wandb
-        if model_artifact is not None:
+        if train_config['wandb_training']:
             # Update the log with the epoch losses
             log_dict['train_loss'] = train_loss
             log_dict['validation_loss'] = validation_loss
@@ -105,16 +108,15 @@ def train_cycle(model, loss_function, optimizer, loader_list, train_config, lr_s
             
             # Add the model to the artifact
             if (epoch + 1) % train_config['epoch_to_save_model'] == 0:
-                wandb_support.add_model_to_artifact(model_artifact, "model_{}.pth".format(epoch + 1))
+                wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
             
             wandb.log(log_dict)
         
         # End training cycle
     
     # Save the model with the best loss on validation set
-    model_artifact.add_file('TMP_File/model_BEST_TOTAL.pth')
-    model_artifact.add_file('TMP_File/model_BEST_CLF.pth')
-    wandb.save()
+    if train_config['wandb_training']:
+        wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth'))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Epochs function
