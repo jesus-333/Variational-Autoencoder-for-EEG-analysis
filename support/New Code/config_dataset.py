@@ -19,7 +19,6 @@ def get_moabb_dataset_config():
         # Other
         n_classes = 4,
         subjects_list = [1,2,3,4,5,6,7,8,9],
-        subject_by_subject_normalization = True,
         normalize_trials = True,
         percentage_split = 0.9,
     )
@@ -39,18 +38,6 @@ def get_artifact_dataset_config(type_dataset, folder_to_save = 'v2'):
         resample_freq = 256,
         # Other
         folder_to_save = folder_to_save
-    )
-
-    return dataset_config
-
-def get_dataset_config():
-    dataset_config = dict(
-        train_path = 'Dataset/D2A/v2_raw_128/Train/',
-        test_path = 'Dataset/D2A/v2_raw_128/Test/',
-        merge_list = [1,2,3,4,5,6,7,8,9],
-        normalize_trials = True,
-        percentage_split = 0.9,
-        device = "cuda" if torch.cuda.is_available() else "cpu",
     )
 
     return dataset_config
