@@ -1,11 +1,9 @@
-
 """
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
 Contain the config for the various models
 """
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
@@ -33,7 +31,9 @@ def get_config_EEGNet(C: int) -> dict:
 
     return config
 
-def get_config_MBEEGNet(C: int, T:int) -> dict:
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_MBEEGNet(C: int, T: int) -> dict:
     config = dict(
         # EEGNet 1
         temporal_kernel_1 = (1, 64),
@@ -46,10 +46,17 @@ def get_config_MBEEGNet(C: int, T:int) -> dict:
         # EEGNet 3
         temporal_kernel_3 = (1, 4),
         stride_3 = 1,
-        dropout_2 = 0.5,
+        dropout_3 = 0.5,
         # Other
         C = C, # Number of EEG Channels
         T = T, # Number of EEG Temporal samples
     )
+
+    return config
+
+def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
+    config = get_config_MBEEGNet(C, T)
+
+    config['n_classes'] = n_classes
 
     return config

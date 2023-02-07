@@ -42,7 +42,7 @@ class MBEEGNet(nn.Module):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
-        eegnet_config = config_model.get_EEGNet_config(config['C'])
+        eegnet_config = config_model.get_config_EEGNet(config['C'])
         eegnet_config['flatten_output'] = True
 
         eegnet_config['c_kernel_1'] = config['temporal_kernel_1']
@@ -76,6 +76,7 @@ class MBEEGNet(nn.Module):
 class MBEEGNet_Classifier(nn.Module):
 
     def __init__(self, config):
+        super().__init__()
         """
         MBEEGNet + classifier
         """
@@ -85,9 +86,8 @@ class MBEEGNet_Classifier(nn.Module):
         input_neurons = self.compute_number_of_neurons(config['C'], config['T'])
         self.classifier = nn.Sequential(
             nn.Linear(input_neurons, config['n_classes']),
-            nn.LogSoftmax()
+            nn.LogSoftmax(dim = 1)
         )
-
 
     def forward(self, x):
         x = self.mbeegnet(x)
@@ -102,9 +102,7 @@ class MBEEGNet_Classifier(nn.Module):
         """
 
         x = torch.rand(1, 1, C, T)
-        x1 = self.eegnet_1(x)
-        x2 = self.eegnet_2(x)
-        x3 = self.eegnet_3(x)
-        input_neurons = len(x1.flatten()) + len(x2.flatten()) + len(x3.flatten())
+        x = self.mbeegnet(x)
+        input_neurons = len(x.flatten())
 
         return input_neurons
