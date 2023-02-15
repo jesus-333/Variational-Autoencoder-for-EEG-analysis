@@ -31,7 +31,7 @@ class MBEEGNet(nn.Module):
         """
         Implementation of MBEEGNet in PyTorch.
         
-        Respect the origina version this only extract a vector of features and NOT CLASSIFY them.
+        With respect to the original version this only extract a vector of features and NOT CLASSIFY them.
         To classify see MBEEGNet_Classifier.
 
         The original paper is: 

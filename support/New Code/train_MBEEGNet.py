@@ -122,7 +122,7 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
             torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        # (OPTIONAL) Optional step during the training
+        # (OPTIONAL) Optional steps during the training
 
         # (OPTIONAL) Measure the various metrics
         if train_config['measure_metrics_during_training']:

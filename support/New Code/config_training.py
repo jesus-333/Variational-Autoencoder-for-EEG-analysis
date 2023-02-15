@@ -23,12 +23,12 @@ def get_config_MBEEGNet_training():
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
         epoch_to_save_model = 5,
-        measure_metrics_during_training = True,
         path_to_save_model = 'TMP_Folder',
+        measure_metrics_during_training = True,
         repetition = 1,                     # Number of time to repeat the training 
         print_var = True,
         # (OPTIONAL) wandb settings
-        wandb_training = True,             # If True track the model during the training with wandb
+        wandb_training = False,             # If True track the model during the training with wandb
         project_name = "MBEEGNet",
         model_artifact_name = "MBEEGNet_test",    # Name of the artifact used to save the models
         log_freq = 1,
