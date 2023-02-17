@@ -1,5 +1,5 @@
 In this README are described the model structure and how to declare/use them.
-Each model is implemented with PyTorch and when declare the class constructor require a dictionary of parameter (specific for each class).
+Each model is implemented with PyTorch and when declared, the class constructor require a dictionary of parameters (specific for each class).
 
 Example of generic declaraion:
 ```python
@@ -16,7 +16,6 @@ Note that when you create a specific model you need to insert in the dictionary 
 # EEGNet
 This repository offer our own implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet_Journal]).
 
-The model is defined in the file `EEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal.
 
 Example of config file:
 ```python
@@ -26,14 +25,14 @@ config = dict(
     c_kernel_2 = (C, 1),
     c_kernel_3 = (1, 16),
     # Convolution: number of filter
-    filter_1 = 8, # F1 in the original paper
-    filter_2 = 16, # F2 in the original paper
+    filter_1 = 8,   # F1 in the original paper
+    filter_2 = 16,  # F2 in the original paper
     # Pooling kernel
     p_kernel_1 = (1, 4),
     p_kernel_2 = (1, 8),
     # Other parameters
-    C = 22, # Number of EEG Channels
-    D = 2, # Depth multipliers
+    C = 22,     # Number of EEG Channels
+    D = 2,      # Depth multipliers
     activation = 'elu',
     use_bias = False,
     dropout = 0.5,
@@ -41,9 +40,37 @@ config = dict(
 )
 ```
 
+The model is defined in the file `EEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal.
+
+
 # MBEEGNet
 This repository offer our own implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi]], [pubmed][MBEEGNet_pubmed]).
+MBEEGNet is composed by 3 EEGNet with different temporal kernel that work in parallel. The difference between the various EEGNet is in the kernel of the first layer (i.e. the temporal filter). The parameters for the rest of the network are the same for all 3 networks.
 
+Example of config file:
+```python
+config = dict(
+    # EEGNet 1
+    temporal_kernel_1 = (1, 64),
+    dropout_1 = 0.5,
+    # EEGNet 2
+    temporal_kernel_2 = (1, 16),
+    dropout_2 = 0.5,
+    # EEGNet 3
+    temporal_kernel_3 = (1, 4),
+    dropout_3 = 0.5,
+    # Other
+    C = C, # Number of EEG Channels
+    T = T, # Number of EEG Temporal samples
+    eegnet_config = dict( ... ) # Used for the parameters after the first layer. See EEGNet section for the field names 
+)
+```
+
+The model is defined in the file `MBEEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal. For the classifier see MBEEGNET_classifier.
+
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
 
 <!-- Reference Link -->
 [EEGNet_Journal]: https://iopscience.iop.org/article/10.1088/1741-2552/aace8c

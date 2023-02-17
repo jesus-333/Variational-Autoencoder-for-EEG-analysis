@@ -37,19 +37,17 @@ def get_config_MBEEGNet(C: int, T: int) -> dict:
     config = dict(
         # EEGNet 1
         temporal_kernel_1 = (1, 64),
-        stride_1 = 4,
         dropout_1 = 0.5,
         # EEGNet 2
         temporal_kernel_2 = (1, 16),
-        stride_2 = 4,
         dropout_2 = 0.5,
         # EEGNet 3
         temporal_kernel_3 = (1, 4),
-        stride_3 = 1,
         dropout_3 = 0.5,
         # Other
         C = C, # Number of EEG Channels
         T = T, # Number of EEG Temporal samples
+        eegnet_config = get_config_EEGNet(C)
     )
 
     return config

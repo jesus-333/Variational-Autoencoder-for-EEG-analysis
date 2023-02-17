@@ -27,7 +27,7 @@ sys.path.insert(0, 'support')
 
 class MBEEGNet(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config : dict):
         """
         Implementation of MBEEGNet in PyTorch.
         
@@ -42,21 +42,18 @@ class MBEEGNet(nn.Module):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
-        eegnet_config = config_model.get_config_EEGNet(config['C'])
+        eegnet_config = config['eegnet_config']
         eegnet_config['flatten_output'] = True
 
         eegnet_config['c_kernel_1'] = config['temporal_kernel_1']
-        eegnet_config['stride'] = config['stride_1']
         eegnet_config['dropout'] = config['dropout_1']
         self.eegnet_1 = EEGNet.EEGNet(eegnet_config) 
         
         eegnet_config['c_kernel_1'] = config['temporal_kernel_2']
-        eegnet_config['stride'] = config['stride_2']
         eegnet_config['dropout'] = config['dropout_2']
         self.eegnet_2 = EEGNet.EEGNet(eegnet_config) 
         
         eegnet_config['c_kernel_1'] = config['temporal_kernel_3']
-        eegnet_config['stride'] = config['stride_3']
         eegnet_config['dropout'] = config['dropout_3']
         self.eegnet_3 = EEGNet.EEGNet(eegnet_config) 
 
@@ -75,7 +72,7 @@ class MBEEGNet(nn.Module):
 
 class MBEEGNet_Classifier(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config : dict):
         super().__init__()
         """
         MBEEGNet + classifier

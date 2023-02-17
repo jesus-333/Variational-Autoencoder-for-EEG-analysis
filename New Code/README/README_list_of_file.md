@@ -1,7 +1,10 @@
-This readme contain the complete list of all the files in the repository
+This readme contain the complete list of all the files and functions in the repository
 
 * EEGNet.py: Implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet_Journal]). 
-* EEGNet.py: Implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi], [pubmed][MBEEGNet_pubmed]). 
+    * `EEGNet`: (Class) Implementation of EEGNet
+    * `get_activation_function`: (function) Support function that return a list of activation function in PyTorch
+    * `count_trainable_parameters` : (function) Support function that return the number of trainable parameters of a PyTorch layer
+* MBEEGNet.py: Implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi], [pubmed][MBEEGNet_pubmed]). 
 
 
 <!-- Reference Link -->
