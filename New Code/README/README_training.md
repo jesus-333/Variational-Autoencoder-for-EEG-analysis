@@ -8,7 +8,7 @@
 
 Each model has its own related traing files called `train_model_name.py` (e.g. for the MBEEGNet model there is `train_MBEEGNet.py`). Each one of this files have the following functions (customized according to the model):
 * `train_and_test_model(dataset_config, train_config, model_config, model_artifact)`: This is the primary function to use for training and testing the model. It requires 3 config dictionaries:
-	* `dataset_config`: contain the settings related to the data and dataset (e.g. train/validation split, preprocess info like filtering frequencies etc). For more information about dataset read the [README_dataset](README_dataset).
+	* `dataset_config`: contain the settings related to the data and dataset (e.g. train/validation split, preprocess info like filtering frequencies etc). For more information about dataset read the [README_dataset](README_dataset.md).
 	* `train_config`: contain the settings used during the training. See section [Training config for each model](#training-config-for-each-model) for more information about the parameters used in the training of each model.
 	* `model_config`: contain the config related to the model you want to train. For more information about models read [README_model](README_model.md). 	
 * `train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None)`: Function used to train the model. If you do not want to use the `train_and_test_model` (maybe because you prefer to use your own data) use this function to train the model. The input are the following:
@@ -132,5 +132,5 @@ config = dict(
 ```
 
 ### Other notes
-The model expects input in 4 dimensions, batch size x 1 x eeg channels x time samples. This is because convolutions are done via [conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html).
+The model expects input in 4 dimensions, batch size x 1 x eeg channels x time samples. This is because convolutions are done via [Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html).
 ⚠️  The dimension with the 1 it's the dimension relative to the convolutions channels (which have nothing to do with EEG channels!!!)
