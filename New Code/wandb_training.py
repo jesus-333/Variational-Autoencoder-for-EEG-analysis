@@ -30,15 +30,13 @@ import sys
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def train_wandb_MBEEGNet():
-    dataset_config = config_dataset.get_moabb_dataset_config()
-    train_config = config_training.get_config_MBEEGNet_training()
-    
+def train_wandb_MBEEGNet(dataset_config, train_config, model_config):
     notes = train_config['notes']
 
     wandb_config = dict(
         dataset = dataset_config,
         train = dataset_config,
+        model = model_config
     )
 
     with wandb.init(project = train_config['project_name'], job_type = "train", config = wandb_config, notes = notes) as run:
@@ -49,6 +47,4 @@ def train_wandb_MBEEGNet():
                                         description = "Trained {} model".format(train_config['model_artifact_name']),
                                         metadata = metadata)
 
-
-
-        train_MBEEGNet.train_and_test_model(dataset_config, train_config, model_artifact)
+        train_MBEEGNet.train_and_test_model(dataset_config, train_config, model_config, model_artifact)
