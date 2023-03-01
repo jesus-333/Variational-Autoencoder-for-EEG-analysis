@@ -3,9 +3,9 @@
 * [List of files](#list-of-files): Section with a brief description of all the files and functions of the repository (TO COMPLETE)
 
 # Requirements
-* PyTorch: used for model definition and training.
-* moabb: the acronym stands for Mother of all BCI Benchmark. It is used to download the dataset. Link to [Github repo][moabb_github] and [website][moabb_website]
-* wandb (OPTIONAL): if you have install wandb you can use it to track the training of your model. 
+* PyTorch: used for model definition and training. See [PyTorch website](https://pytorch.org/) for installation information.
+* moabb: the acronym stands for Mother of all BCI Benchmark. It is used to download the dataset. Link to [Github repo][moabb_github] and [website][moabb_website]. You could install the library through pip with the followin command: `pip install MOABB`
+* wandb (OPTIONAL): if you have install wandb you can use it to track the training of your model. See [here](https://docs.wandb.ai/quickstart) for installation information.
 
 # List of files
 This readme contain the complete list of all the files and functions in the repository
