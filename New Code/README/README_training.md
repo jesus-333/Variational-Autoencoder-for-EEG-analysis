@@ -87,6 +87,16 @@ model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
 wandb_trainig.train_wandb_MBEEGNet(dataset_config, train_config, model_config)
 ```
 
+To install wandb you can use one of the following commands:
+* pip
+```
+pip install wandb
+```
+* conda
+```
+conda install -c conda-forge wandb
+```
+
 # Training config for each model
 
 ⚠️ Important disclaimer ⚠️. 
