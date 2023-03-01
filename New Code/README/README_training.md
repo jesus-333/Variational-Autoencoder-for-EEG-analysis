@@ -67,8 +67,25 @@ train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 # Integration with wandb
 
 If you have install the [wandb](https://wandb.ai/) python library you can use the functions inside `wandb_trainig.py` script to train the network and keep track of the traing results through wandb.
-For each model there is a function called `train_wandb_model_name` (e.g. for MBEEGNet `train_wandb_MBEEGNet`)
+For each model there is a function called `train_wandb_model_name()` (e.g. for MBEEGNet `train_wandb_MBEEGNet`). The call of the function is the same of any `train_and_test_model()` and require the same input argument (i.e. `dataset_config`, `train_config`, `model_config`)
 
+Here, there is an example with MBEEGNet:
+```python
+import config_model as cm
+import config_dataset as cd
+import config_training as ct
+
+import wandb_trainig
+
+C = 22
+T = 512 
+
+dataset_config = cd.get_moabb_dataset_config()
+train_config = ct.get_config_MBEEGNet_training()
+model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
+
+wandb_trainig.train_wandb_MBEEGNet(dataset_config, train_config, model_config)
+```
 
 # Training config for each model
 
@@ -77,6 +94,7 @@ Most of the parameters remain valid for all models. The parameter differences be
 
 ## MBEEGNet
 
+### Training config
 ```python
 config = dict(
 	# Training settings
@@ -90,7 +108,7 @@ config = dict(
 	# Support stuff (device, log frequency etc)
 	device = "cuda" if torch.cuda.is_available() else "cpu",  # device (i.e. cpu/gpu) used to train the network. 
 	epoch_to_save_model = 5,				  # Save the weights of the network every n epochs
-	path_to_save_model = 'TMP_Folder',			  # Path where to save the model
+	path_to_save_model = 'TMP_Folder',			  # Path where to save the model. If the path does not exist the function save the weights in the folder you are currently in
 	measure_metrics_during_training = True,			  # Measure accuracy and other metric during training
 	print_var = True,					  # Print information in the console during the training
 	
@@ -102,3 +120,7 @@ config = dict(
 	notes = "",
 )
 ```
+
+### Other notes
+The model expects input in 4 dimensions, batch size x 1 x eeg channels x time samples. This is because convolutions are done via [conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html).
+⚠️  The dimension with the 1 it's the dimension relative to the convolutions channels (which have nothing to do with EEG channels!!!)
