@@ -8,6 +8,7 @@ Implementation of EEGNet model using PyTorch
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
 
+import torch
 from torch import nn
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -86,6 +87,55 @@ class EEGNet(nn.Module):
         # (OPTIONAL) Flat the output
         if self.flatten_output: return x.flatten(1)
         else: return x
+
+
+class EEGNet_Classifier(nn.Module):
+
+    def __init__(self, config : dict):
+        super().__init__()
+        """
+        EEGNet + classifier
+        """
+        
+        self.eegnet = EEGNet(config)
+        
+        input_neurons = self.compute_number_of_neurons(config['C'], config['T'])
+        self.classifier = nn.Sequential(
+            nn.Linear(input_neurons, config['n_classes']),
+            nn.LogSoftmax(dim = 1)
+        )
+
+    def forward(self, x):
+        x = self.eegnet(x)
+
+        x = self.classifier(x)
+
+        return x
+
+    def compute_number_of_neurons(self, C, T):
+        """
+        Compute the total number of neurons for the feedforward layer
+        """
+
+        x = torch.rand(1, 1, C, T)
+        x = self.eegnet(x)
+        input_neurons = len(x.flatten())
+
+        return input_neurons
+    
+    def classify(self, x, return_as_index = True):
+        """
+        Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
+        """
+
+        label = self.forward(x)
+
+        if return_as_index:
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
+
+        return label
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Other funcion

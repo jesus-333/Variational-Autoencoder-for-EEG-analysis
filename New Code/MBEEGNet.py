@@ -70,6 +70,9 @@ class MBEEGNet(nn.Module):
         return x
 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Classifier version
+
 class MBEEGNet_Classifier(nn.Module):
 
     def __init__(self, config : dict):
@@ -95,7 +98,7 @@ class MBEEGNet_Classifier(nn.Module):
 
     def compute_number_of_neurons(self, C, T):
         """
-        Compute the total number of neurons nee
+        Compute the total number of neurons for the feedforward layer
         """
 
         x = torch.rand(1, 1, C, T)
@@ -105,6 +108,10 @@ class MBEEGNet_Classifier(nn.Module):
         return input_neurons
     
     def classify(self, x, return_as_index = True):
+        """
+        Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
+        """
+        
         label = self.forward(x)
 
         if return_as_index:
