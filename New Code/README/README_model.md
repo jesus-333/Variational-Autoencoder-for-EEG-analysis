@@ -40,11 +40,11 @@ config = dict(
 )
 ```
 
-The model is defined in the file `EEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal.
+The model is defined in the file `EEGNet.py`, inside the class `EEGNet`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal. For the classifier see the class `EEGNET_classifier`.
 
 
 # MBEEGNet
-This repository offer our own implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi]], [pubmed][MBEEGNet_pubmed]).
+This repository offer our own implementation of MBEEGNet ([mdpi][MBEEGNet_mdpi], [pubmed][MBEEGNet_pubmed]).
 MBEEGNet is composed by 3 EEGNet with different temporal kernel that work in parallel. The difference between the various EEGNet is in the kernel of the first layer (i.e. the temporal filter). The parameters for the rest of the network are the same for all 3 networks.
 
 Example of config file:
@@ -66,7 +66,10 @@ config = dict(
 )
 ```
 
-The model is defined in the file `MBEEGNet.py`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal. For the classifier see MBEEGNET_classifier.
+N.B. Note that the field `eegnet_config` is a dictionary that contains the exact configuration of EEGNet. 
+
+The model is defined in the file `MBEEGNet.py`, inside the class `MBEEGNet`. Note that this is a slight modification from the original network because the final output is the feature vector and not directly the label of the input signal. For the classifier see the class `MBEEGNET_classifier`. 
+
 
 
 
