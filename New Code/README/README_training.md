@@ -82,16 +82,16 @@ config = dict(
 
 	# Support stuff (device, log frequency etc)
 	device = "cuda" if torch.cuda.is_available() else "cpu",  # device (i.e. cpu/gpu) used to train the network. 
-	epoch_to_save_model = 5,				# Save the weights of the network every n epochs
-	path_to_save_model = 'TMP_Folder',		# Path where to save the model
-	measure_metrics_during_training = True,	# Measure accuracy and other metric during training
-	print_var = True,						# Print information in the console during the training
+	epoch_to_save_model = 5,				  # Save the weights of the network every n epochs
+	path_to_save_model = 'TMP_Folder',			  # Path where to save the model
+	measure_metrics_during_training = True,			  # Measure accuracy and other metric during training
+	print_var = True,					  # Print information in the console during the training
 	
 	# (OPTIONAL) wandb settings
 	wandb_training = False,             	# If True track the model during the training with wandb
-	project_name = "MBEEGNet",				# Name of the wandb project where the runs are saved
+	project_name = "MBEEGNet",		# Name of the wandb project where the runs are saved
 	model_artifact_name = "MBEEGNet_test",	# Name of the artifact used to save the models
-	log_freq = 1,							# Specifies how often to log data to wandb (e.g. 1 = every epoch, 2 = every to epoch etc)
+	log_freq = 1,				# Specifies how often to log data to wandb (e.g. 1 = every epoch, 2 = every to epoch etc)
 	notes = "",
 )
 ```
