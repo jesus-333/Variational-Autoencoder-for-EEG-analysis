@@ -21,8 +21,10 @@ import dataset
 import MBEEGNet
 
 # Config files
-import config_model
-
+import config_model as cm
+import config_dataset as cd
+import config_training as ct
+    
 """
 %load_ext autoreload
 %autoreload 2
@@ -32,7 +34,7 @@ import sys
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def train_and_test_model(dataset_config, train_config, model_artifact = None):
+def train_and_test_model(dataset_config, train_config, model_config, model_artifact = None):
     # Get the training data
     train_dataset, validation_dataset = dataset.get_train_data(dataset_config)
     
@@ -46,7 +48,6 @@ def train_and_test_model(dataset_config, train_config, model_artifact = None):
     T = train_dataset[0][0].shape[2]
     
     # Create model
-    model_config = config_model.get_config_MBEEGNet_classifier(C, T, 4)
     model = MBEEGNet.MBEEGNet_Classifier(model_config)
     model.to(train_config['device'])
     
@@ -266,4 +267,15 @@ def check_train_config(train_config : dict, model_artifact = None):
         print("print_var not found. Set to True")
         train_config['print_var'] = True
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Main function
 
+if __name__ == "__main__":
+    C = 22
+    T = 512 
+
+    dataset_config = cd.get_moabb_dataset_config()
+    train_config = ct.get_config_MBEEGNet_training()
+    model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
+
+    train_and_test_model(dataset_config, train_config, model_config)
