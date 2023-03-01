@@ -10,6 +10,7 @@ Each model has its own related traing files called `train_model_name.py`. Each o
 	* `loss_function`: loss function used during the training.
 	* `optimzer`: optimizer (e.g. ADAM) to used during the training.
 	* `loader_list`: list with 2 [Dataloader](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#iterate-through-the-dataloader). The first Dataloader must contain the training data and the second one the validation data.
+	* `train_config`: dictionary with parameters to used during the training. See section [Training config for each model](#training-config-for-each-model) for more information.
 * `test( ... )`: Test the model with the test data. The test and the input 
 * `train_epoch( ... )`: execute a single training epoch during training (i.e. forward and backward pass, optimization step).
 * `validation_epoch( ... )`: execute a validation epoch (i.e. compute loss, and and possibly other metrics, for the validation data but DO NOT perform the backward pass and the optimization step).
@@ -61,4 +62,36 @@ train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 
 If you have install the wandb python library you can use function inside `wandb_trainig.py` script to train the network and keep track of the traing results through wandb
 
+
 # Training config for each model
+
+⚠️ Important disclaimer ⚠️. 
+Most of the parameters remain valid for all models. The parameter differences between the various models usually reside in some specific hyperparameter (e.g. the hyperparameters that multiply the loss of the vae)
+
+## MBEEGNet
+
+```python
+config = dict(
+	# Training settings
+	batch_size = 30,                    
+	lr = 1e-3,                          # Learning rate (lr)
+	epochs = 500,                       # Number of epochs to train the model
+	use_scheduler = False,              # Use the lr scheduler (exponential lr scheduler)
+	lr_decay_rate = 0.995,              # Parameter of the lr exponential scheduler
+	optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
+
+	# Support stuff (device, log frequency etc)
+	device = "cuda" if torch.cuda.is_available() else "cpu",  # device (i.e. cpu/gpu) used to train the network. 
+	epoch_to_save_model = 5,				# Save the weights of the network every n epochs
+	path_to_save_model = 'TMP_Folder',		# Path where to save the model
+	measure_metrics_during_training = True,	# Measure accuracy and other metric during training
+	print_var = True,						# Print information in the console during the training
+	
+	# (OPTIONAL) wandb settings
+	wandb_training = False,             	# If True track the model during the training with wandb
+	project_name = "MBEEGNet",				# Name of the wandb project where the runs are saved
+	model_artifact_name = "MBEEGNet_test",	# Name of the artifact used to save the models
+	log_freq = 1,							# Specifies how often to log data to wandb (e.g. 1 = every epoch, 2 = every to epoch etc)
+	notes = "",
+)
+```
