@@ -1,7 +1,9 @@
 # Table of Contents
 * [General informatin about training](#training-general-information): General information about train the model in this repository
 * [How to train a model](#how-to-train-a-model): Example on how to train a model
-	* [PPython IDE](#python-ide)
+	* [Python/IPython shell](#python-ipython-shell)	
+	* [Python IDE](#python-ide)
+	* [Shell](#shell)
 * [Integration with wandb](#integration-with-wandb): How to use wandb to track your training
 * [Training config for each model](#training-config-for-each-model): Training parameters specific for each model
 
@@ -28,7 +30,7 @@ Also the use of `train_and_test_model()` is encouraged over using the individual
 
 # How to train a model 
 
-## Python/IPython shell
+## Python-IPython shell
 After open a python/ipython shell you simply declare the dictionary used for training
 
 ### Example with MBEEGNet
@@ -70,7 +72,7 @@ For train the models in a Python IDE (e.g. spyder, pycharm), simply open the tra
 
 
 ## Shell
-For train the models from a shell simply run the command:
+For train the models from a shell (e.g. fish, Windows power shell etc) simply run the command:
 ```
 python path/to/file/train_model_name.py
 ```
