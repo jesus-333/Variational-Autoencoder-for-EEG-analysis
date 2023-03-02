@@ -1,6 +1,7 @@
 # Table of Contents
 * [General informatin about training](#training-general-information): General information about train the model in this repository
 * [How to train a model](#how-to-train-a-model): Example on how to train a model
+	* [PPython IDE](#python-ide)
 * [Integration with wandb](#integration-with-wandb): How to use wandb to track your training
 * [Training config for each model](#training-config-for-each-model): Training parameters specific for each model
 
@@ -64,6 +65,20 @@ train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 
 ```
 
+## Python IDE
+For train the models in a Python IDE (e.g. spyder, pycharm), simply open the training script you need (e.g. `train_MBEEGNet.py`) and run it. The configs used for dataset, training and model will be those specified in the files `config_model.py`, `config_dataset.py` and `config_training.py`
+
+
+## Shell
+For train the models from a shell simply run the command:
+```
+python path/to/file/train_model_name.py
+```
+
+For example, if you opened the shell in the folder containing the file `train_MBEEGNet.py` you could simply run the command `python train_MBEEGNet.py` from the shell.
+
+Also in this case, the configs used for dataset, training and model will be those specified in the files `config_model.py`, `config_dataset.py` and `config_training.py`
+
 # Integration with wandb
 
 If you have install the [wandb](https://wandb.ai/) python library you can use the functions inside `wandb_trainig.py` script to train the network and keep track of the traing results through wandb.
@@ -99,10 +114,11 @@ conda install -c conda-forge wandb
 
 # Training config for each model
 
-⚠️ Important disclaimer ⚠️. 
+⚠️ Important disclaimer ⚠️
+
 Most of the parameters remain valid for all models. The parameter differences between the various models usually reside in some specific hyperparameter (e.g. the hyperparameters that multiply the loss of the vae)
 
-## MBEEGNet
+## MBEEGNet (Classifier)
 
 ### Training config
 ```python
@@ -133,4 +149,5 @@ config = dict(
 
 ### Other notes
 The model expects input in 4 dimensions, batch size x 1 x eeg channels x time samples. This is because convolutions are done via [Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html).
-⚠️  The dimension with the 1 it's the dimension relative to the convolutions channels (which have nothing to do with EEG channels!!!)
+
+⚠️ The dimension with the 1 it's the dimension relative to the convolutions channels (which have nothing to do with EEG channels!!!)
