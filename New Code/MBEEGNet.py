@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Declaration of the decoder/classifier
+Implementation of MBEEGNet model using PyTorch
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
