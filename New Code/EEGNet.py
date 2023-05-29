@@ -105,6 +105,19 @@ class EEGNet_Classifier(nn.Module):
             nn.LogSoftmax(dim = 1)
         )
 
+        if config['print_var']:
+            tmp_x = torch.rand(1, 1, config['C'], config['T'])
+            print("Input size: {} x {}".format(config['C'], config['T']))
+
+            tmp_x = self.eegnet.temporal_filter(tmp_x)
+            print("\tAfter temporal filter: ", tmp_x.shape)
+
+            tmp_x = self.eegnet.spatial_filter(tmp_x)
+            print("\tAfter spatial filter: ", tmp_x.shape)
+            
+            tmp_x = self.eegnet.separable_convolution(tmp_x)
+            print("\tAfter block 2: ", tmp_x.shape)
+    
     def forward(self, x):
         x = self.eegnet(x)
 
