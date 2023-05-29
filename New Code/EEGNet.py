@@ -71,7 +71,7 @@ class EEGNet(nn.Module):
             print("EEGNet Created. Number of parameters:")
             print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(count_trainable_parameters(self.temporal_filter)))
             print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(count_trainable_parameters(self.spatial_filter)))
-            print("\tNumber of trainable parameters (Block 2)            = {}".format(count_trainable_parameters(self.separable_convolution)))
+            print("\tNumber of trainable parameters (Block 2)            = {}\n".format(count_trainable_parameters(self.separable_convolution)))
 
 
     def forward(self, x):
@@ -117,7 +117,10 @@ class EEGNet_Classifier(nn.Module):
             
             tmp_x = self.eegnet.separable_convolution(tmp_x)
             print("\tAfter block 2: ", tmp_x.shape)
-    
+
+            print("\tAfter flatten: ", self.eegnet(torch.rand(1, 1, config['C'], config['T'])).shape)
+
+                
     def forward(self, x):
         x = self.eegnet(x)
 

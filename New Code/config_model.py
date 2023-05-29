@@ -28,13 +28,15 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         use_bias = False,
         dropout = 0.5,
         flatten_output = True,
+        print_var = True,
     )
 
     return config
 
-def get_config_EEGNet_classifie(C : int, T : int, n_classes : int):
+def get_config_EEGNet_classifier(C : int, T : int, n_classes : int):
     config = get_config_EEGNet(C, T)
     config['n_classes'] = n_classes
+    config['flatten_output'] = True
 
     return config
 
