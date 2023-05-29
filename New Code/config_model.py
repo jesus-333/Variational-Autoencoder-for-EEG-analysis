@@ -26,7 +26,7 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         D = 2, # Depth multipliers
         activation = 'elu',
         use_bias = False,
-        dropout = 0.5,
+        p_dropout = 0.5,
         flatten_output = True,
         print_var = True,
     )
