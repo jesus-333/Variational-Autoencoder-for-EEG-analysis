@@ -8,7 +8,7 @@ Contain the config for the various models
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
 
-def get_config_EEGNet(C: int) -> dict:
+def get_config_EEGNet(C : int, T : int) -> dict:
     config = dict(
         # Convolution: kernel size
         c_kernel_1 = (1, 64),
@@ -22,12 +22,19 @@ def get_config_EEGNet(C: int) -> dict:
         p_kernel_2 = (1, 8),
         # Other parameters
         C = C, # Number of EEG Channels
+        T = T, # Number of time samples
         D = 2, # Depth multipliers
         activation = 'elu',
         use_bias = False,
         dropout = 0.5,
         flatten_output = True,
     )
+
+    return config
+
+def get_config_EEGNet_classifie(C : int, T : int, n_classes : int):
+    config = get_config_EEGNet(C, T)
+    config['n_classes'] = n_classes
 
     return config
 
@@ -47,14 +54,13 @@ def get_config_MBEEGNet(C: int, T: int) -> dict:
         # Other
         C = C, # Number of EEG Channels
         T = T, # Number of EEG Temporal samples
-        eegnet_config = get_config_EEGNet(C)
+        eegnet_config = get_config_EEGNet(C, T)
     )
 
     return config
 
 def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
     config = get_config_MBEEGNet(C, T)
-
     config['n_classes'] = n_classes
 
     return config
