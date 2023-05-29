@@ -11,6 +11,8 @@ Implementation of EEGNet model using PyTorch
 import torch
 from torch import nn
 
+import support_function
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Network declaration
 
@@ -30,7 +32,8 @@ class EEGNet(nn.Module):
         
         use_bias = config['use_bias']
         D = config['D']
-        activation = get_activation(config['activation'])
+        activation = support_function.get_activation(config['activation'])
+        dropout = support_function.get_activation(config['p_dropout'], config['use_dropout_2d'])
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
@@ -47,7 +50,7 @@ class EEGNet(nn.Module):
             nn.BatchNorm2d(config['filter_1'] * D),
             activation,
             nn.AvgPool2d(config['p_kernel_1']),
-            nn.Dropout(config['dropout'])
+            dropout
         )
 
         # Block 2
@@ -57,7 +60,7 @@ class EEGNet(nn.Module):
             nn.BatchNorm2d(config['filter_2']),
             activation,
             nn.AvgPool2d(config['p_kernel_2']),
-            nn.Dropout(config['dropout'])
+            dropout 
         )
         
         
@@ -69,9 +72,9 @@ class EEGNet(nn.Module):
         if 'print_var' not in config: config['print_var'] = False
         if config['print_var']:
             print("EEGNet Created. Number of parameters:")
-            print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(count_trainable_parameters(self.temporal_filter)))
-            print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(count_trainable_parameters(self.spatial_filter)))
-            print("\tNumber of trainable parameters (Block 2)            = {}\n".format(count_trainable_parameters(self.separable_convolution)))
+            print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(support_function.count_trainable_parameters(self.temporal_filter)))
+            print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(support_function.count_trainable_parameters(self.spatial_filter)))
+            print("\tNumber of trainable parameters (Block 2)            = {}\n".format(support_function.count_trainable_parameters(self.separable_convolution)))
 
 
     def forward(self, x):
@@ -152,28 +155,3 @@ class EEGNet_Classifier(nn.Module):
 
         return label
 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% Other funcion
-
-def get_activation(activation_name: dict):
-    """
-    Receive a string and return the relative activation function in pytorch.
-    Implemented for relu, elu, selu, gelu
-    """
-
-    if activation_name.lower() == 'relu':
-        return nn.ReLU()
-    elif activation_name.lower() == 'elu':
-        return nn.ELU()
-    elif activation_name.lower() == 'selu':
-        return nn.SELU()
-    elif activation_name.lower() == 'gelu':
-        return nn.GELU()
-    else:
-        error_message = 'The activation must have one of the following string: relu, elu, selu, gelu'
-        raise ValueError(error_message)
-
-def count_trainable_parameters(layer):
-    n_paramters = sum(p.numel() for p in  layer.parameters() if p.requires_grad)
-    return n_paramters
