@@ -81,12 +81,15 @@ class EEGNet(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Block 1 (temporal + spatial filters)
         x = self.temporal_filter(x)
+        print("Encoder: ", x.shape)
         x = self.spatial_filter(x)
-        
+        print("Encoder: ", x.shape)
+
         #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Block 2 (separable convolution)
         x = self.separable_convolution(x)
-        
+        print("Encoder: ", x.shape)
+
         # (OPTIONAL) Flat the output
         if self.flatten_output: return x.flatten(1)
         else: return x

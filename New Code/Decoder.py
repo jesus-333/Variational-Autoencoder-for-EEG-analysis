@@ -79,10 +79,13 @@ class EEGNet_Decoder(nn.Module):
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional section
+        print(x.shape)
         x = self.separable_convolution_transpose(x)
+        print(x.shape)
         x = self.spatial_convolution_transpose(x)
+        print(x.shape)
         x = self.temporal_convolution_transpose(x)
-
+        print(x.shape)
         return x
 
 
