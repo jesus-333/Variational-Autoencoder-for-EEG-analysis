@@ -26,7 +26,7 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         D = 2, # Depth multipliers
         activation = 'elu',
         use_bias = False,
-        p_dropout = 0.5,
+        prob_dropout = 0.5,
         flatten_output = True,
         print_var = True,
     )
@@ -64,5 +64,30 @@ def get_config_MBEEGNet(C: int, T: int) -> dict:
 def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
     config = get_config_MBEEGNet(C, T)
     config['n_classes'] = n_classes
+    config['eegnet_config']['flatten_output'] = True
 
     return config
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int) -> dict:
+    # Get the config for the encoder (used also for the decoder)
+    if config["type_encoder"] == 0:
+        encoder_config = get_config_EEGNet(C, T)
+        encoder_config['flatten_output'] = True
+    if config["type_encoder"] == 1:
+        encoder_config = get_config_MBEEGNet(C, T)
+        encoder_config['eegnet_config']['flatten_output'] = True
+    else:
+        raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
+    
+    # Config specific for vEEGNet
+    config = dict(
+        hidden_space = hidden_space, 
+        type_encoder = type_encoder,
+        encoder_config = encoder_config,
+    )
+
+    return config
+
