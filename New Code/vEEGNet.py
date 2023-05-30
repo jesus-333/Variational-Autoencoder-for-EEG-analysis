@@ -88,7 +88,7 @@ class vEEGNet(nn.Module):
 
         x_r = self.decoder(z)
 
-        return x, x_r, z_mean, z_log_var
+        return x_r, z_mean, z_log_var
 
     def reparametrize(self, mu, log_var):
         """
@@ -147,5 +147,8 @@ def check_vEEGNet():
     model = vEEGNet(config)
 
     x = torch.rand(5, 1, C, T)
-    y = model(x)
+    x_r, z_mean, z_log_var = model(x)
+
+    print("Input shape : ", x.shape)
+    print("Output shape: ", x_r.shape)
 

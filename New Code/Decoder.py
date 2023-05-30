@@ -59,12 +59,12 @@ class EEGNet_Decoder(nn.Module):
             nn.Upsample(scale_factor = config['p_kernel_1']),
             activation,
             nn.BatchNorm2d(config['filter_1'] * D),
-            nn.ConvTranspose2d(config['filter_1'], config['filter_1'] * D, kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
+            nn.ConvTranspose2d(config['filter_1'] * D, config['filter_1'], kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
         )
 
         self.temporal_convolution_transpose = nn.Sequential(
             nn.BatchNorm2d(config['filter_1']),
-            nn.Conv2d(1, config['filter_1'], kernel_size = config['c_kernel_1'], bias = use_bias),
+            nn.Conv2d(config['filter_1'], 1, kernel_size = config['c_kernel_1'], bias = use_bias),
         )
         
     def forward(self, z):
@@ -79,7 +79,6 @@ class EEGNet_Decoder(nn.Module):
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional section
-
         x = self.separable_convolution_transpose(x)
         x = self.spatial_convolution_transpose(x)
         x = self.temporal_convolution_transpose(x)
