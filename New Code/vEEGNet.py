@@ -26,13 +26,6 @@ class vEEGNet(nn.Module):
     def __init__(self, config : dict):
         super().__init__()
         
-        # Information used during network creation
-        
-        # Get hidden space dimension
-        self.hidden_space = config['hidden_space']
-        
-        # Get the size and the output shape after an input has been fed into the encoder
-        n_input_neurons, decoder_ouput_shape = self.compute_number_of_neurons(config['C'], config['T'])
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Create Encoder
@@ -40,11 +33,15 @@ class vEEGNet(nn.Module):
         # Convolutional section
         if config["type_encoder"] == 0:
             self.cnn_encoder = EEGNet(config['encoder_config']) 
-        if config["type_encoder"] == 1:
+        elif config["type_encoder"] == 1:
             self.cnn_encoder = MBEEGNet(config['encoder_config']) 
         else:
             raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
         
+        # Get the size and the output shape after an input has been fed into the encoder
+        # This info will also be used during the encoder creation
+        n_input_neurons, decoder_ouput_shape = self.decoder_shape_info(config['encoder_config']['C'], config['encoder_config']['T'])
+
         # Feed-Forward section
         self.ff_encoder_mean = nn.Linear(n_input_neurons, self.hidden_space)
         self.ff_encoder_std = nn.Linear(n_input_neurons, self.hidden_space)
@@ -52,6 +49,9 @@ class vEEGNet(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Create Decoder
         # Note that the config used for the encoder  are also used for the decoder
+        
+        # Get hidden space dimension
+        self.hidden_space = config['hidden_space']
         
         # Information specific for the creation of the decoder
         config['encoder_config']['dimension_reshape'] = decoder_ouput_shape
@@ -61,7 +61,7 @@ class vEEGNet(nn.Module):
         # E.g. if the encoder is EEGNet also the decoder will be EEGNet
         if config["type_encoder"] == 0:
             self.decoder = Decoder.EEGNet_Decoder(config['encoder_config']) 
-        if config["type_encoder"] == 1:
+        elif config["type_encoder"] == 1:
             # TODO Implement MBEEGNet decoder 
             self.decoder = MBEEGNet(config['encoder_config']) 
         else:
@@ -74,7 +74,7 @@ class vEEGNet(nn.Module):
     def forward(self, x):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                 
         # Encoder section
-        x = self.encoder(x)
+        x = self.cnn_encoder(x)
         z_mean = self.ff_encoder_mean(x)
         z_log_var = self.ff_encoder_std(x)
 
@@ -116,3 +116,21 @@ class vEEGNet(nn.Module):
         input_neurons = len(x.flatten())
 
         return input_neurons, list(x.shape)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def check_vEEGNet():
+    """
+    Function to check the absence of breaking bug during the creation and the forward pass of vEEGNet
+    """
+    C = 22
+    T = 512
+    hidden_space = 16
+    type_encoder = 0
+
+    config = config_model.get_config_vEEGNet(C, T, hidden_space, type_encoder)
+    model = vEEGNet(config)
+
+    x = torch.rand(5, 1, C, T)
+    y = model(x)
+

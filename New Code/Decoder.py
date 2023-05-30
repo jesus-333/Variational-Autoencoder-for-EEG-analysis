@@ -10,6 +10,7 @@ Implementation of decoder based on EEGNet model using PyTorch
 
 import torch
 from torch import nn
+import numpy as np
 
 import support_function
 
@@ -33,7 +34,7 @@ class EEGNet_Decoder(nn.Module):
         self.dimension_reshape = config['dimension_reshape']
 
         # Compute the number of neurons needed to obtain the shape defined by dimension_reshape
-        n_ouput_neurons = self.dimension_reshape.numel()
+        n_ouput_neurons = np.prod(self.dimension_reshape)
         
         # Defined feed-forward encoder
         self.ff_decoder = nn.Sequential(
@@ -74,7 +75,7 @@ class EEGNet_Decoder(nn.Module):
         x = self.ff_decoder(z)
 
         # Reshape the output for the convolutional section
-        x = torch.reshape(x, self.shape_input_conv_decoder)
+        x = torch.reshape(x, self.dimension_reshape)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional section
