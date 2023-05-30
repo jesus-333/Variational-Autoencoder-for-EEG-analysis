@@ -30,11 +30,11 @@ def get_activation(activation_name: dict):
         error_message = 'The activation must have one of the following string: relu, elu, selu, gelu'
         raise ValueError(error_message)
 
-def get_dropout(p_dropout : float, use_droput_2d : bool):
+def get_dropout(prob_dropout: float, use_droput_2d : bool):
     if use_droput_2d:
-        return nn.Dropout2d(p_dropout)
+        return nn.Dropout2d(prob_dropout)
     else: 
-        return nn.Dropout(p_dropout)
+        return nn.Dropout(prob_dropout)
 
 def count_trainable_parameters(layer):
     n_paramters = sum(p.numel() for p in  layer.parameters() if p.requires_grad)
