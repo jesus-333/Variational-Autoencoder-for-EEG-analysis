@@ -32,15 +32,18 @@ class vEEGNet(nn.Module):
 
         # Convolutional section
         if config["type_encoder"] == 0:
-            self.cnn_encoder = EEGNet(config['encoder_config']) 
+            self.cnn_encoder = EEGNet.EEGNet(config['encoder_config']) 
         elif config["type_encoder"] == 1:
-            self.cnn_encoder = MBEEGNet(config['encoder_config']) 
+            self.cnn_encoder = MBEEGNet.MBEEGNet(config['encoder_config']) 
         else:
             raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
         
         # Get the size and the output shape after an input has been fed into the encoder
         # This info will also be used during the encoder creation
         n_input_neurons, decoder_ouput_shape = self.decoder_shape_info(config['encoder_config']['C'], config['encoder_config']['T'])
+
+        # Get hidden space dimension
+        self.hidden_space = config['hidden_space']
 
         # Feed-Forward section
         self.ff_encoder_mean = nn.Linear(n_input_neurons, self.hidden_space)
@@ -49,9 +52,6 @@ class vEEGNet(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Create Decoder
         # Note that the config used for the encoder  are also used for the decoder
-        
-        # Get hidden space dimension
-        self.hidden_space = config['hidden_space']
         
         # Information specific for the creation of the decoder
         config['encoder_config']['dimension_reshape'] = decoder_ouput_shape

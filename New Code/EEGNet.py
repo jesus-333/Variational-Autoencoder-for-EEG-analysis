@@ -33,7 +33,7 @@ class EEGNet(nn.Module):
         use_bias = config['use_bias']
         D = config['D']
         activation = support_function.get_activation(config['activation'])
-        dropout = support_function.get_activation(config['prob_dropout'], config['use_dropout_2d'])
+        dropout = support_function.get_dropout(config['prob_dropout'], config['use_dropout_2d'])
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section

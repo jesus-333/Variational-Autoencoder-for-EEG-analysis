@@ -27,6 +27,7 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         activation = 'elu',
         use_bias = False,
         prob_dropout = 0.5,
+        use_dropout_2d = True,
         flatten_output = True,
         print_var = True,
     )
