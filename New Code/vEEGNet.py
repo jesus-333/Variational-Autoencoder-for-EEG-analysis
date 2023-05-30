@@ -110,12 +110,27 @@ class vEEGNet(nn.Module):
 
         Note that the computation are done for an input with batch size = 1
         """
-
+        # Create fake input
         x = torch.rand(1, 1, C, T)
-        x = self.cnn_encoder(x)
-        input_neurons = len(x.flatten())
 
-        return input_neurons, list(x.shape)
+        # Deactivate the flatten of the output to obtain the output shape of the convolutional encoder
+        self.cnn_encoder.flatten_output = False
+
+        # Pass the fake input inside the encoder
+        x = self.cnn_encoder(x)
+
+        # Reactivate the flatten of the output
+        self.cnn_encoder.flatten_output = True
+
+        # Compute the number of neurons needed for the feedforward layer
+        input_neurons = len(x.flatten())
+        
+        # Get the shape at the output of the convolutional encoder
+        # The dimension in position 0 is the batch dimension and it is set to -1 to ignore it during the reshape
+        decoder_ouput_shape = list(x.shape)
+        decoder_ouput_shape[0] = -1
+
+        return input_neurons, decoder_ouput_shape
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

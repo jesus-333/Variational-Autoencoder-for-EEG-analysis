@@ -34,7 +34,7 @@ class EEGNet_Decoder(nn.Module):
         self.dimension_reshape = config['dimension_reshape']
 
         # Compute the number of neurons needed to obtain the shape defined by dimension_reshape
-        n_ouput_neurons = np.prod(self.dimension_reshape)
+        n_ouput_neurons = np.abs(np.prod(self.dimension_reshape))
         
         # Defined feed-forward encoder
         self.ff_decoder = nn.Sequential(
