@@ -94,6 +94,7 @@ class EEGNet_Decoder_Upsample(nn.Module):
 
         return x
 
+
     def debug_shape(self):
         """
         Method that create a fake input and pass it through the network, showing the shape after each pass

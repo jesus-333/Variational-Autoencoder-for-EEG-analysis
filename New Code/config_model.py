@@ -88,7 +88,6 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int)
         hidden_space = hidden_space, 
         type_encoder = type_encoder,
         encoder_config = encoder_config,
-        type_resample_decoder = 0, # Used to decide how to resample the output to the dimension of the input
     )
 
     return config

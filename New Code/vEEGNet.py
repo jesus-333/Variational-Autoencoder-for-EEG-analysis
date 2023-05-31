@@ -65,20 +65,7 @@ class vEEGNet(nn.Module):
             self.decoder = MBEEGNet(config['encoder_config']) 
         else:
             raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
-        
-        # Compute the difference in samples between input and output
-        decoder_output_shape = self.generate().shape
-        time_sample_difference = config['encoder_config']['T'] - decoder_output_shape[3]
 
-        # Create upsample layer to obtain to make the size of the output equal to the size of the input
-        if config['type_resample_decoder'] == 0: # Padding
-            pass
-        elif config['type_resample_decoder'] == 1: # Upsample 
-            pass
-        elif config['type_resample_decoder'] == 2: # Feed-Forward
-            pass
-        else:
-            raise ValueError("type_resample_decoder must have value 0, 1 or 2")
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
         # Other
