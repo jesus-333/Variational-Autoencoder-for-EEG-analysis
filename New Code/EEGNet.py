@@ -35,6 +35,9 @@ class EEGNet(nn.Module):
         activation = support_function.get_activation(config['activation'])
         dropout = support_function.get_dropout(config['prob_dropout'], config['use_dropout_2d'])
 
+        self.C = config['C']
+        self.T = config['T']
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
         
@@ -75,24 +78,52 @@ class EEGNet(nn.Module):
             print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(support_function.count_trainable_parameters(self.temporal_filter)))
             print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(support_function.count_trainable_parameters(self.spatial_filter)))
             print("\tNumber of trainable parameters (Block 2)            = {}\n".format(support_function.count_trainable_parameters(self.separable_convolution)))
+            self.debug_shape()
 
 
     def forward(self, x):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Block 1 (temporal + spatial filters)
         x = self.temporal_filter(x)
-        print("Encoder: ", x.shape)
         x = self.spatial_filter(x)
-        print("Encoder: ", x.shape)
 
         #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Block 2 (separable convolution)
         x = self.separable_convolution(x)
-        print("Encoder: ", x.shape)
 
         # (OPTIONAL) Flat the output
         if self.flatten_output: return x.flatten(1)
         else: return x
+
+    def debug_shape(self):
+        """
+        Method that create a fake input and pass it through the network, showing after each pass the shape
+        """
+
+        print("Shape tracking across EEGNet")
+
+        x = torch.randn(1, 1, self.C, self.T)
+        print("\tInput shape :\t\t\t", x.shape)
+
+        x = self.temporal_filter(x)
+        print("\tTemporal filter :\t\t", x.shape)
+
+        x = self.spatial_filter[0](x)
+        print("\tSpatial fitler (conv) :\t\t", x.shape)
+
+        x = self.spatial_filter[3](x)
+        print("\tSpatial filter (pool) :\t\t", x.shape)
+
+        x = self.separable_convolution[0](x)
+        print("\tSeparable convolution (conv 1): ", x.shape)
+
+        x = self.separable_convolution[1](x)
+        print("\tSeparable convolution (conv 2): ", x.shape)
+
+        x = self.separable_convolution[4](x)
+        print("\tSeparable convolution (pool) :  ", x.shape)
+
+        print("\t(OPTIONAL) Flatten :\t\t", x.flatten(1).shape, "\n")
 
 
 class EEGNet_Classifier(nn.Module):
@@ -110,21 +141,6 @@ class EEGNet_Classifier(nn.Module):
             nn.Linear(input_neurons, config['n_classes']),
             nn.LogSoftmax(dim = 1)
         )
-
-        if config['print_var']:
-            tmp_x = torch.rand(1, 1, config['C'], config['T'])
-            print("Input size: {} x {}".format(config['C'], config['T']))
-
-            tmp_x = self.eegnet.temporal_filter(tmp_x)
-            print("\tAfter temporal filter: ", tmp_x.shape)
-
-            tmp_x = self.eegnet.spatial_filter(tmp_x)
-            print("\tAfter spatial filter: ", tmp_x.shape)
-            
-            tmp_x = self.eegnet.separable_convolution(tmp_x)
-            print("\tAfter block 2: ", tmp_x.shape)
-
-            print("\tAfter flatten: ", self.eegnet(torch.rand(1, 1, config['C'], config['T'])).shape)
 
                 
     def forward(self, x):

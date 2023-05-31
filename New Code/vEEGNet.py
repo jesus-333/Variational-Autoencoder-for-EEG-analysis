@@ -59,7 +59,7 @@ class vEEGNet(nn.Module):
         # For the decoder we use the same type of the encoder
         # E.g. if the encoder is EEGNet also the decoder will be EEGNet
         if config["type_encoder"] == 0:
-            self.decoder = Decoder.EEGNet_Decoder(config['encoder_config']) 
+            self.decoder = Decoder.EEGNet_Decoder_Upsample(config['encoder_config']) 
         elif config["type_encoder"] == 1:
             # TODO Implement MBEEGNet decoder 
             self.decoder = MBEEGNet(config['encoder_config']) 
