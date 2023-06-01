@@ -24,6 +24,7 @@ import MBEEGNet
 import config_model as cm
 import config_dataset as cd
 import config_training as ct
+import loss_function as lf
     
 """
 %load_ext autoreload
