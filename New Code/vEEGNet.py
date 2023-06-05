@@ -11,7 +11,7 @@ Implementation of vEEGNet model using PyTorch
 import torch
 from torch import nn
 
-import EEGNet, MBEEGNet, Decoder
+import EEGNet, MBEEGNet, Decoder_EEGNet 
 import config_model
 
 """
@@ -26,6 +26,8 @@ class vEEGNet(nn.Module):
     def __init__(self, config : dict):
         super().__init__()
 
+        self.check_model_config(config)
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Create Encoder
 
@@ -34,8 +36,6 @@ class vEEGNet(nn.Module):
             self.cnn_encoder = EEGNet.EEGNet(config['encoder_config']) 
         elif config["type_encoder"] == 1:
             self.cnn_encoder = MBEEGNet.MBEEGNet(config['encoder_config']) 
-        else:
-            raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
         
         # Get the size and the output shape after an input has been fed into the encoder
         # This info will also be used during the encoder creation
@@ -59,12 +59,13 @@ class vEEGNet(nn.Module):
         # For the decoder we use the same type of the encoder
         # E.g. if the encoder is EEGNet also the decoder will be EEGNet
         if config["type_encoder"] == 0:
-            self.decoder = Decoder.EEGNet_Decoder_Upsample(config['encoder_config']) 
+            if config['type_decoder'] == 0:
+                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Upsample(config['encoder_config']) 
+            elif config['type_decoder'] == 1:
+                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Transpose(config['encoder_config']) 
         elif config["type_encoder"] == 1:
             # TODO Implement MBEEGNet decoder 
             self.decoder = MBEEGNet(config['encoder_config']) 
-        else:
-            raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -141,6 +142,16 @@ class vEEGNet(nn.Module):
 
         return input_neurons, decoder_ouput_shape
 
+    def check_model_config(self, config : dict):
+        # Check type encoder
+        if config["type_encoder"] == 0: print("EEGNet encoder selected")
+        elif config["type_encoder"] == 1: print("MBEEGNet encoder selected")
+        else: raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
+
+        # Check type decoder 
+        if config["type_decoder"] == 0: print("Upsample decoder selected")
+        elif config["type_decoder"] == 1: print("Transpose decoder selected")
+        else: raise ValueError("type_decoder must be 0 (Upsample) or 1 (Transpose)")
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def check_vEEGNet():
@@ -151,8 +162,9 @@ def check_vEEGNet():
     T = 512
     hidden_space = 16
     type_encoder = 0
+    type_decoder = 0
 
-    config = config_model.get_config_vEEGNet(C, T, hidden_space, type_encoder)
+    config = config_model.get_config_vEEGNet(C, T, hidden_space, type_encoder, type_decoder)
     model = vEEGNet(config)
 
     x = torch.rand(5, 1, C, T)

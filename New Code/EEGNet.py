@@ -106,7 +106,7 @@ class EEGNet(nn.Module):
         print("\tInput shape :\t\t\t", x.shape)
 
         x = self.temporal_filter(x)
-        print("\tTemporal filter :\t\t", x.shape)
+        print("\tTemporal filter (conv):\t\t", x.shape)
 
         x = self.spatial_filter[0](x)
         print("\tSpatial fitler (conv) :\t\t", x.shape)
