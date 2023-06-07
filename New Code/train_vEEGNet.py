@@ -51,3 +51,9 @@ def train_and_test_model(dataset_config, train_config, model_config, model_artif
     # Create model
     model = MBEEGNet.MBEEGNet_Classifier(model_config)
     model.to(train_config['device'])
+
+def train():
+    pass
+
+def test():
+    pass
