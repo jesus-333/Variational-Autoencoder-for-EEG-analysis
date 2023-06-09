@@ -172,4 +172,6 @@ def check_vEEGNet():
 
     print("Input shape : ", x.shape)
     print("Output shape: ", x_r.shape)
+    print(z_mean.shape)
+    print(z_log_var.shape)
 
