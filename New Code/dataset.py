@@ -1,3 +1,10 @@
+"""
+@author: Alberto Zancanaro (Jesus)
+@organization: University of Padua (Italy)
+
+Function used to download the data and create the PyTorch dataset
+"""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
 
 import numpy as np
@@ -146,6 +153,8 @@ def convert_label(raw_labels):
     
     # Iterate through the possible labels
     for i in range(len(labels_list)):
+        print("Label {} get the value {}".format(labels_list[i], i))
+
         # Get the label
         label = labels_list[i]
         idx_label = raw_labels == label
