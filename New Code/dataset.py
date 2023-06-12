@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Function used to download the data and create the PyTorch dataset
+Function to the creation the PyTorch dataset
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
@@ -13,6 +13,14 @@ from torch.utils.data import Dataset, DataLoader
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
+import preprocess as pp
+
+"""
+%load_ext autoreload
+%autoreload 2
+
+import dataset as ds
+"""
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Dataset 2A BCI Competition IV
@@ -47,7 +55,7 @@ def get_D2a_data(config, type_dataset):
     paradigm = mp.MotorImagery()
 
     # Get the data
-    raw_data, raw_labels = get_moabb_data(dataset, paradigm, config, type_dataset)
+    raw_data, raw_labels = pp.get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     
     # Select channels
     data = raw_data[:, 0:22, :]
@@ -55,7 +63,12 @@ def get_D2a_data(config, type_dataset):
     # Convert labels
     labels = convert_label(raw_labels)
 
-    return data, labels
+    if 'return_channels' in config and config['return_channels'] == True:
+        ch_list = get_dataset_channels(dataset)[0:22]
+
+        return data, labels, ch_list
+    else:
+        return data, labels
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% PyTorch Dataset
@@ -111,34 +124,19 @@ def check_config(config):
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
         
     if 'subject_by_subject_normalization' not in config: config['subject_by_subject_normalization'] = False
-        
-def get_moabb_data(dataset, paradigm, config, type_dataset):
+
+def get_dataset_channels(dataset):
     """
-    Return the raw data from the moabb package of the specified dataset and paradigm
-    N.b. dataset and paradigm must be object of the moabb library
+    Get the list of channels for the specific dataset
     """
 
-    if config['resample_data']: paradigm.resample = config['resample_freq']
+    if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+        raw_data = dataset.get_data(subjects=[1])[1]['session_T']['run_0']
+        ch_list = raw_data.ch_names
+    else:
+        raise ValueError("Function not implemented for this type of dataset")
 
-    if config['filter_data']: 
-        paradigm.fmin = config['fmin']
-        paradigm.fmax = config['fmax']
-    
-    paradigm.n_classes = config['n_classes']
-
-    # Get the raw data
-    raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
-        
-    # Select train/test data
-    if type_dataset == 'train':
-        idx_type = info['session'].to_numpy() == 'session_T'
-    elif type_dataset == 'test':
-        idx_type = info['session'].to_numpy() == 'session_E'
-
-    raw_data = raw_data[idx_type]
-    raw_labels = raw_labels[idx_type]
-
-    return raw_data, raw_labels
+    return np.asarray(ch_list) 
 
 def convert_label(raw_labels):
     """
@@ -167,7 +165,7 @@ def convert_label(raw_labels):
 
 def split_dataset(full_dataset, percentage_split):
     """
-    Split a dataset in 2 
+    Split a dataset in 2 for train and validation
     """
 
     size_train = int(len(full_dataset) * percentage_split) 

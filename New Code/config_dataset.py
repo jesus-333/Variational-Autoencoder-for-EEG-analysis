@@ -22,6 +22,9 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         # subjects_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = True,
         percentage_split = 0.9,
+        # baseline = [0, 2], # Time interval to use for subject normalization
+        return_channels = True,
+        length_trial = 6, # Length of trial in seconds (used only for the "handmade" trial division)
     )
 
     return dataset_config
