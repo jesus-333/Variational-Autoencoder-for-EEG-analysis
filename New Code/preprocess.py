@@ -10,9 +10,11 @@ Function related to download the data, their preprocessing and visualization
 import numpy as np
 import matplotlib.pyplot as plt
 import mne
+from scipy import signal
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
+import config_dataset as cd
 
 """
 %load_ext autoreload
@@ -53,13 +55,17 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
 
     return raw_data, raw_labels
 
-def get_D2A_data_handmade(dataset, config, type_dataset):
+def get_moabb_data_handmade(dataset, config, type_dataset):
     """
     Download and preprocess dataset from moabb.
     The division in trials is not handle by the moabb library but by functions that I wrote 
     """
     # Get the raw dataset for the specified list of subject
     raw_dataset = dataset.get_data(subjects = config['subjects_list'])
+    
+    # Used to save the data for each subject
+    trials_per_subject = []
+    labels_per_subject = []
     
     # Iterate through subject
     for subject in config['subjects_list']:
@@ -71,7 +77,30 @@ def get_D2A_data_handmade(dataset, config, type_dataset):
         elif type_dataset == 'test': raw_data = raw_data['session_E']
         else: raise ValueError("type_dataset must have value train or test")
 
+        trials_matrix, labels, ch_list = get_trial_handmade(raw_data, config)
+
+        # Select only the data channels
+        if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+            trials_matrix = trials_matrix[:, 0:22, :]
+            ch_list = ch_list[0:22]
+        
+        # Save trials and labels for each subject
+        trials_per_subject.append(trials_matrix)
+        labels_per_subject.append(labels)
+    
+
+    # Convert list in numpy array
+    trials_per_subject = np.asarray(trials_per_subject)
+    labels_per_subject = np.asarray(labels_per_subject)
+    
+
+    return trials_per_subject, labels_per_subject, ch_list
+
 def get_trial_handmade(raw_data, config):
+    trials_matrix_list = []
+    label_list = []
+    n_trials = 0
+
     # Iterate through the run of the dataset
     for run in raw_data:
         # Extract data actual run
@@ -81,7 +110,7 @@ def get_trial_handmade(raw_data, config):
         # Note that the events mark the start of a trial
         raw_info = mne.find_events(raw_data_actual_run)
         events = raw_info[:, 0]
-        label = raw_info[:, 2]
+        raw_labels = raw_info[:, 2]
         
         # Get the sampling frequency
         sampling_freq = raw_data_actual_run.info['sfreq']
@@ -90,18 +119,80 @@ def get_trial_handmade(raw_data, config):
         # Filter the data
         if config['filter_data']: 
             raw_data_actual_run.filter(config['fmin'], config['fmax'])
+        
+        # Compute trials by events
+        trials_matrix_actual_run = divide_by_event(raw_data_actual_run, events, config)
+
+        # Save trials and the corresponding label
+        trials_matrix_list.append(trials_matrix_actual_run)
+        label_list.append(raw_labels)
+        
+        # Compute the total number of trials 
+        n_trials += len(raw_labels)
+    
+    # Convert list in numpy array
+    trials_matrix = np.asarray(trials_matrix_list)
+    labels = np.asarray(label_list)
+    
+    trials_matrix.resize(n_trials, trials_matrix.shape[2], trials_matrix.shape[3])
+    labels.resize(n_trials)
+
+    return trials_matrix, labels, raw_data_actual_run.ch_names
+
 
 def divide_by_event(raw_run, events, config):
+    """
+    Divide the actual run in trials based on the indices inside the events array
+    """
     run_data = raw_run.get_data()
-    trial_list = []
-    for i in range(len(events) - 1):
+    trials_list = []
+    for i in range(len(events)):
         # Extract the data between the two events (i.e. the trial plus some data during the rest between trials)
-        trial = run_data[:, events[i]:events[i + 1]]
+        if i == len(events) - 1:
+            trial = run_data[:, events[i]:-1]
+        else:
+            trial = run_data[:, events[i]:events[i + 1]]
         
         # Extract the current trial
-        actual_trial = trial[0:config['sampling_freq'] * config['length_trial']]
+        actual_trial = trial[:, 0:int(config['sampling_freq'] * config['length_trial'])]
+        trials_list.append(actual_trial)
+
+    trials_matrix = np.asarray(trials_list)
+
+    return trials_matrix
         
-        
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Preprocess
+
+def baseline_removal(trials_matrix, sampling_freq):
+    stft_trials_matrix = compute_stft(trials_matrix, sampling_freq)
+
+
+def compute_stft(trials_matrix, sampling_freq):
+    """
+    Compute the stft of the trials matrix channel by channel
+    """
+    stft_trials_matrix = []
+    for i in range(trials_matrix.shape[0]): # Iterate through trials
+        stft_per_channels = []
+        for j in range(trials_matrix.shape[1]): # Iterate through channels
+            x = trials_matrix[i, j]
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq)
+
+            stft_per_channels.append(tmp_stft)
+
+        stft_trials_matrix.append(stft_per_channels)
+    
+    # Convert the list in a matrix
+    stft_trials_matrix = np.asarray(stft_trials_matrix)
+
+    return stft_trials_matrix
+
+def normalize_stft(stft_trials_matrix):
+    for i in range(stft_trials_matrix.shape[0]): # Iterate through trials
+        stft_trial = stft_trials_matrix[i]
+        for j in range(stft_trials.shape[0]): # Iterate through channels
+            stft_channel = stft_trial[j]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Visualization
@@ -127,7 +218,7 @@ def visualize_single_subject_average_channel(data, label_list, ch_list):
     """
     config = config_plot()
 
-    extracted_data = extract_data(data, ch_list, label_list, config)
+    extracted_data = extract_data_to_plot(data, ch_list, label_list, config)
 
     fig, ax = plt.subplots(len(config['label_to_plot']), len(config['ch_to_plot']), figsize = config['figsize'])
 
@@ -140,7 +231,7 @@ def visualize_single_subject_average_channel(data, label_list, ch_list):
     fig.tight_layout()
     fig.show()
 
-def extract_data(data, ch_list, label_list, config):
+def extract_data_to_plot(data, ch_list, label_list, config):
     """
     Function that for each class and each channel compute the average trial (e.g. the average trial of class 'foot' for channel C3)
     """
@@ -166,4 +257,16 @@ def extract_data(data, ch_list, label_list, config):
 
     return extracted_data 
 
-    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def download_preprocess_and_visualize():
+    # Download the dataset and divide it in trials
+    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset = mb.BNCI2014001()
+    trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
+
+    for i in range(trials_per_subject.shape[0]):
+        trials = trials_per_subject[i]
+        labels = labels_per_subject[i]
+
+        a = baseline_removal(trials, dataset_config['sampling_freq'])
