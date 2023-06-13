@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Function related to download the data, their preprocessing and visualization
+Function related to download the data, their preprocessing and basic visualization
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
@@ -182,7 +182,7 @@ def compute_stft(trials_matrix, sampling_freq):
             x = trials_matrix[i, j]
             f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq)
 
-            stft_per_channels.append(tmp_stft)
+            stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 
         stft_trials_matrix.append(stft_per_channels)
     
@@ -192,8 +192,12 @@ def compute_stft(trials_matrix, sampling_freq):
     return stft_trials_matrix, t, f
 
 def compute_ERS(stft_trials_matrix, t, f):
-    # TODO Riscrivere parte del codice per calcolare in maniera automatica la dimensione finale
-    stft_trials_matrix_ERS = np.zeros((stft_trials_matrix.shape[0],stft_trials_matrix.shape[1], stft_trials_matrix.shape[2], 9), dtype = stft_trials_matrix.dtype)  
+    # Indices for rest and task
+    idx_rest = np.logical_and(t >= 0.5, t < 2)
+    idx_task = t >= 2
+
+    # Matrix to save the ERS
+    stft_trials_matrix_ERS = np.zeros((stft_trials_matrix.shape[0],stft_trials_matrix.shape[1], stft_trials_matrix.shape[2], np.sum(idx_task)), dtype = stft_trials_matrix.dtype)  
 
     for i in range(stft_trials_matrix.shape[0]): # Iterate through trials
         stft_trial = stft_trials_matrix[i]
@@ -201,39 +205,103 @@ def compute_ERS(stft_trials_matrix, t, f):
             stft_channel = stft_trial[j]
             
             # Get the rest periodo and compute the average
-            rest_period = stft_channel[:, t < 2]
-            average_rest_power = np.mean(rest_period)
-            
+            rest_period = stft_channel[:, idx_rest]
+            average_rest_power = np.mean(rest_period, 1)
+
             # Get the task period
-            task_period = stft_channel[:, t >= 2]
-            
+            task_period = stft_channel[:, idx_task]
+
             # Compute ERS
-            stft_trials_matrix_ERS[i, j] = ((average_rest_power - task_period) / average_rest_power) * 100
-    
+            # average_rest_power = np.tile(average_rest_power, (task_period.shape[1] , 1)).T
+            # stft_trials_matrix_ERS[i, j] = ((average_rest_power - task_period) / average_rest_power) * 100
+            for k in range(stft_trials_matrix_ERS.shape[-1]):
+                if k != stft_trials_matrix_ERS.shape[-1] - 1: stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - task_period[:, k] ) / average_rest_power ) * 100
+
     # TODO Come sopra
-    return stft_trials_matrix_ERS, t[t >= 2]
+    return stft_trials_matrix_ERS, t[idx_task]
             
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Visualization
 
-def get_config_plot():
+def get_config_plot_random_trial():
     config = dict(
+        # - - - - - - - - - - 
+        # Config related to data
+        n_trial_to_plot = 3,
+        ch_to_plot = 'C3',
+        t_start = 0, # Time in seconds when the eeg recording starts
+        t_end = 6, # Time in seconds when the eeg recording end 
+        # - - - - - - - - - - 
         # Figure config
         figsize = (15, 10),
-        # Data config
-        ch_to_plot = ['C3', 'Cz', 'C4'],
-        # label_to_plot = [0,1,2]
-        label_to_plot = [1,2,3],
-        save_plot = True
+        fontsize = 12,
+        save_plot = True,
     )
 
     return config
 
-def visualize_single_subject_average_channel(data, label_list, ch_list, config):
+def plot_random_trial(trials_matrix, ch_list, config : dict):
+    """
+    Select n_trials randomly for a specific channel and plot them (in time domain)
+
+    trials_matrix = numpy array with the EEG data. The shape must be N x C x T with N = number of trials, C = number of channels, T = time samples 
+    ch_list = numpy array with the name of all the channels
+    """
+    
+    # Numpy array with the indices of all trials
+    idx_all_trials = np.arange(trials_matrix.shape[0])
+
+    # Get the index of the channel
+    idx_ch_to_plot = ch_list == config['ch_to_plot']
+
+    # Sample random trials to plot
+    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trial_to_plot'], replace = False))
+    trials_to_plot = trials_matrix[idx_trial_to_plot, idx_ch_to_plot]
+
+    # Create time vector
+    t = np.linspace(config['t_start'], config['t_end'], trials_to_plot.shape[-1])
+    
+    # Create figure
+    fig, ax = plt.subplots(1,1, figsize = config['figsize'])
+    plt.rcParams.update({'font.size': config['fontsize']})
+
+    # Plot the signal
+    for i in range(config['n_trial_to_plot']):
+        ax.plot(t, trials_to_plot[i], label = "Trial n.{}".format(idx_trial_to_plot[i]))
+
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("EEG Signal")
+    ax.set_xlim([t[0], t[-1]])
+    
+    # Remove empty space and add legend
+    fig.legend()
+    fig.tight_layout()
+    
+    if config['save_plot']: 
+        fig.savefig("Plot/eeg_time_domain_subject_{}.png".format(config['subject']))
+
+    fig.show()
+
+def get_config_plot_ERS():
+    config = dict(
+        # Figure config
+        figsize = (18, 12),
+        # Data config
+        ch_to_plot = ['C3', 'Cz', 'C4'],
+        # label_to_plot = [0,1,2]
+        label_to_plot = [1,2,3],
+        save_plot = True,
+        fontsize = 12,
+    )
+
+    return config
+
+def visualize_single_subject_average_channel_ERS(data, label_list, ch_list, config):
     """
     Visualize
 
-    data = numpy array with the EEG data. The shape must be N x C x T with N = number of trials, C = number of channels, T = time samples
+    data =  Numpy array with the ERS of EEG data. 
+            The shape must be N x C x F x T with N = number of trials, C = number of channels, F = frequencies bins of stft, T = time samples of stft
     ch_list = list of length ch with the name of the channels
     label_list = numpy array of length N with the list of the label for each trial
     """
@@ -247,6 +315,7 @@ def visualize_single_subject_average_channel(data, label_list, ch_list, config):
     
     # Create figure
     fig, ax = plt.subplots(len(config['label_to_plot']), len(config['ch_to_plot']), figsize = config['figsize'])
+    plt.rcParams.update({'font.size': config['fontsize']})
     
     # Name of the class labels
     label_legend = {1 : 'Left', 2 : 'Right', 3 : 'Foot'}
@@ -256,7 +325,7 @@ def visualize_single_subject_average_channel(data, label_list, ch_list, config):
             # ax[i, j].plot(extracted_data[i][j])
             
             # Plot the stft
-            ax[i, j].pcolormesh(t, f, np.abs(extracted_data[i][j]), shading='gouraud')
+            im = ax[i, j].pcolormesh(t, f, extracted_data[i][j], shading='gouraud')
 
             # Label, title, limit  for each subplot
             ax[i, j].set_ylabel('Frequency [Hz]')
@@ -264,14 +333,16 @@ def visualize_single_subject_average_channel(data, label_list, ch_list, config):
             ax[i, j].title.set_text("{} - {}".format(label_legend[config['label_to_plot'][i]], config['ch_to_plot'][j]))
             if 'y_limit' in config: ax[i, j].set_ylim(config['y_limit'])
     
-    # Title for the figure 
+            fig.colorbar(im)
+
+    # Title for the figure and remove empty space
     fig.suptitle('Subject {}'.format(config['subject']))
+    fig.tight_layout()
 
     if config['save_plot']: 
         fig.savefig("Plot/ERS_Subject_{}.png".format(config['subject']))
 
-    # Remove empyt space and visualize
-    fig.tight_layout()
+    # Visualize figure
     fig.show()
 
 def extract_data_to_plot(data, ch_list, label_list, config):
@@ -303,25 +374,32 @@ def extract_data_to_plot(data, ch_list, label_list, config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def download_preprocess_and_visualize():
-    subjects_list = [3]
+    subjects_list = [1,2,3,4,5,6,7,8,9]
+    subjects_list = [7]
 
     # Download the dataset and divide it in trials
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
     dataset = mb.BNCI2014001()
     trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
 
-    plot_config = get_config_plot() 
-    plot_config['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
+    plot_config_ERS = get_config_plot_ERS() 
+    plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
+
+    plot_config_random_trial = get_config_plot_random_trial() 
  
     for i in range(trials_per_subject.shape[0]):
         trials = trials_per_subject[i]
         labels = labels_per_subject[i]
+
+        # Visualize random trial in time domain
+        plot_config_random_trial['subject'] = subjects_list[i]
+        plot_random_trial(trials, ch_list, plot_config_random_trial)
         
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config['sampling_freq'])
-        plot_config['t'] = t
-        plot_config['f'] = f
-        plot_config['subject'] = subjects_list[i]
+        plot_config_ERS['t'] = t
+        plot_config_ERS['f'] = f
+        plot_config_ERS['subject'] = subjects_list[i]
         
-        # Visualize the results
-        visualize_single_subject_average_channel(stft_trials_matrix_ERS, labels, ch_list, plot_config)
+        # Visualize the ERS 
+        visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)
