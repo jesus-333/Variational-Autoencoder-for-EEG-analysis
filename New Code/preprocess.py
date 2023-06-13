@@ -422,7 +422,6 @@ def show_filter_effect_on_trial(trials_matrix, ch_list, filter_config, plot_conf
     
     # Get the eeg trial
     idx_trial = np.random.randint(0, trials_matrix.shape[0])
-    idx_trial = 27
     eeg_trial = trials_matrix[idx_trial].copy()
    
     # Additional info to convert the trial in RawArray of mne library
@@ -490,8 +489,6 @@ def download_preprocess_and_visualize():
 
         # Visualize random trial in time domain
         # plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
-
-        # (OPTIONAL) Visualize filter effect
         
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config)
@@ -530,6 +527,9 @@ def show_filter_effect():
     
     for i in range(trials_per_subject.shape[0]):
         print("Subject: {}".format(subjects_list[i]))
+
+        trials = trials_per_subject[i]
+        labels = labels_per_subject[i]
 
         plot_config_show_effect_filter['subject'] = subjects_list[i]
         dataset_config['filter_data'] = True
