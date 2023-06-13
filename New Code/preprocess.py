@@ -93,7 +93,6 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
     # Convert list in numpy array
     trials_per_subject = np.asarray(trials_per_subject)
     labels_per_subject = np.asarray(labels_per_subject)
-    
 
     return trials_per_subject, labels_per_subject, np.asarray(ch_list) 
 
@@ -104,6 +103,7 @@ def get_trial_handmade(raw_data, config):
 
     # Iterate through the run of the dataset
     for run in raw_data:
+        print(run)
         # Extract data actual run
         raw_data_actual_run = raw_data[run]
 
@@ -117,18 +117,9 @@ def get_trial_handmade(raw_data, config):
         sampling_freq = raw_data_actual_run.info['sfreq']
         config['sampling_freq'] = sampling_freq
         
-        # Filter the data
-        if config['filter_data']: 
-            filter_method = config['filter_method']
-            if config['filter_type'] == 0: # Bandpass
-                raw_data_actual_run.filter(config['fmin'], config['fmax'])
-            if config['filter_type'] == 1: # Lowpass
-                raw_data_actual_run.filter( l_freq = None, h_freq = config['fmax'], 
-                                           method = filter_method)
-            if config['filter_type'] == 2: # Highpass 
-                raw_data_actual_run.filter( l_freq = config['fmin'], h_freq = None, 
-                                           method = filter_method)
-        
+        # (OPTIONAL) Filter data
+        if config['filter_data']: raw_data_actual_run = filter_RawArray(raw_data_actual_run, config)
+
         # Compute trials by events
         trials_matrix_actual_run = divide_by_event(raw_data_actual_run, events, config)
 
@@ -148,6 +139,20 @@ def get_trial_handmade(raw_data, config):
 
     return trials_matrix, labels, raw_data_actual_run.ch_names
 
+def filter_RawArray(raw_array_mne, config):
+    # Filter the data
+    filter_method = config['filter_method']
+    iir_params = dict(ftype = 'cheby2', order = 20, rs = 30)
+    if config['filter_type'] == 0: # Bandpass
+         raw_array_mne.filter(config['fmin'], config['fmax'])
+    if config['filter_type'] == 1: # Lowpass
+        raw_array_mne.filter( l_freq = None, h_freq = config['fmax'], 
+                                   method = filter_method, iir_params = iir_params)
+    if config['filter_type'] == 2: # Highpass 
+        raw_array_mne.filter( l_freq = config['fmin'], h_freq = None, 
+                                   method = filter_method, iir_params = iir_params)
+
+    return raw_array_mne
 
 def divide_by_event(raw_run, events, config):
     """
@@ -410,6 +415,52 @@ def compute_average_band_stft(stft_data, freq_array, config):
     
     return average_band_stft 
 
+def show_filter_effect_on_trial(trials_matrix, ch_list, filter_config, plot_config):
+    """
+    Function that show the effect of filtering on a random trial
+    """
+    
+    # Get the eeg trial
+    idx_trial = np.random.randint(0, trials_matrix.shape[0])
+    idx_trial = 27
+    eeg_trial = trials_matrix[idx_trial].copy()
+   
+    # Additional info to convert the trial in RawArray of mne library
+    info = mne.create_info(
+        ch_names = list(ch_list), ch_types=["eeg"] * len(ch_list), sfreq = filter_config['sampling_freq']
+    )
+
+    # Create RawArray
+    eeg_trial_RawArray = mne.io.RawArray(eeg_trial.copy(), info)
+
+    # Filter the data and get back the numpy array
+    eeg_trial_RawArray = filter_RawArray(eeg_trial_RawArray, filter_config)
+    eeg_trial_filtered = eeg_trial_RawArray.get_data()
+    
+    # Get the data of the channel I want to plot
+    idx_ch = ch_list == plot_config['ch_to_plot']
+    eeg_signal = eeg_trial[idx_ch].squeeze()
+    eeg_signal_filtered = eeg_trial_filtered[idx_ch].squeeze()
+
+    # Create time vector
+    t = np.linspace(plot_config['t_start'], plot_config['t_end'], len(eeg_signal))
+
+    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    ax.plot(t, eeg_signal, label = "Original signal")
+    ax.plot(t, eeg_signal_filtered, label = "Filtered signal")
+
+    ax.set_xlim([t[0], t[-1]])
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("EEG signal")
+
+    fig.legend()
+    fig.tight_layout()
+
+    if plot_config['save_plot']: 
+        fig.savefig("Plot/Filter_Effect_Subject_{}_{}_{}.png".format(plot_config['subject'], plot_config['ch_to_plot'], idx_trial))
+
+    if plot_config['show_fig']: fig.show()
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def download_preprocess_and_visualize():
@@ -422,23 +473,25 @@ def download_preprocess_and_visualize():
     dataset = mb.BNCI2014001()
     trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
     
+    # Config for the plots
     plot_config_random_trial = cp.get_config_plot_preprocess_random_trial() 
-    
     plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
-
     plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
-    
     plot_config_random_trial['show_fig'] = plot_config_average_band['show_fig'] = plot_config_ERS['show_fig'] = show_fig
     plot_config_random_trial['t_end'] = plot_config_average_band['t_end'] = dataset_config['length_trial']
- 
+    
+    # Iterate through subject and show the figures
     for i in range(trials_per_subject.shape[0]):
-        print("Subject: {}".format(i + 1))
+        print("Subject: {}".format(subjects_list[i]))
+        plot_config_random_trial['subject'] = plot_config_average_band['subject'] = plot_config_ERS['subject'] = subjects_list[i]
+
         trials = trials_per_subject[i]
         labels = labels_per_subject[i]
 
         # Visualize random trial in time domain
-        plot_config_random_trial['subject'] = subjects_list[i]
         # plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
+
+        # (OPTIONAL) Visualize filter effect
         
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config)
@@ -453,14 +506,31 @@ def download_preprocess_and_visualize():
                 plot_config_ERS['y_limit'] = [max(f[0], dataset_config['fmin']), f[-1]]
 
         # Visualize the average band
-        plot_config_average_band['subject'] = subjects_list[i]
         plot_average_band_stft(stft_trials_matrix_ERS, ch_list, f, plot_config_average_band)
 
         # Visualize the ERS 
         plot_config_ERS['t'] = t
         plot_config_ERS['f'] = f
-        plot_config_ERS['subject'] = subjects_list[i]
         visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)
         
         # Close the figures
         if len(subjects_list) >= 2: plt.close('all')
+
+def show_filter_effect():
+    subjects_list = [1,2,3,4,5,6,7,8,9]
+    subjects_list = [2]
+    show_fig = True 
+
+    plot_config_show_effect_filter = cp.get_config_plot_preprocess_random_trial() # The config for the plot are the same
+
+    # Download the dataset and divide it in trials
+    dataset_config = cd.get_moabb_dataset_config(subjects_list)
+    dataset = mb.BNCI2014001()
+    trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
+    
+    for i in range(trials_per_subject.shape[0]):
+        print("Subject: {}".format(subjects_list[i]))
+
+        plot_config_show_effect_filter['subject'] = subjects_list[i]
+        dataset_config['filter_data'] = True
+        show_filter_effect_on_trial(trials, ch_list, dataset_config, plot_config_show_effect_filter)

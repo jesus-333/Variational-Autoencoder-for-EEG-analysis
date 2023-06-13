@@ -10,7 +10,7 @@ Contain the config related to dataset download and preprocess
 def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
     dataset_config = dict(
         # Frequency filtering settings
-        filter_data = True,
+        filter_data = False,
         filter_type = 2, # 0 Bandpass, 1 lowpass, 2 highpass
         fmin = 3.5, # Used in bandpass and highpass
         fmax = 50, # Used in bandpass and lowpass

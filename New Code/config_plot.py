@@ -17,7 +17,6 @@ def get_config_plot_preprocess_random_trial():
 
     return config
 
-
 def get_config_plot_preprocess_ERS():
     config = dict(
         # Data config
