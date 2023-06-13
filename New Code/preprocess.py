@@ -181,7 +181,7 @@ def compute_stft(trials_matrix, sampling_freq):
         stft_per_channels = []
         for j in range(trials_matrix.shape[1]): # Iterate through channels
             x = trials_matrix[i, j]
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq)
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 2)
 
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 
@@ -193,12 +193,11 @@ def compute_stft(trials_matrix, sampling_freq):
     return stft_trials_matrix, t, f
 
 def compute_ERS(stft_trials_matrix, t, f):
-    # Indices for rest and task
+    # Indices for rest
     idx_rest = np.logical_and(t >= 0.5, t < 2)
-    idx_task = t >= 2
 
     # Matrix to save the ERS
-    stft_trials_matrix_ERS = np.zeros((stft_trials_matrix.shape[0],stft_trials_matrix.shape[1], stft_trials_matrix.shape[2], np.sum(idx_task)), dtype = stft_trials_matrix.dtype)  
+    stft_trials_matrix_ERS = np.zeros(stft_trials_matrix.shape, dtype = stft_trials_matrix.dtype)  
 
     for i in range(stft_trials_matrix.shape[0]): # Iterate through trials
         stft_trial = stft_trials_matrix[i]
@@ -209,14 +208,14 @@ def compute_ERS(stft_trials_matrix, t, f):
             rest_period = stft_channel[:, idx_rest]
             average_rest_power = np.mean(rest_period, 1)
 
-            # Get the task period
-            task_period = stft_channel[:, idx_task]
-
             # Compute ERS
             # average_rest_power = np.tile(average_rest_power, (task_period.shape[1] , 1)).T
             # stft_trials_matrix_ERS[i, j] = ((average_rest_power - task_period) / average_rest_power) * 100
             for k in range(stft_trials_matrix_ERS.shape[-1]):
-                if k != stft_trials_matrix_ERS.shape[-1] - 1: stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - task_period[:, k] ) / average_rest_power ) * 100
+                if k != stft_trials_matrix_ERS.shape[-1] - 2: stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
+                # stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
+                # print(k, stft_trials_matrix_ERS[i, j, :, k].mean())
+            # raise ValueError("")
 
     return stft_trials_matrix_ERS, t[idx_task]
             
@@ -249,7 +248,7 @@ def plot_random_trial_time_domain(trials_matrix, ch_list, config : dict):
     plt.rcParams.update({'font.size': config['fontsize']})
 
     # Plot the signal
-    for i in range(config['n_trial_to_plot']):
+    for i in range(config['n_trials_to_plot']):
         ax.plot(t, trials_to_plot[i], label = "Trial n.{}".format(idx_trial_to_plot[i]))
 
     ax.set_xlabel("Time [s]")
@@ -261,9 +260,9 @@ def plot_random_trial_time_domain(trials_matrix, ch_list, config : dict):
     fig.tight_layout()
     
     if config['save_plot']: 
-        fig.savefig("Plot/eeg_time_domain_subject_{}.png".format(config['subject']))
+        fig.savefig("Plot/eeg_time_domain_subject_{}_{}.png".format(config['subject'], config['ch_to_plot']))
 
-    fig.show()
+    # fig.show()
 
 def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list, config):
     """
@@ -312,7 +311,7 @@ def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list,
         fig.savefig("Plot/ERS_Subject_{}.png".format(config['subject']))
 
     # Visualize figure
-    fig.show()
+    # fig.show()
 
 def extract_data_to_plot(data, ch_list, label_list, config):
     """
@@ -346,7 +345,7 @@ def plot_average_band_stft(stft_data, ch_list, freq_array, config):
     
     # Sample random trials to plot
     idx_all_trials = np.arange(stft_data.shape[0])
-    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trial_to_average'], replace = False))
+    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trials_to_average'], replace = False))
     sampled_stft = stft_data[idx_trial_to_plot, idx_ch_to_plot]
     
     # Compute the average for the specified band
@@ -360,13 +359,16 @@ def plot_average_band_stft(stft_data, ch_list, freq_array, config):
     ax.plot(t, average_band_stft)
 
     ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Average {}-{} Hz".format(config['band_start'], config['band_end']))
+    ax.set_ylabel("STFT Average {}-{} Hz".format(config['band_start'], config['band_end']))
     ax.set_xlim([t[0], t[-1]])
 
-    ax.title("Subject {} - Channel {} - Average {} trials".format(config['subject'], config['ch_to_plot'], config['n_trials_to_average']))
-
+    ax.set_title("Subject {} - Channel {} - Average {} trials".format(config['subject'], config['ch_to_plot'], config['n_trials_to_average']))
+    
     fig.tight_layout()
-    fig.show()
+    if config['save_plot']: 
+        fig.savefig("Plot/Average_stft_Subject_{}_{}.png".format(config['subject'], config['ch_to_plot']))
+
+    # fig.show()
 
 def compute_average_band_stft(stft_data, freq_array, config):
     # Average accross the trials
@@ -391,11 +393,11 @@ def download_preprocess_and_visualize():
     trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
     
     plot_config_random_trial = cp.get_config_plot_preprocess_random_trial() 
+    
+    plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
 
     plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
     plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
-
-    plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
  
     for i in range(trials_per_subject.shape[0]):
         trials = trials_per_subject[i]
@@ -407,12 +409,13 @@ def download_preprocess_and_visualize():
         
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config['sampling_freq'])
-        plot_config_ERS['t'] = t
-        plot_config_ERS['f'] = f
-        plot_config_ERS['subject'] = subjects_list[i]
         
         # Visualize the average band
+        plot_config_average_band['subject'] = subjects_list[i]
         plot_average_band_stft(stft_trials_matrix_ERS, ch_list, f, plot_config_average_band)
 
         # Visualize the ERS 
+        plot_config_ERS['t'] = t
+        plot_config_ERS['f'] = f
+        plot_config_ERS['subject'] = subjects_list[i]
         visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)

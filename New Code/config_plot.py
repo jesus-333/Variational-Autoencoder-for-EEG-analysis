@@ -3,7 +3,7 @@ def get_config_plot_preprocess_random_trial():
     config = dict(
         # - - - - - - - - - - 
         # Config related to data
-        n_trial_to_plot = 3,
+        n_trials_to_plot = 3,
         ch_to_plot = 'C3',
         t_start = 0, # Time in seconds when the eeg recording starts
         t_end = 6, # Time in seconds when the eeg recording end 
