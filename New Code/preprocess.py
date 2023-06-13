@@ -198,6 +198,11 @@ def compute_ERS(stft_trials_matrix, t, f):
 
     # Matrix to save the ERS
     stft_trials_matrix_ERS = np.zeros(stft_trials_matrix.shape, dtype = stft_trials_matrix.dtype)  
+    
+    # TODO lista dei segmenti da evitare (temporaneo)
+    if stft_trials_matrix.shape[-1] == 25: k_to_avoid = [0, 23, 24]
+    else: k_to_avoid = []
+    k_to_avoid = []
 
     for i in range(stft_trials_matrix.shape[0]): # Iterate through trials
         stft_trial = stft_trials_matrix[i]
@@ -212,12 +217,11 @@ def compute_ERS(stft_trials_matrix, t, f):
             # average_rest_power = np.tile(average_rest_power, (task_period.shape[1] , 1)).T
             # stft_trials_matrix_ERS[i, j] = ((average_rest_power - task_period) / average_rest_power) * 100
             for k in range(stft_trials_matrix_ERS.shape[-1]):
-                if k != stft_trials_matrix_ERS.shape[-1] - 2: stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
-                # stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
-                # print(k, stft_trials_matrix_ERS[i, j, :, k].mean())
-            # raise ValueError("")
+                if k not in k_to_avoid:
+                    stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
+                    # print(k, stft_trials_matrix_ERS[i, j, :, k].mean())
 
-    return stft_trials_matrix_ERS, t[idx_task]
+    return stft_trials_matrix_ERS, t
             
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Visualization
@@ -261,8 +265,8 @@ def plot_random_trial_time_domain(trials_matrix, ch_list, config : dict):
     
     if config['save_plot']: 
         fig.savefig("Plot/eeg_time_domain_subject_{}_{}.png".format(config['subject'], config['ch_to_plot']))
-
-    # fig.show()
+    
+    if config['show_fig']: fig.show()
 
 def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list, config):
     """
@@ -311,7 +315,7 @@ def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list,
         fig.savefig("Plot/ERS_Subject_{}.png".format(config['subject']))
 
     # Visualize figure
-    # fig.show()
+    if config['show_fig']: fig.show()
 
 def extract_data_to_plot(data, ch_list, label_list, config):
     """
@@ -367,8 +371,9 @@ def plot_average_band_stft(stft_data, ch_list, freq_array, config):
     fig.tight_layout()
     if config['save_plot']: 
         fig.savefig("Plot/Average_stft_Subject_{}_{}.png".format(config['subject'], config['ch_to_plot']))
-
-    # fig.show()
+    
+    # Show figure
+    if config['show_fig']: fig.show()
 
 def compute_average_band_stft(stft_data, freq_array, config):
     # Average accross the trials
@@ -386,6 +391,7 @@ def compute_average_band_stft(stft_data, freq_array, config):
 def download_preprocess_and_visualize():
     subjects_list = [1,2,3,4,5,6,7,8,9]
     subjects_list = [7]
+    show_fig = True
 
     # Download the dataset and divide it in trials
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
@@ -398,6 +404,8 @@ def download_preprocess_and_visualize():
 
     plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
     plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
+    
+    plot_config_random_trial['show_fig'] = plot_config_average_band['show_fig'] = plot_config_ERS['show_fig'] = show_fig
  
     for i in range(trials_per_subject.shape[0]):
         trials = trials_per_subject[i]
@@ -419,3 +427,6 @@ def download_preprocess_and_visualize():
         plot_config_ERS['f'] = f
         plot_config_ERS['subject'] = subjects_list[i]
         visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)
+        
+        # Close the figures
+        if len(subjects_list) >= 2: plt.close()

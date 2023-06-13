@@ -10,9 +10,9 @@ Contain the config related to dataset download and preprocess
 def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
     dataset_config = dict(
         # Frequency filtering settings
-        filter_data = True,
+        filter_data = False,
         fmin = 0.5,
-        fmax = 45,
+        fmax = 100,
         # Resampling settings
         resample_data = True,
         resample_freq = 128,
