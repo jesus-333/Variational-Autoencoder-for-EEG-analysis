@@ -15,6 +15,7 @@ from scipy import signal
 import moabb.datasets as mb
 import moabb.paradigms as mp
 import config_dataset as cd
+import config_plot as cp
 
 """
 %load_ext autoreload
@@ -217,30 +218,12 @@ def compute_ERS(stft_trials_matrix, t, f):
             for k in range(stft_trials_matrix_ERS.shape[-1]):
                 if k != stft_trials_matrix_ERS.shape[-1] - 1: stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - task_period[:, k] ) / average_rest_power ) * 100
 
-    # TODO Come sopra
     return stft_trials_matrix_ERS, t[idx_task]
             
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Visualization
 
-def get_config_plot_random_trial():
-    config = dict(
-        # - - - - - - - - - - 
-        # Config related to data
-        n_trial_to_plot = 3,
-        ch_to_plot = 'C3',
-        t_start = 0, # Time in seconds when the eeg recording starts
-        t_end = 6, # Time in seconds when the eeg recording end 
-        # - - - - - - - - - - 
-        # Figure config
-        figsize = (15, 10),
-        fontsize = 12,
-        save_plot = True,
-    )
-
-    return config
-
-def plot_random_trial(trials_matrix, ch_list, config : dict):
+def plot_random_trial_time_domain(trials_matrix, ch_list, config : dict):
     """
     Select n_trials randomly for a specific channel and plot them (in time domain)
 
@@ -248,14 +231,14 @@ def plot_random_trial(trials_matrix, ch_list, config : dict):
     ch_list = numpy array with the name of all the channels
     """
     
+    # Get the index of the channel
+    idx_ch_to_plot = ch_list == config['ch_to_plot']
+    
     # Numpy array with the indices of all trials
     idx_all_trials = np.arange(trials_matrix.shape[0])
 
-    # Get the index of the channel
-    idx_ch_to_plot = ch_list == config['ch_to_plot']
-
     # Sample random trials to plot
-    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trial_to_plot'], replace = False))
+    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trials_to_plot'], replace = False))
     trials_to_plot = trials_matrix[idx_trial_to_plot, idx_ch_to_plot]
 
     # Create time vector
@@ -282,32 +265,18 @@ def plot_random_trial(trials_matrix, ch_list, config : dict):
 
     fig.show()
 
-def get_config_plot_ERS():
-    config = dict(
-        # Figure config
-        figsize = (18, 12),
-        # Data config
-        ch_to_plot = ['C3', 'Cz', 'C4'],
-        # label_to_plot = [0,1,2]
-        label_to_plot = [1,2,3],
-        save_plot = True,
-        fontsize = 12,
-    )
-
-    return config
-
-def visualize_single_subject_average_channel_ERS(data, label_list, ch_list, config):
+def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list, config):
     """
     Visualize
 
-    data =  Numpy array with the ERS of EEG data. 
+    stft_data =  Numpy array with the ERS of EEG data. 
             The shape must be N x C x F x T with N = number of trials, C = number of channels, F = frequencies bins of stft, T = time samples of stft
     ch_list = list of length ch with the name of the channels
     label_list = numpy array of length N with the list of the label for each trial
     """
     
     # Compute the average data for the class-channels that I want to plot
-    extracted_data = extract_data_to_plot(data, ch_list, label_list, config)
+    extracted_data = extract_data_to_plot(stft_data, ch_list, label_list, config)
     
     # Get the array for x-axis and y-axis
     t = config['t']
@@ -371,6 +340,45 @@ def extract_data_to_plot(data, ch_list, label_list, config):
 
     return extracted_data 
 
+def plot_average_band_stft(stft_data, ch_list, freq_array, config):
+    # Get the index of the channel
+    idx_ch_to_plot = ch_list == config['ch_to_plot']
+    
+    # Sample random trials to plot
+    idx_all_trials = np.arange(stft_data.shape[0])
+    idx_trial_to_plot = np.int32(np.random.choice(idx_all_trials, config['n_trial_to_average'], replace = False))
+    sampled_stft = stft_data[idx_trial_to_plot, idx_ch_to_plot]
+    
+    # Compute the average for the specified band
+    average_band_stft = compute_average_band_stft(sampled_stft, freq_array, config)
+
+    # Create time vector
+    t = np.linspace(config['t_start'], config['t_end'], len(average_band_stft))
+
+    fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
+    
+    ax.plot(t, average_band_stft)
+
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel("Average {}-{} Hz".format(config['band_start'], config['band_end']))
+    ax.set_xlim([t[0], t[-1]])
+
+    ax.title("Subject {} - Channel {} - Average {} trials".format(config['subject'], config['ch_to_plot'], config['n_trials_to_average']))
+
+    fig.tight_layout()
+    fig.show()
+
+def compute_average_band_stft(stft_data, freq_array, config):
+    # Average accross the trials
+    average_stft_data = stft_data.mean(0)
+    print(average_stft_data.shape)
+
+    # Select the indices of the frequency band I'm interested
+    idx_band = np.logical_and(freq_array >= config['band_start'], freq_array <= config['band_end'])
+    average_band_stft = average_stft_data[idx_band, :].mean(0)
+    
+    return average_band_stft 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def download_preprocess_and_visualize():
@@ -381,11 +389,13 @@ def download_preprocess_and_visualize():
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
     dataset = mb.BNCI2014001()
     trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
+    
+    plot_config_random_trial = cp.get_config_plot_preprocess_random_trial() 
 
-    plot_config_ERS = get_config_plot_ERS() 
+    plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
     plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
 
-    plot_config_random_trial = get_config_plot_random_trial() 
+    plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
  
     for i in range(trials_per_subject.shape[0]):
         trials = trials_per_subject[i]
@@ -393,7 +403,7 @@ def download_preprocess_and_visualize():
 
         # Visualize random trial in time domain
         plot_config_random_trial['subject'] = subjects_list[i]
-        plot_random_trial(trials, ch_list, plot_config_random_trial)
+        plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
         
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config['sampling_freq'])
@@ -401,5 +411,8 @@ def download_preprocess_and_visualize():
         plot_config_ERS['f'] = f
         plot_config_ERS['subject'] = subjects_list[i]
         
+        # Visualize the average band
+        plot_average_band_stft(stft_trials_matrix_ERS, ch_list, f, plot_config_average_band)
+
         # Visualize the ERS 
         visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)
