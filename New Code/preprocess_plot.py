@@ -79,13 +79,17 @@ def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list,
     # Name of the class labels
     label_legend = {1 : 'Left', 2 : 'Right', 3 : 'Foot'}
 
+    if 'cmap' in config: cmap = config['cmap']
+    else: cmap = None
+
     for i in range(len(config['label_to_plot'])):
         for j in range(len(config['ch_to_plot'])):
-            # ax[i, j].plot(extracted_data[i][j])
+            vmin = config['vmin']
+            vmax = config['vmax'] 
             
             # Plot the stft
-            im = ax[i, j].pcolormesh(t, f, extracted_data[i][j], shading='gouraud')
-            im = ax[i, j].pcolormesh(t, f, extracted_data[i][j], shading='gouraud', vmin = np.min(extracted_data[i][j]), vmax = np.max(extracted_data[i][j]))
+            # im = ax[i, j].pcolormesh(t, f, extracted_data[i][j], shading='gouraud')
+            im = ax[i, j].pcolormesh(t, f, extracted_data[i][j], shading='gouraud', vmin = vmin, vmax = vmax, cmap = cmap)
 
             # Label, title, limit  for each subplot
             ax[i, j].set_ylabel('Frequency [Hz]')
@@ -100,7 +104,10 @@ def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list,
     fig.tight_layout()
 
     if config['save_plot']: 
-        fig.savefig("Plot/ERS_Subject_{}.png".format(config['subject']))
+        if config['filter_data']:
+            fig.savefig("Plot/ERS_Subject_{}_filter.png".format(config['subject']))
+        else:
+            fig.savefig("Plot/ERS_Subject_{}_NO_filter.png".format(config['subject']))
 
     # Visualize figure
     if config['show_fig']: fig.show()

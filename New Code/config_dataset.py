@@ -11,10 +11,11 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
     dataset_config = dict(
         # Frequency filtering settings
         filter_data = False,
-        filter_type = 0, # 0 Bandpass, 1 lowpass, 2 highpass
+        filter_type = 2, # 0 Bandpass, 1 lowpass, 2 highpass
         fmin = 3.5, # Used in bandpass and highpass
-        fmax = 10, # Used in bandpass and lowpass
+        fmax = 25, # Used in bandpass and lowpass
         filter_method = 'iir',
+        iir_params = dict(ftype = 'cheby2', order = 20, rs = 30),
         # Resampling settings
         resample_data = True,
         resample_freq = 128,
