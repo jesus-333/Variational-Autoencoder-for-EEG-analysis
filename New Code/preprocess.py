@@ -119,7 +119,15 @@ def get_trial_handmade(raw_data, config):
         
         # Filter the data
         if config['filter_data']: 
-            raw_data_actual_run.filter(config['fmin'], config['fmax'])
+            filter_method = config['filter_method']
+            if config['filter_type'] == 0: # Bandpass
+                raw_data_actual_run.filter(config['fmin'], config['fmax'])
+            if config['filter_type'] == 1: # Lowpass
+                raw_data_actual_run.filter( l_freq = None, h_freq = config['fmax'], 
+                                           method = filter_method)
+            if config['filter_type'] == 2: # Highpass 
+                raw_data_actual_run.filter( l_freq = config['fmin'], h_freq = None, 
+                                           method = filter_method)
         
         # Compute trials by events
         trials_matrix_actual_run = divide_by_event(raw_data_actual_run, events, config)
@@ -197,7 +205,12 @@ def compute_stft(trials_matrix, config : dict):
 
     # Remove the filtered frequencies
     if config['filter_data']: 
-        idx_freq = np.logical_and(f >= config['fmin'], f <= config['fmax'])
+        if config['filter_type'] == 0: # Bandpass
+            idx_freq = np.logical_and(f >= config['fmin'], f <= config['fmax'])
+        if config['filter_type'] == 1: # Lowpass
+            idx_freq = f <= config['fmax']
+        if config['filter_type'] == 2: # Highpass 
+            idx_freq = f >= config['fmin']
     else:
         idx_freq = np.ones(len(f)) == 1
 
@@ -401,8 +414,8 @@ def compute_average_band_stft(stft_data, freq_array, config):
 
 def download_preprocess_and_visualize():
     subjects_list = [1,2,3,4,5,6,7,8,9]
-    # subjects_list = [7]
-    show_fig = False 
+    subjects_list = [2]
+    show_fig = True 
 
     # Download the dataset and divide it in trials
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
