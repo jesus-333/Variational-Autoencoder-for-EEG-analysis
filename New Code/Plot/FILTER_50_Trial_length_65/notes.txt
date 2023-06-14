@@ -1,0 +1,13 @@
+Trial length 0s-6.5s
+
+FIR filter parameters
+---------------------
+Designing a one-pass, zero-phase, non-causal bandpass filter:
+- Windowed time-domain design (firwin) method
+- Hamming window with 0.0194 passband ripple and 53 dB stopband attenuation
+- Lower passband edge: 0.50
+- Lower transition bandwidth: 0.50 Hz (-6 dB cutoff frequency: 0.25 Hz)
+- Upper passband edge: 50.00 Hz
+- Upper transition bandwidth: 12.50 Hz (-6 dB cutoff frequency: 56.25 Hz)
+- Filter length: 1651 samples (6.604 sec)
+
