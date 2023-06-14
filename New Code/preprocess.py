@@ -427,7 +427,6 @@ def download_preprocess_and_visualize():
     plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
 
     plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
-    if dataset_config['filter_data']: plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
     
     plot_config_random_trial['show_fig'] = plot_config_average_band['show_fig'] = plot_config_ERS['show_fig'] = show_fig
     plot_config_random_trial['t_end'] = plot_config_average_band['t_end'] = dataset_config['length_trial']
@@ -444,11 +443,15 @@ def download_preprocess_and_visualize():
         # Compute the ERS 
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config)
 
-        # Correct the y limit for stft visualization (in the case the minimum frequency obtained with the stft is bigger than the lower passband of the filter)
+        # Correct the y limit for stft visualization 
         if dataset_config['filter_data']: 
-            if f[0] > dataset_config['fmin']:
-                plot_config_ERS['y_limit'] = [f[0], dataset_config['fmax']]
-        
+            if dataset_config['filter_type'] == 0: # Bandpass
+                plot_config_ERS['y_limit'] = [max(f[0], dataset_config['fmin']), min(f[-1], dataset_config['fmax'])]
+            if dataset_config['filter_type'] == 1: # Lowpass
+                plot_config_ERS['y_limit'] = [f[0], min(f[-1], dataset_config['fmax'])]
+            if dataset_config['filter_type'] == 2: # Highpass 
+                plot_config_ERS['y_limit'] = [max(f[0], dataset_config['fmin']), f[-1]]
+
         # Visualize the average band
         plot_config_average_band['subject'] = subjects_list[i]
         plot_average_band_stft(stft_trials_matrix_ERS, ch_list, f, plot_config_average_band)
