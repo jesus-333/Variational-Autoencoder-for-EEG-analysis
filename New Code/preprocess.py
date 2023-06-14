@@ -165,18 +165,23 @@ def divide_by_event(raw_run, events, config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Preprocess
 
-def baseline_removal(trials_matrix, sampling_freq):
-    stft_trials_matrix, t, f = compute_stft(trials_matrix, sampling_freq)
+def baseline_removal(trials_matrix, config : dict):
+    stft_trials_matrix, t, f = compute_stft(trials_matrix, config)
     stft_trials_matrix_ERS, t_trial = compute_ERS(stft_trials_matrix, t, f)
 
     return stft_trials_matrix_ERS, t_trial, f
 
 
-def compute_stft(trials_matrix, sampling_freq):
+def compute_stft(trials_matrix, config : dict):
     """
     Compute the stft of the trials matrix channel by channel
     """
+
+    sampling_freq = config['sampling_freq']
+    
+
     stft_trials_matrix = []
+
     for i in range(trials_matrix.shape[0]): # Iterate through trials
         stft_per_channels = []
         for j in range(trials_matrix.shape[1]): # Iterate through channels
@@ -190,7 +195,13 @@ def compute_stft(trials_matrix, sampling_freq):
     # Convert the list in a matrix
     stft_trials_matrix = np.asarray(stft_trials_matrix)
 
-    return stft_trials_matrix, t, f
+    # Remove the filtered frequencies
+    if config['filter_data']: 
+        idx_freq = np.logical_and(f >= config['fmin'], f <= config['fmax'])
+    else:
+        idx_freq = np.ones(len(f)) == 1
+
+    return stft_trials_matrix[:, :, idx_freq, :], t, f[idx_freq]
 
 def compute_ERS(stft_trials_matrix, t, f):
     # Indices for rest
@@ -219,7 +230,7 @@ def compute_ERS(stft_trials_matrix, t, f):
             for k in range(stft_trials_matrix_ERS.shape[-1]):
                 if k not in k_to_avoid:
                     stft_trials_matrix_ERS[i, j, :, k] = ( ( average_rest_power - stft_trials_matrix[i, j, :, k] ) / average_rest_power ) * 100
-                    # print(k, stft_trials_matrix_ERS[i, j, :, k].mean())
+                    # stft_trials_matrix_ERS[i, j, :, k] = ( ( stft_trials_matrix[i, j, :, k] - average_rest_power) / average_rest_power ) * 100
 
     return stft_trials_matrix_ERS, t
             
@@ -378,7 +389,7 @@ def plot_average_band_stft(stft_data, ch_list, freq_array, config):
 def compute_average_band_stft(stft_data, freq_array, config):
     # Average accross the trials
     average_stft_data = stft_data.mean(0)
-    print(average_stft_data.shape)
+    # print(average_stft_data.shape)
 
     # Select the indices of the frequency band I'm interested
     idx_band = np.logical_and(freq_array >= config['band_start'], freq_array <= config['band_end'])
@@ -390,8 +401,8 @@ def compute_average_band_stft(stft_data, freq_array, config):
 
 def download_preprocess_and_visualize():
     subjects_list = [1,2,3,4,5,6,7,8,9]
-    subjects_list = [7]
-    show_fig = True
+    # subjects_list = [7]
+    show_fig = False 
 
     # Download the dataset and divide it in trials
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
@@ -403,20 +414,27 @@ def download_preprocess_and_visualize():
     plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
 
     plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
-    plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
+    if dataset_config['filter_data']: plot_config_ERS['y_limit'] = [dataset_config['fmin'], dataset_config['fmax']]
     
     plot_config_random_trial['show_fig'] = plot_config_average_band['show_fig'] = plot_config_ERS['show_fig'] = show_fig
+    plot_config_random_trial['t_end'] = plot_config_average_band['t_end'] = dataset_config['length_trial']
  
     for i in range(trials_per_subject.shape[0]):
+        print("Subject: {}".format(i + 1))
         trials = trials_per_subject[i]
         labels = labels_per_subject[i]
 
         # Visualize random trial in time domain
         plot_config_random_trial['subject'] = subjects_list[i]
-        plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
+        # plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
         
         # Compute the ERS 
-        stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config['sampling_freq'])
+        stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config)
+
+        # Correct the y limit for stft visualization (in the case the minimum frequency obtained with the stft is bigger than the lower passband of the filter)
+        if dataset_config['filter_data']: 
+            if f[0] > dataset_config['fmin']:
+                plot_config_ERS['y_limit'] = [f[0], dataset_config['fmax']]
         
         # Visualize the average band
         plot_config_average_band['subject'] = subjects_list[i]
@@ -429,4 +447,4 @@ def download_preprocess_and_visualize():
         visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)
         
         # Close the figures
-        if len(subjects_list) >= 2: plt.close()
+        if len(subjects_list) >= 2: plt.close('all')

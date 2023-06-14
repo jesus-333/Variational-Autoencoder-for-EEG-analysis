@@ -12,7 +12,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         # Frequency filtering settings
         filter_data = False,
         fmin = 0.5,
-        fmax = 100,
+        fmax = 50,
         # Resampling settings
         resample_data = True,
         resample_freq = 128,
@@ -24,7 +24,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         percentage_split = 0.9,
         # baseline = [0, 2], # Time interval to use for subject normalization
         return_channels = True,
-        length_trial = 6, # Length of trial in seconds (used only for the "handmade" trial division)
+        length_trial = 7.5, # Length of trial in seconds (used only for the "handmade" trial division)
     )
 
     return dataset_config
