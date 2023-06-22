@@ -27,7 +27,7 @@ import dataset as ds
 
 def get_train_data(config):
     # Get data and labels
-    data, labels = get_D2a_data(config, 'train')
+    data, labels, ch_list = get_D2a_data(config, 'train')
     
     # Create Pytorch dataset
     full_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
@@ -65,10 +65,9 @@ def get_D2a_data(config, type_dataset):
 
     if 'return_channels' in config and config['return_channels'] == True:
         ch_list = get_dataset_channels(dataset)[0:22]
-
         return data, labels, ch_list
     else:
-        return data, labels
+        return data, labels, None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% PyTorch Dataset

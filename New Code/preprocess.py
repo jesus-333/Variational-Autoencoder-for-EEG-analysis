@@ -45,6 +45,9 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
     
     paradigm.n_classes = config['n_classes']
 
+    # paradigm.tmin = 1.0
+    paradigm.tmax = 7.5
+
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
         
@@ -179,6 +182,17 @@ def divide_by_event(raw_run, events, config):
 
     return trials_matrix
         
+def get_data_subjects(subjecs_list : list):
+    """
+    Download and return the data for a list of subject
+    The data are return in a matrix of size N_subject x N_trial x C x T
+    """
+    dataset_config = cd.get_moabb_dataset_config(subjecs_list)
+    dataset = mb.BNCI2014001()
+    trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
+
+    return trials_per_subject, labels_per_subject, ch_list
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Preprocess
 
@@ -203,7 +217,29 @@ def compute_stft(trials_matrix, config : dict):
         stft_per_channels = []
         for j in range(trials_matrix.shape[1]): # Iterate through channels
             x = trials_matrix[i, j]
+            # Default
             f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 2)
+
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq, noverlap = 3 * sampling_freq / 4)
+            print("nperseg = ", sampling_freq)
+            print(f.shape, f)
+            print(t.shape, t, "\n")
+
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 5)
+            print("nperseg = ", sampling_freq/5)
+            print(f.shape, f)
+            print(t.shape, t, "\n")
+            
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 10)
+            print("nperseg = ", sampling_freq/10)
+            print(f.shape, f)
+            print(t.shape, t, "\n")
+
+            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 25)
+            print("nperseg = ", sampling_freq/25)
+            print(f.shape, f)
+            print(t.shape, t, "\n")
+            raise ValueError("adasd")
 
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 
@@ -428,15 +464,4 @@ def show_after_before_ERS():
         stft_trials_matrix_ERS, t = compute_ERS(stft_trials_matrix, t, f)
 
         pp_plot.show_after_before_ERS_on_trial(stft_trials_matrix, stft_trials_matrix_ERS, ch_list, f, t, plot_config)
-
-def visualize_single_trial(subject, idx_trial, ch_to_plot):
-    dataset_config = cd.get_moabb_dataset_config([subject])
-    dataset = mb.BNCI2014001()
-    trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
-
-    trials = trials_per_subject[0]
-    labels = labels_per_subject[0]
-
-    stft_trials_matrix, t, f = compute_stft(trials, dataset_config)
-    stft_trials_matrix_ERS, t = compute_ERS(stft_trials_matrix, t, f)
 

@@ -74,10 +74,10 @@ def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
 
 def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int, type_decoder : int) -> dict:
     # Get the config for the encoder (used also for the decoder)
-    if type_encoder == 0:
+    if type_encoder == 0: # EEGNet
         encoder_config = get_config_EEGNet(C, T)
         encoder_config['flatten_output'] = True
-    elif type_encoder == 1:
+    elif type_encoder == 1: #MBEEGnet
         encoder_config = get_config_MBEEGNet(C, T)
         encoder_config['eegnet_config']['flatten_output'] = True
     else:
