@@ -137,27 +137,42 @@ def get_dataset_channels(dataset):
 
     return np.asarray(ch_list) 
 
-def convert_label(raw_labels):
+def convert_label(raw_labels, use_BCI_D2a_label = True):
     """
     Convert the "raw" label obtained from the moabb dataset into a numerical vector where to each label is assigned a number
+    use_BCI_D2a_label is a parameter that assign for the label of the Dataset 2a of BCI Competition IV specific label
     """
     
     # Create a vector of the same lenght of the previous labels vector
     new_labels = np.zeros(len(raw_labels))
     
     # Create a list with all the possible labels
-    labels_list = np.unique(raw_labels)
+    if use_BCI_D2a_label:
+        labels_list = dict(
+            left_hand = 1,
+            right_hand = 2,
+            feet = 3,
+            tongue = 4,
+        )
+    else:
+        labels_list = np.unique(raw_labels)
     
     # Iterate through the possible labels
-    for i in range(len(labels_list)):
-        print("Label {} get the value {}".format(labels_list[i], i))
+    if use_BCI_D2a_label:
+        for label in labels_list:
+            print("Label {} get the value {}".format(label, labels_list[label]))
+            idx_label = raw_labels == label
+            new_labels[idx_label] = int(labels_list[label]) 
+    else:
+        for i in range(len(labels_list)):
+            print("Label {} get the value {}".format(labels_list[i], i))
 
-        # Get the label
-        label = labels_list[i]
-        idx_label = raw_labels == label
-        
-        # Assign numerical label
-        new_labels[idx_label] = i
+            # Get the label
+            label = labels_list[i]
+            idx_label = raw_labels == label
+            
+            # Assign numerical label
+            new_labels[idx_label] = int(i)
 
     return new_labels
 

@@ -40,16 +40,21 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
     if config['filter_data']: 
         paradigm.fmin = config['fmin']
         paradigm.fmax = config['fmax']
+    else:
+        print("NON FILTRATO")
+        paradigm.fmin = 0
+        paradigm.fmax = 100
 
-    if 'baseline' in config: paradigm.baseline = config['baseline']
+    # if 'baseline' in config: paradigm.baseline = config['baseline']
     
     paradigm.n_classes = config['n_classes']
 
-    # paradigm.tmin = 1.0
-    paradigm.tmax = 7.5
+    # paradigm.tmin = -1
+    # paradigm.tmax = 7.5
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
+    print(info)
         
     # Select train/test data
     if type_dataset == 'train':
@@ -118,6 +123,7 @@ def get_trial_handmade(raw_data, config):
         raw_info = mne.find_events(raw_data_actual_run)
         events = raw_info[:, 0]
         raw_labels = raw_info[:, 2]
+        # print(raw_info, "\n")
         
         # Get the sampling frequency
         sampling_freq = raw_data_actual_run.info['sfreq']
@@ -175,7 +181,7 @@ def divide_by_event(raw_run, events, config):
             trial = run_data[:, events[i]:events[i + 1]]
         
         # Extract the current trial
-        actual_trial = trial[:, 0:int(config['sampling_freq'] * config['length_trial'])]
+        actual_trial = trial[:, int(config['sampling_freq'] * config['trial_start']):int(config['sampling_freq'] * config['trial_end'])]
         trials_list.append(actual_trial)
 
     trials_matrix = np.asarray(trials_list)

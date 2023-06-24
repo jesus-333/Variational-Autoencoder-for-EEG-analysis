@@ -18,7 +18,7 @@ import sys
 import wandb_support
 import metrics
 import dataset
-import MBEEGNet
+import vEEGNet 
 
 # Config files
 import config_model as cm
@@ -49,8 +49,29 @@ def train_and_test_model(dataset_config, train_config, model_config, model_artif
     T = train_dataset[0][0].shape[2]
 
     # Create model
-    model = MBEEGNet.MBEEGNet_Classifier(model_config)
+    model = vEEGNet.vEEGNet(config)
     model.to(train_config['device'])
+
+    # Setup optimizer
+    # optimizer = torch.optim.AdamW(model.parameters(), 
+    #     weight_decay = train_config['optimizer_weight_decay'],
+    #     lr = train_config['lr'], 
+    # )
+
+    # Setup lr scheduler
+    if train_config['use_scheduler'] == True:
+        lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
+    else:
+        lr_scheduler = None
+
+    # Create a folder (if not exist already) to store temporary file during training
+    os.makedirs(train_config['path_to_save_model'], exist_ok = True)
+
+    # (OPTIONAL)
+    if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
+
+    # Train the model
+    train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
 
 def train():
     pass
