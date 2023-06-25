@@ -28,11 +28,12 @@ import config_training as ct
 import check_config
 
 # Possible model to train
+import EEGNet
 import MBEEGNet
 import vEEGNet
 
 # Training functions for specific model
-import train_MBEEGNet
+import train_EEGNet
 import train_vEEGNet
     
 """
@@ -138,7 +139,6 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
             # Compute the various metrics
             train_metrics_list = metrics.compute_metrics(model, train_loader, train_config['device'])    
             validation_metrics_list = metrics.compute_metrics(model, validation_loader, train_config['device'])
-            
 
         # (OPTIONAL) Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None: 
@@ -185,7 +185,9 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def get_untrained_model(model_name : str, model_config : dict):
-    if model_name == 'MBEEGNet':
+    if model_name == 'EEGNet':
+        return EEGNet.EEGNet_Classifier(model_config)
+    elif model_name == 'MBEEGNet':
         return MBEEGNet.MBEEGNet_Classifier(model_config)
     elif model_name == 'vEEGNet':
         return vEEGNet.vEEGNet(model_config)
@@ -201,9 +203,11 @@ def get_loss_function(model_name):
         raise ValueError("Type of the model not recognized")
 
 def get_train_and_validation_function(model):
-    if 'MBEEGNet' in str(type(model)):
-        return train_MBEEGNet.train_epoch, train_MBEEGNet.validation_epoch
-    elif 'vEEGNet' in str(type(model)):
+    if 'EEGNet.EEGNet' in str(type(model)):
+        return train_EEGNet.train_epoch, train_EEGNet.validation_epoch
+    elif 'MBEEGNet.MBEEGNet' in str(type(model)):
+        return train_EEGNet.train_epoch, train_EEGNet.validation_epoch
+    elif 'vEEGNet.vEEGNet' in str(type(model)):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")
