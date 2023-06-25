@@ -50,7 +50,7 @@ class vEEGNet(nn.Module):
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Create Decoder
-        # Note that the config used for the encoder  are also used for the decoder
+        # Note that the config used for the encoder  are also used for the decoder (stuff like the size of convolutional and pooling kernel)
         
         # Information specific for the creation of the decoder
         config['encoder_config']['dimension_reshape'] = decoder_ouput_shape

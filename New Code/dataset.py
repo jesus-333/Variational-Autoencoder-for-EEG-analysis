@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Function to the creation the PyTorch dataset
+Function to the creation the PyTorch dataset with EEG data in format channels x time samples
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
@@ -24,7 +24,7 @@ import dataset as ds
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Dataset 2A BCI Competition IV
 
-def get_train_data_d2a(config):
+def get_train_data_d2a(config : dict):
     # Get data and labels
     data, labels, ch_list = download.get_D2a_data(config, 'train')
     
@@ -32,11 +32,11 @@ def get_train_data_d2a(config):
     full_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
     
     # Split in train and validation set
-    train_dataset, validation_dataset = split_dataset(full_dataset, config['percentage_split'])
+    train_dataset, validation_dataset = sf.split_dataset(full_dataset, config['percentage_split'])
     
     return train_dataset, validation_dataset
 
-def get_test_data_d2a(config):
+def get_test_data_d2a(config : dict):
     data, labels = download.get_D2a_data(config, 'test')
     
     # Create Pytorch dataset
@@ -62,7 +62,7 @@ class EEG_Dataset(Dataset):
         if normalize:
             self.normalize_channel_by_channel(-1, 1)
             
-    def __getitem__(self, idx):
+    def __getitem__(self, idx : int):
         return self.data[idx], self.labels[idx]    
     
     def __len__(self):
@@ -83,9 +83,5 @@ class EEG_Dataset(Dataset):
                 normalize_ch = ((tmp_ch - tmp_ch.min()) / (tmp_ch.max() - tmp_ch.min())) * (b - a) + a
                 
                 self.data[i, 0, j] = normalize_ch
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Other
-
 
 #%% End file

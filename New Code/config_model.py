@@ -41,6 +41,13 @@ def get_config_EEGNet_classifier(C : int, T : int, n_classes : int):
 
     return config
 
+def get_config_EEGNet_stft(C : int, T : int, n_channels : int):
+    config = get_config_EEGNet(C, T)
+    config['depth_first_layer'] = n_channels
+    config['c_kernel_1'] = config['c_kernel_2'] = config['c_kernel_3'] = (7, 7)
+
+    return config
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def get_config_MBEEGNet(C: int, T: int) -> dict:
@@ -71,7 +78,6 @@ def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-
 def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int, type_decoder : int) -> dict:
     # Get the config for the encoder (used also for the decoder)
     if type_encoder == 0: # EEGNet
@@ -88,7 +94,8 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         hidden_space = hidden_space, 
         type_encoder = type_encoder,
         encoder_config = encoder_config,
-        type_decoder = type_decoder,
+        type_decoder = type_decoder, # N.b. specified the architecture of decoder (e.g. EEGNet, MBEEGNet)
+        type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
     )
 
     return config

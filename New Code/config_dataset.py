@@ -11,7 +11,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
     dataset_config = dict(
         # Frequency filtering settings
         filter_data = False,
-        filter_type = 2, # 0 Bandpass, 1 lowpass, 2 highpass
+        filter_type = 0, # 0 Bandpass, 1 lowpass, 2 highpass
         fmin = 0.5, # Used in bandpass and highpass
         fmax = 50, # Used in bandpass and lowpass
         filter_method = 'iir',
@@ -22,13 +22,13 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         # Other
         n_classes = 4,
         subjects_list = subjects_list,
-        # subjects_list = [1,2,3,4,5,6,7,8,9],
         normalize_trials = True,
         percentage_split = 0.9,
         # baseline = [0, 2], # Time interval to use for subject normalization
         return_channels = True,
         trial_start = 0, # Time (in seconds) when the trial starts
         trial_end = 7.5, # Time (in seconds) when the trial end
+        normalization_type = 1,
     )
 
     return dataset_config

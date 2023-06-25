@@ -15,6 +15,7 @@ import moabb.datasets as mb
 import moabb.paradigms as mp
 import config_dataset as cd
 import support_function as sf
+import check_config
 
 """
 %load_ext autoreload
@@ -204,7 +205,7 @@ def get_data_subjects(subjecs_list : list):
 #%% Dataset 2A BCI Competition IV
 
 def get_D2a_data(config, type_dataset):
-    sf.check_config_dataset(config)
+    check_config.check_config_dataset(config)
     
     # Select the dataset
     dataset = mb.BNCI2014001()
