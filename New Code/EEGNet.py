@@ -18,7 +18,7 @@ import support_function
 
 class EEGNet(nn.Module):
     
-    def __init__(self, config: dict):
+    def __init__(self, config : dict):
         """
         Implementation of EEGNet in PyTorch.
         
@@ -37,13 +37,17 @@ class EEGNet(nn.Module):
 
         self.C = config['C']
         self.T = config['T']
+        
+        # Used only if the EEGNet is used with time-frequency data
+        # In this case the depth of the input is not 1
+        depth_first_layer = config['depth_first_layer'] if 'depth_first_layer' in config else 1
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
         
         # Block 1 - Temporal filters
         self.temporal_filter = nn.Sequential(
-            nn.Conv2d(1, config['filter_1'], kernel_size = config['c_kernel_1'], padding = 'same', bias = use_bias),
+            nn.Conv2d(depth_first_layer, config['filter_1'], kernel_size = config['c_kernel_1'], padding = 'same', bias = use_bias),
             nn.BatchNorm2d(config['filter_1']),
         )
         
