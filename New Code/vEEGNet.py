@@ -47,7 +47,12 @@ class vEEGNet(nn.Module):
         # Feed-Forward section
         self.ff_encoder_mean = nn.Linear(n_input_neurons, self.hidden_space)
         self.ff_encoder_std = nn.Linear(n_input_neurons, self.hidden_space)
-        
+
+        self.classifier = nn.Sequential(
+            nn.Linear(self.hidden_space * 2, config['n_classes']),
+            nn.LogSoftmax(dim = 1)
+        )
+
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Create Decoder
         # Note that the config used for the encoder  are also used for the decoder (stuff like the size of convolutional and pooling kernel)
@@ -69,9 +74,6 @@ class vEEGNet(nn.Module):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-        # Other
-
-
     def forward(self, x):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                 
         # Encoder section
@@ -89,7 +91,15 @@ class vEEGNet(nn.Module):
 
         x_r = self.decoder(z)
 
-        return x_r, z_mean, z_log_var
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # Classifier
+        
+        predicted_label = self.classifier(torch.cat((z_mean, z_log_var), 0))
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+        return x_r, z_mean, z_log_var, predicted_label
 
     def reparametrize(self, mu, log_var):
         """
@@ -152,6 +162,19 @@ class vEEGNet(nn.Module):
         if config["type_decoder"] == 0: print("Upsample decoder selected")
         elif config["type_decoder"] == 1: print("Transpose decoder selected")
         else: raise ValueError("type_decoder must be 0 (Upsample) or 1 (Transpose)")
+
+    def classify(self, x, return_as_index = True):
+        """
+        Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
+        """
+        
+        x_r, z_mean, z_log_var, label, = self.forward(x)
+
+        if return_as_index:
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
+
+        return label
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def check_vEEGNet():
