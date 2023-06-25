@@ -96,6 +96,7 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         encoder_config = encoder_config,
         type_decoder = type_decoder, # N.b. specified the architecture of decoder (e.g. EEGNet, MBEEGNet)
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
+        n_classes = 4,
     )
 
     return config

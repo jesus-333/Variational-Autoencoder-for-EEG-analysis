@@ -25,6 +25,8 @@ import config_model as cm
 import config_dataset as cd
 import config_training as ct
 import loss_function as lf
+
+import train_generic
     
 """
 %load_ext autoreload
@@ -35,46 +37,5 @@ import train_vEEGNet
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def train_and_test_model(dataset_config, train_config, model_config, model_artifact = None):
-    # Get the training data
-    train_dataset, validation_dataset = dataset.get_train_data(dataset_config)
 
-    # Create dataloader
-    train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
-    validation_dataloader   = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
-    loader_list             = [train_dataloader, validation_dataloader]
-
-    # Get EEG Channels and number of samples
-    C = train_dataset[0][0].shape[1] 
-    T = train_dataset[0][0].shape[2]
-
-    # Create model
-    model = vEEGNet.vEEGNet(config)
-    model.to(train_config['device'])
-
-    # Setup optimizer
-    # optimizer = torch.optim.AdamW(model.parameters(), 
-    #     weight_decay = train_config['optimizer_weight_decay'],
-    #     lr = train_config['lr'], 
-    # )
-
-    # Setup lr scheduler
-    if train_config['use_scheduler'] == True:
-        lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
-    else:
-        lr_scheduler = None
-
-    # Create a folder (if not exist already) to store temporary file during training
-    os.makedirs(train_config['path_to_save_model'], exist_ok = True)
-
-    # (OPTIONAL)
-    if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
-
-    # Train the model
-    train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
-
-def train():
-    pass
-
-def test():
-    pass
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
