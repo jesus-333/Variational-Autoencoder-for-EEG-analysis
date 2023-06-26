@@ -19,6 +19,7 @@ import sys
 import wandb_support
 import metrics
 import dataset
+import dataset_stft
 import loss_function
 
 # Config files
@@ -47,7 +48,10 @@ import sys
 
 def train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact = None):
     # Get the training data
-    train_dataset, validation_dataset = dataset.get_train_data(dataset_config)
+    if dataset_config['use_stft_representation']:
+        train_dataset, validation_dataset = dataset_stft.get_train_data_d2a(dataset_config)
+    else:
+        train_dataset, validation_dataset = dataset.get_train_data_d2a(dataset_config)
     
     # Create dataloader
     train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
@@ -55,7 +59,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     loader_list             = [train_dataloader, validation_dataloader]
     
     # Create model
-    model = get_untrained_model(model_name)
+    model = get_untrained_model(model_name, model_config)
     model.to(train_config['device'])
     
     # Declare loss function

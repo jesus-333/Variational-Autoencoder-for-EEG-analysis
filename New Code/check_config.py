@@ -25,8 +25,6 @@ def check_config_dataset(config):
     if config['resample_data']:
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
-        
-    # if 'subject_by_subject_normalization' not in config: config['subject_by_subject_normalization'] = False
 
     if config['use_moabb_segmentation']: 
         config['use_moabb_segmentation'] = False
@@ -35,9 +33,10 @@ def check_config_dataset(config):
     if config['normalization_type'] not in config:
         config['normalization_type'] = 0
         print('normalization_type not specified. Set to 0 (no normalization)')
-    else:
-        if config['normalization_type'] == 1 and 'stft_parameters' not in config:
-            raise ValueError("normalization_type = 1 require stft parameter")
+
+    if config['use_stft_representation'] in config:
+        if config['stft_parameters'] not in config:
+            raise ValueError("To transform the input through stft you must add dictionary with the parameters for the stft inside the dataset config")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Check config train 

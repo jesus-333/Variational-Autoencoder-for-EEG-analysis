@@ -26,9 +26,10 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         percentage_split = 0.9,
         # baseline = [0, 2], # Time interval to use for subject normalization
         return_channels = True,
-        trial_start = 0, # Time (in seconds) when the trial starts
+        trial_start = 2, # Time (in seconds) when the trial starts
         trial_end = 7.5, # Time (in seconds) when the trial end
-        normalization_type = 1,
+        normalization_type = 1, # 0 = no normalization, 1 = ERS normalization
+        use_moabb_segmentation = False,
     )
 
     return dataset_config

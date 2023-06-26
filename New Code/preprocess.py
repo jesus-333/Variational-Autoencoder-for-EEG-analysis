@@ -54,27 +54,27 @@ def compute_stft(trials_matrix, config : dict):
             # Default
             f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 2)
 
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq, noverlap = 3 * sampling_freq / 4)
-            print("nperseg = ", sampling_freq)
-            print(f.shape, f)
-            print(t.shape, t, "\n")
-
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 5)
-            print("nperseg = ", sampling_freq/5)
-            print(f.shape, f)
-            print(t.shape, t, "\n")
+            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq, noverlap = 3 * sampling_freq / 4)
+            # print("nperseg = ", sampling_freq)
+            # print(f.shape, f)
+            # print(t.shape, t, "\n")
+            #
+            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 5)
+            # print("nperseg = ", sampling_freq/5)
+            # print(f.shape, f)
+            # print(t.shape, t, "\n")
+            # 
+            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 10)
+            # print("nperseg = ", sampling_freq/10)
+            # print(f.shape, f)
+            # print(t.shape, t, "\n")
+            #
+            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 25)
+            # print("nperseg = ", sampling_freq/25)
+            # print(f.shape, f)
+            # print(t.shape, t, "\n")
+            # raise ValueError("adasd")
             
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 10)
-            print("nperseg = ", sampling_freq/10)
-            print(f.shape, f)
-            print(t.shape, t, "\n")
-
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 25)
-            print("nperseg = ", sampling_freq/25)
-            print(f.shape, f)
-            print(t.shape, t, "\n")
-            raise ValueError("adasd")
-
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 
         stft_trials_matrix.append(stft_per_channels)

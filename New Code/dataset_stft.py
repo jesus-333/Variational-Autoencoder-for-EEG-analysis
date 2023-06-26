@@ -27,7 +27,8 @@ import dataset as ds
 def get_train_data_d2a(config : dict):
     # Get data and labels
     data, labels, ch_list = download.get_D2a_data(config, 'train')
-    
+    data, t, f = compute_stft(data, config)
+
     # Create Pytorch dataset
     full_dataset = EEG_Dataset_stft(data, labels, config['normalize_trials'])
     
@@ -38,7 +39,8 @@ def get_train_data_d2a(config : dict):
 
 def get_test_data_d2a(config : dict):
     data, labels = download.get_D2a_data(config, 'test')
-    
+    data, t, f = compute_stft(data, config)
+
     # Create Pytorch dataset
     test_dataset = EEG_Dataset_stft(data, labels, config['normalize_trials'])
     
