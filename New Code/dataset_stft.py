@@ -30,6 +30,10 @@ def get_train_data_d2a(config : dict):
     data, labels, ch_list = download.get_D2a_data(config, 'train')
     data, t, f = pp.compute_stft(data, config)
 
+    # By default the labels obtained through the moabb have value between 1 and 4. 
+    # But Pytorch for 4 classes want values between 0 and 3
+    labels -= 1
+
     # Create Pytorch dataset
     full_dataset = EEG_Dataset_stft(data, labels)
     
@@ -41,6 +45,10 @@ def get_train_data_d2a(config : dict):
 def get_test_data_d2a(config : dict):
     data, labels = download.get_D2a_data(config, 'test')
     data, t, f = pp.compute_stft(data, config)
+
+    # By default the labels obtained through the moabb have value between 1 and 4. 
+    # But Pytorch for 4 classes want values between 0 and 3
+    labels -= 1
 
     # Create Pytorch dataset
     test_dataset = EEG_Dataset_stft(data, labels)

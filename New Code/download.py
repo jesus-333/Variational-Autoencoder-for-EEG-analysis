@@ -227,7 +227,6 @@ def get_D2a_data(config, type_dataset):
             ch_list = None
     else:
         data, labels, ch_list = get_moabb_data_handmade(dataset, config, type_dataset)
-        print(labels.shape)
 
         # With the "handmade" division the data are returned in shape: "n. subject x trials x channels x time samples"
         # This operation remove the first dimension
