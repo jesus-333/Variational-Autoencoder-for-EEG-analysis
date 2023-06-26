@@ -11,7 +11,6 @@ Script with generic function to train a model in PyTorch. Contains the function 
 
 # Python library
 import torch
-import wandb
 import os
 import sys
 
@@ -215,3 +214,5 @@ def get_train_and_validation_function(model):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

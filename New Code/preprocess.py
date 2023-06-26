@@ -42,9 +42,6 @@ def compute_stft(trials_matrix, config : dict):
     Compute the stft of the trials matrix channel by channel
     """
 
-    sampling_freq = config['sampling_freq']
-    
-
     stft_trials_matrix = []
 
     for i in range(trials_matrix.shape[0]): # Iterate through trials
@@ -52,28 +49,10 @@ def compute_stft(trials_matrix, config : dict):
         for j in range(trials_matrix.shape[1]): # Iterate through channels
             x = trials_matrix[i, j]
             # Default
-            f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 2)
-
-            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq, noverlap = 3 * sampling_freq / 4)
-            # print("nperseg = ", sampling_freq)
-            # print(f.shape, f)
-            # print(t.shape, t, "\n")
-            #
-            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 5)
-            # print("nperseg = ", sampling_freq/5)
-            # print(f.shape, f)
-            # print(t.shape, t, "\n")
-            # 
-            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 10)
-            # print("nperseg = ", sampling_freq/10)
-            # print(f.shape, f)
-            # print(t.shape, t, "\n")
-            #
-            # f, t, tmp_stft = signal.stft(x, fs = sampling_freq, nperseg = sampling_freq / 25)
-            # print("nperseg = ", sampling_freq/25)
-            # print(f.shape, f)
-            # print(t.shape, t, "\n")
-            # raise ValueError("adasd")
+            f, t, tmp_stft = signal.stft(x, fs = config['sampling_freq'], nperseg = config['nperseg'], window = config['window'])
+            print(f.shape, f)
+            print(t.shape, t)
+            raise ValueErroe("ASDOIASJDOASJd")
             
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 

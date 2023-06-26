@@ -27,9 +27,6 @@ import dataset as ds
 def get_train_data_d2a(config : dict):
     # Get data and labels
     data, labels, ch_list = download.get_D2a_data(config, 'train')
-    
-    stft_trials_matrix, t, f = pp.compute_stft(data, config)
-    stft_trials_matrix_ERS, t_trial = pp.compute_ERS(stft_trials_matrix, t, f)
 
     # Create Pytorch dataset
     full_dataset = EEG_Dataset(data, labels, config['normalize_trials'])

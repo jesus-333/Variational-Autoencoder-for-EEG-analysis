@@ -34,8 +34,8 @@ def check_config_dataset(config):
         config['normalization_type'] = 0
         print('normalization_type not specified. Set to 0 (no normalization)')
 
-    if config['use_stft_representation'] in config:
-        if config['stft_parameters'] not in config:
+    if 'use_stft_representation' in config:
+        if 'stft_parameters' not in config:
             raise ValueError("To transform the input through stft you must add dictionary with the parameters for the stft inside the dataset config")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

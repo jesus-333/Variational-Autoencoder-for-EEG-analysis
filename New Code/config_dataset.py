@@ -20,11 +20,11 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         resample_data = False,
         resample_freq = 128,
         # Other
+        use_stft_representation = True,
         n_classes = 4,
         subjects_list = subjects_list,
-        normalize_trials = True,
+        normalize_trials = True, # TODO CHECK
         percentage_split = 0.9,
-        # baseline = [0, 2], # Time interval to use for subject normalization
         return_channels = True,
         trial_start = 2, # Time (in seconds) when the trial starts
         trial_end = 7.5, # Time (in seconds) when the trial end
@@ -33,6 +33,16 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
     )
 
     return dataset_config
+
+def get_config_stft():
+    config = dict(
+        fs = 250,
+        nperseg = 50,
+        noverlap = 35,
+        windows = 'gaussian',
+    )
+
+    return config
 
 def get_artifact_dataset_config(type_dataset, folder_to_save = 'v2'):
     dataset_config = dict(

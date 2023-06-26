@@ -100,7 +100,6 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         # Save trials and labels for each subject
         trials_per_subject.append(trials_matrix)
         labels_per_subject.append(labels)
-    
 
     # Convert list in numpy array
     trials_per_subject = np.asarray(trials_per_subject)
@@ -227,10 +226,13 @@ def get_D2a_data(config, type_dataset):
         else:
             ch_list = None
     else:
-       data, labels, ch_list = get_moabb_data_handmade(dataset, config, type_dataset)
+        data, labels, ch_list = get_moabb_data_handmade(dataset, config, type_dataset)
+
+        # With the "handmade" division the data are returned in shape: "n. subject x trials x channels x time samples"
+        # This operation remove the first dimension
+        data = data.reshape(-1, data.shape[2], data.shape[3])
 
     return data, labels, ch_list
-
 
 def get_dataset_channels(dataset):
     """

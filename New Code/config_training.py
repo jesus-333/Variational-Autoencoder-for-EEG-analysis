@@ -11,7 +11,7 @@ import torch
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_config_MBEEGNet_training():
+def get_config_classifier():
     config = dict(
         # Training settings
         batch_size = 30,                    
@@ -30,9 +30,9 @@ def get_config_MBEEGNet_training():
         print_var = True,
 
         # (OPTIONAL) wandb settings
-        wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "MBEEGNet",
-        model_artifact_name = "MBEEGNet_test",    # Name of the artifact used to save the models
+        wandb_training = True,             # If True track the model during the training with wandb
+        project_name = "EEGNet_stft",
+        model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
         log_freq = 1,
         notes = "",
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)

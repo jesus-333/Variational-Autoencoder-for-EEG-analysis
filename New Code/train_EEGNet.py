@@ -16,6 +16,8 @@ import torch
 import config_model as cm
 import config_dataset as cd
 import config_training as ct
+
+import train_generic
     
 """
 %load_ext autoreload
@@ -91,13 +93,22 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Main function
-
-if __name__ == "__main__":
+def main_stft():
     C = 22
     T = 512 
 
-    dataset_config = cd.get_moabb_dataset_config()
-    train_config = ct.get_config_MBEEGNet_training()
-    model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
+    # dataset_config = cd.get_moabb_dataset_config()
+    # train_config = ct.get_config_MBEEGNet_training()
+    # model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
 
-    # train_and_test_model(dataset_config, train_config, model_config)
+    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset_config['stft_parameters'] = cd.get_config_stft()
+
+    train_config = ct.get_config_classifier()
+    model_config = cm.get_config_EEGNet_classifier(C, T, 4)
+
+    train_generic.train_and_test_model('EEGNet', dataset_config, train_config, model_config)
+
+
+if __name__ == "__main__":
+    main_stft()
