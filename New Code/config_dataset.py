@@ -27,7 +27,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         percentage_split = 0.9,
         return_channels = True,
         trial_start = 2, # Time (in seconds) when the trial starts
-        trial_end = 7.5, # Time (in seconds) when the trial end
+        trial_end = 7, # Time (in seconds) when the trial end
         normalization_type = 1, # 0 = no normalization, 1 = ERS normalization
         use_moabb_segmentation = False,
     )
@@ -36,10 +36,10 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
 
 def get_config_stft():
     config = dict(
-        fs = 250,
+        sampling_freq = 250,
         nperseg = 50,
-        noverlap = 35,
-        windows = 'gaussian',
+        noverlap = 40,
+        window = ('gaussian', 1),
     )
 
     return config

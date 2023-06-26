@@ -49,10 +49,8 @@ def compute_stft(trials_matrix, config : dict):
         for j in range(trials_matrix.shape[1]): # Iterate through channels
             x = trials_matrix[i, j]
             # Default
-            f, t, tmp_stft = signal.stft(x, fs = config['sampling_freq'], nperseg = config['nperseg'], window = config['window'])
-            print(f.shape, f)
-            print(t.shape, t)
-            raise ValueErroe("ASDOIASJDOASJd")
+            f, t, tmp_stft = signal.stft(x, fs = config['stft_parameters']['sampling_freq'], nperseg = config['stft_parameters']['nperseg'], 
+                                         window = config['stft_parameters']['window'], noverlap = config['stft_parameters']['noverlap'])
             
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
 
