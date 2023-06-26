@@ -82,7 +82,7 @@ class EEGNet(nn.Module):
             print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(support_function.count_trainable_parameters(self.temporal_filter)))
             print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(support_function.count_trainable_parameters(self.spatial_filter)))
             print("\tNumber of trainable parameters (Block 2)            = {}\n".format(support_function.count_trainable_parameters(self.separable_convolution)))
-            self.debug_shape()
+            self.debug_shape(config['input_size'])
 
 
     def forward(self, x):
@@ -99,14 +99,14 @@ class EEGNet(nn.Module):
         if self.flatten_output: return x.flatten(1)
         else: return x
 
-    def debug_shape(self):
+    def debug_shape(self, input_size):
         """
         Method that create a fake input and pass it through the network, showing after each pass the shape
         """
 
         print("Shape tracking across EEGNet")
 
-        x = torch.randn(1, 1, self.C, self.T)
+        x = torch.randn(input_size)
         print("\tInput shape :\t\t\t", x.shape)
 
         x = self.temporal_filter(x)
@@ -140,7 +140,7 @@ class EEGNet_Classifier(nn.Module):
         
         self.eegnet = EEGNet(config)
         
-        input_neurons = self.compute_number_of_neurons(config['C'], config['T'])
+        input_neurons = self.compute_number_of_neurons(config['input_size'])
         self.classifier = nn.Sequential(
             nn.Linear(input_neurons, config['n_classes']),
             nn.LogSoftmax(dim = 1)
@@ -154,12 +154,12 @@ class EEGNet_Classifier(nn.Module):
 
         return x
 
-    def compute_number_of_neurons(self, C, T):
+    def compute_number_of_neurons(self, input_size):
         """
         Compute the total number of neurons for the feedforward layer
         """
 
-        x = torch.rand(1, 1, C, T)
+        x = torch.rand(input_size)
         x = self.eegnet(x)
         input_neurons = len(x.flatten())
 

@@ -22,7 +22,8 @@ def get_config_classifier():
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
 
         # Support stuff (device, log frequency etc)
-        device = "cuda" if torch.cuda.is_available() else "cpu",
+        # device = "cuda" if torch.cuda.is_available() else "cpu",
+        device = "cpu",
         epoch_to_save_model = 5,
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,
@@ -30,7 +31,7 @@ def get_config_classifier():
         print_var = True,
 
         # (OPTIONAL) wandb settings
-        wandb_training = True,             # If True track the model during the training with wandb
+        wandb_training = False,             # If True track the model during the training with wandb
         project_name = "EEGNet_stft",
         model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
         log_freq = 1,

@@ -41,10 +41,12 @@ def get_config_EEGNet_classifier(C : int, T : int, n_classes : int):
 
     return config
 
-def get_config_EEGNet_stft(C : int, T : int, n_channels : int):
+def get_config_EEGNet_stft_classifier(C : int, T : int, n_channels : int):
     config = get_config_EEGNet(C, T)
     config['depth_first_layer'] = n_channels
     config['c_kernel_1'] = config['c_kernel_2'] = config['c_kernel_3'] = (7, 7)
+    config['n_classes'] = 4 
+    config['flatten_output'] = True
 
     return config
 

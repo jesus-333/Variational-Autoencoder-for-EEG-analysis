@@ -58,7 +58,7 @@ class EEG_Dataset_stft(Dataset):
         """
 
         # Transform data in torch array
-        self.data = torch.from_numpy(data).unsqueeze(1).float()
+        self.data = torch.from_numpy(data).float()
         self.labels = torch.from_numpy(labels).long()
             
     def __getitem__(self, idx : int):

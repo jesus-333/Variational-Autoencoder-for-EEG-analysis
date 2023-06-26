@@ -13,6 +13,7 @@ Script with generic function to train a model in PyTorch. Contains the function 
 import torch
 import os
 import sys
+import wandb
 
 # Custom functions
 import wandb_support
@@ -58,6 +59,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     loader_list             = [train_dataloader, validation_dataloader]
     
     # Create model
+    model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model = get_untrained_model(model_name, model_config)
     model.to(train_config['device'])
     

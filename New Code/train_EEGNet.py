@@ -101,11 +101,11 @@ def main_stft():
     # train_config = ct.get_config_MBEEGNet_training()
     # model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
 
-    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset_config = cd.get_moabb_dataset_config([3, 5])
     dataset_config['stft_parameters'] = cd.get_config_stft()
 
     train_config = ct.get_config_classifier()
-    model_config = cm.get_config_EEGNet_classifier(C, T, 4)
+    model_config = cm.get_config_EEGNet_stft_classifier(C, T, 22)
 
     train_generic.train_and_test_model('EEGNet', dataset_config, train_config, model_config)
 
