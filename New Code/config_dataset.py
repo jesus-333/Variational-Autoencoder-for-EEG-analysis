@@ -24,6 +24,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         n_classes = 4,
         subjects_list = subjects_list,
         normalize_trials = True, # TODO CHECK
+        seed_split = 42, # Seed for the random function used for split the dataset. Used for reproducibility
         percentage_split_train_test = 0.7,  # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
         return_channels = True,

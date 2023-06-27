@@ -94,10 +94,8 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
 
         # Select only the data channels
         if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
-            if 'channel_list' in config:
-                idx_ch = get_idx_ch(ch_list, config)
-            else:
-                idx_ch = np.arange(22)
+            if 'channel_list' in config: idx_ch = get_idx_ch(ch_list, config)
+            else: idx_ch = np.arange(22)
             
             trials_matrix = trials_matrix[:, idx_ch, :]
             ch_list = ch_list[idx_ch]
@@ -154,7 +152,7 @@ def get_trial_handmade(raw_data, config):
     trials_matrix.resize(n_trials, trials_matrix.shape[2], trials_matrix.shape[3])
     labels.resize(n_trials)
 
-    return trials_matrix, labels, raw_data_actual_run.ch_names
+    return trials_matrix, labels, np.asarray(raw_data_actual_run.ch_names)
 
 def filter_RawArray(raw_array_mne, config):
     # Filter the data
@@ -251,6 +249,10 @@ def get_D2a_data(config, type_dataset):
         # This operation remove the first dimension
         data = data.reshape(-1, data.shape[2], data.shape[3])
         labels = labels.reshape(-1)
+        
+        # By default the labels obtained through the moabb have value between 1 and 4. 
+        # But Pytorch for 4 classes want values between 0 and 3
+        labels -= 1
 
     return data, labels.squeeze(), ch_list
 

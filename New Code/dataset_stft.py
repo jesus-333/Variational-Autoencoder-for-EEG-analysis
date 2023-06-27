@@ -9,11 +9,7 @@ Function to the creation the PyTorch dataset with EEG data trasformed through st
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
-
-import preprocess as pp
-import download
-import support_function as sf
+from torch.utils.data import Dataset
 
 """
 %load_ext autoreload
@@ -46,5 +42,23 @@ class EEG_Dataset_stft(Dataset):
     
     def visualize_trial(self, idx_trial, ch):
         pass
+    
+#%% Check data
+
+def main():
+    import config_dataset as cd
+    import preprocess as pp
+    
+    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset_config['stft_parameters'] = cd.get_config_stft()
+    
+    train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
+    
+    print(train_dataset[0][0].shape)
+    print(train_dataset.ch_list)
+
+
+if __name__ == "__main__":
+    main()
 
 #%% End file

@@ -10,6 +10,7 @@ Minor support function used in the various script
 
 import torch
 from torch import nn
+import numpy as np
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -42,8 +43,21 @@ def count_trainable_parameters(layer):
     n_paramters = sum(p.numel() for p in  layer.parameters() if p.requires_grad)
     return n_paramters
 
+def get_idx_to_split_data(n_elements : int, percentage_split : float, seed = -1):
+    """
+    Get to list of indices to split an array of data.
+    """
+    # Use of the seed for reproducibility
+    if seed != -1: np.random.seed(42)
+    
+    # Create idx vector
+    idx = np.random.permutation(n_elements)
+    size_1 = int(n_elements * percentage_split) 
+    
+    return idx[0:size_1], idx[size_1:]
 
-def split_dataset(full_dataset, percentage_split):
+
+def split_dataset(full_dataset, percentage_split : float):
     """
     Split a dataset in 2 
     """
