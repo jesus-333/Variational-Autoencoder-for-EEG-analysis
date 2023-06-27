@@ -39,6 +39,7 @@ def train_sweep(config = None):
         correct_config(config, dataset_config)
         correct_config(config, train_config)
         correct_config(config, model_config)
+        model_config['filter_2'] = model_config['filter_1'] * model_config['D']
         print("Update config with sweep parameters")
         
         # Setup artifact to save model
