@@ -23,9 +23,13 @@ import dataset_stft as ds_stft
 
 class EEG_Dataset_stft(Dataset):
 
-    def __init__(self, data, labels, ch_list):
+    def __init__(self, data, labels, ch_list, t, f):
         """
         data = data used for the dataset. Must have shape [Trials x channels x frequency samples x time samples]
+        labels = labels of each trial
+        ch_list = list with the name of the eeg channel
+        t = time array with the value of the time instants after the stft
+        f = frequency array with the value of the frequency bins after the stft    
         """
 
         # Transform data in torch array
@@ -33,6 +37,9 @@ class EEG_Dataset_stft(Dataset):
         self.labels = torch.from_numpy(labels).long()
         
         self.ch_list = ch_list
+        
+        self.t = t
+        self.f = f
             
     def __getitem__(self, idx : int):
         return self.data[idx], self.labels[idx]    
@@ -41,6 +48,7 @@ class EEG_Dataset_stft(Dataset):
         return len(self.labels)
     
     def visualize_trial(self, idx_trial, ch):
+        # TODO
         pass
     
 #%% Check data

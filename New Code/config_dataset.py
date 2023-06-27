@@ -19,19 +19,21 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         # Resampling settings
         resample_data = False,
         resample_freq = 128,
-        # Other
-        use_stft_representation = True,
-        n_classes = 4,
-        subjects_list = subjects_list,
-        normalize_trials = True, # TODO CHECK
+        # Trial segmentation
+        trial_start = 2, # Time (in seconds) when the trial starts
+        trial_end = 7, # Time (in seconds) when the trial end
+        use_moabb_segmentation = False,
+        # Split in train/test/validation
         seed_split = 42, # Seed for the random function used for split the dataset. Used for reproducibility
         percentage_split_train_test = 0.7,  # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
-        return_channels = True,
-        trial_start = 2, # Time (in seconds) when the trial starts
-        trial_end = 7, # Time (in seconds) when the trial end
+        # Other
+        n_classes = 4,
+        use_stft_representation = True,
+        subjects_list = subjects_list,
+        channels_list = ['C3', 'Cz', 'C4'],
+        normalize_trials = True, # TODO CHECK
         normalization_type = 1, # 0 = no normalization, 1 = ERS normalization
-        use_moabb_segmentation = False,
     )
 
     return dataset_config

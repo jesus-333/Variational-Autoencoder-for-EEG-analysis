@@ -132,20 +132,21 @@ def get_dataset_d2a(config : dict):
         labels = np.concatenate((labels_train, labels_test), 0)
         
         # Divide in train and test set
-        idx_train, idx_test =  sf.split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
+        idx_train, idx_test =  sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
         data_train, labels_train = data[idx_train], labels[idx_train]
         data_test, labels_test = data[idx_test], labels[idx_test]
+        
     
     # Split data in train and validation set
-    idx_train, idx_validation =  sf.split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
-    data_train, labels_train = data_train[idx_train], labels_train[idx_train]
+    idx_train, idx_validation =  sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
     data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
+    data_train, labels_train = data_train[idx_train], labels_train[idx_train]
     
     # Create PyTorch dataset
     if config['use_stft_representation']:
-        train_dataset       = ds_stft.EEG_Dataset_stft(data_train, labels_train, ch_list)
-        test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, ch_list)
-        validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, ch_list)
+        train_dataset       = ds_stft.EEG_Dataset_stft(data_train, labels_train, ch_list, t, f)
+        test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, ch_list, t, f)
+        validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, ch_list, t, f)
     else:
         train_dataset       = ds.EEG_Dataset(data_train, labels_train, ch_list)
         test_dataset        = ds.EEG_Dataset(data_test, labels_test, ch_list)

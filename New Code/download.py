@@ -94,7 +94,7 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
 
         # Select only the data channels
         if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
-            if 'channel_list' in config: idx_ch = get_idx_ch(ch_list, config)
+            if 'channels_list' in config: idx_ch = get_idx_ch(ch_list, config)
             else: idx_ch = np.arange(22)
             
             trials_matrix = trials_matrix[:, idx_ch, :]
@@ -197,19 +197,19 @@ def get_idx_ch(ch_list_dataset, config):
     Function to create a list of indices to select only specific channels
     """
     
-    idx_ch = np.zeros(len(config['channel_list']))
-    for i in range(len(config['channel_list'])):
-        ch_to_use = config['channel_list'][i]
+    idx_ch = np.zeros(len(config['channels_list']), dtype = int)
+    for i in range(len(config['channels_list'])):
+        ch_to_use = config['channels_list'][i]
         for j in range(len(ch_list_dataset)):
             ch_dataset = ch_list_dataset[j]
-            if ch_to_use == ch_dataset: idx_ch[i] = j
+            if ch_to_use == ch_dataset: idx_ch[i] = int(j)
             
     return idx_ch
         
-def get_data_subjects(subjecs_list : list):
+def get_data_subjects_train(subjecs_list : list):
     """
     Download and return the data for a list of subject
-    The data are return in a matrix of size N_subject x N_trial x C x T
+    The data are return in a numpy array of size N_subject x N_trial x C x T
     """
     dataset_config = cd.get_moabb_dataset_config(subjecs_list)
     dataset = mb.BNCI2014001()
@@ -238,10 +238,7 @@ def get_D2a_data(config, type_dataset):
         data = raw_data[:, 0:22, :]
         labels = convert_label(raw_labels)
 
-        if 'return_channels' in config and config['return_channels'] == True:
-            ch_list = get_dataset_channels(dataset)[0:22]
-        else:
-            ch_list = None
+        ch_list = get_dataset_channels(dataset)[0:22]
     else:
         data, labels, ch_list = get_moabb_data_handmade(dataset, config, type_dataset)
 
