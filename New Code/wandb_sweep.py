@@ -30,7 +30,7 @@ def train_sweep(config = None):
     T = 512 
     model_config = cm.get_config_EEGNet_stft_classifier(C, T, 22)
         
-    with wandb.init(project = "VAE_EEG", job_type = "train", config = config, notes = train_config['notes']) as run:
+    with wandb.init(project = train_config['project_name'], job_type = "train", config = config, notes = train_config['notes']) as run:
         # Config from the sweep
         config = wandb.config
         print("Start Sweep")
@@ -38,6 +38,7 @@ def train_sweep(config = None):
         # "Correct" dictionaries with the parameters from the sweep
         correct_config(config, dataset_config)
         correct_config(config, train_config)
+        correct_config(config, model_config)
         print("Update config with sweep parameters")
         
         # Setup artifact to save model
@@ -61,3 +62,18 @@ def correct_config(sweep_config, other_config):
             other_config[key] = sweep_config[key]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%%
+
+def main_sweep():
+    sweep_config = ct.get_config_sweep('accuracy_validation', 'maximize')
+    
+    # Used only to create the sweep 
+    # train_config = ct.get_config_classifier()
+    # sweep_id = wandb.sweep(sweep_config, project = train_config['project_name'])
+    
+    sweep_id = 'jesus_333/ICT4AWE_Extension/mp2qyzk8'
+    
+    wandb.agent(sweep_id = sweep_id, function = train_sweep)
+
+if __name__ == '__main__':
+    main_sweep()

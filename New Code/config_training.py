@@ -90,8 +90,8 @@ def get_config_sweep(metric_name, metric_goal):
         ),
         parameters = dict(
             epochs = dict(
-                # values = [200, 300, 500],
-                values = [1,2,3] # Used for debug
+                values = [200, 300, 500],
+                # values = [1,2,3] # Used for debug
             ),
             lr_decay_rate = dict(
                 values = [1, 0.995],
