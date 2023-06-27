@@ -45,13 +45,13 @@ def count_trainable_parameters(layer):
 
 def split_dataset(full_dataset, percentage_split):
     """
-    Split a dataset in 2 for train and validation
+    Split a dataset in 2 
     """
 
-    size_train = int(len(full_dataset) * percentage_split) 
-    size_val = len(full_dataset) - size_train
-    train_dataset, validation_dataset = torch.utils.data.random_split(full_dataset, [size_train, size_val])
+    size_1 = int(len(full_dataset) * percentage_split) 
+    size_2 = len(full_dataset) - size_train
+    dataset_1, dataset_2 = torch.utils.data.random_split(full_dataset, [size_1, size_2])
     
-    return train_dataset, validation_dataset        
+    return dataset_1, dataset_2
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

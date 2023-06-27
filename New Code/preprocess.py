@@ -18,6 +18,9 @@ import config_dataset as cd
 import config_plot as cp
 import preprocess_plot as pp_plot
 import download
+import dataset as ds
+import dataset_stft as ds_stft
+import support_function as sf
 
 """
 %load_ext autoreload
@@ -112,9 +115,58 @@ def compute_ERS_single_channels(stft_channel, idx_rest):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Get dataset
 
-def get_dataset(config : dict):
-    data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
-    data_train, t, f = compute_stft(data_train, config)
+def get_dataset_d2a(config : dict):
+
+    if config['percentage_split_train_test'] != -1: # Divide the data randomly between train, validation and test
+        # Get the original train and test data
+        data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
+        data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
+
+        # Merge them together
+        data = np.concatenate((data_train, data_test), 0)
+        labels = np.concatenate((labels_train, labels_test), 0)
+
+        # By default the labels obtained through the moabb have value between 1 and 4. 
+        # But Pytorch for 4 classes want values between 0 and 3
+        labels -= 1
+
+        # Transform with stft (if you want time-frequency representation)
+        if config['use_stft_representation']:
+            data, t, f = compute_stft(data, config)
+            
+            # Create Pytorch dataset
+            full_dataset = ds_stft.EEG_Dataset_stft(data, labels)
+        else:
+            full_dataset = ds.EEG_Dataset(data, labels)
+            
+        # Split in train and validation set
+        train_dataset, test_dataset = sf.split_dataset(full_dataset, config['percentage_split_train_test'])
+        train_dataset, validation_dataset = sf.split_dataset(train_dataset, config['percentage_split_train_validation'])
+
+    else: # Mantain the original division between train and test
+        train_dataset, validation_dataset, test_dataset = get_dataset_d2a_original_division(config)
+
+    return train_dataset, validation_dataset, test_dataset
+        
+def get_dataset_d2a_original_division(config : dict):
+        # Get the original train and test data
+        data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
+        data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
+        labels -= 1
+
+        if config['use_stft_representation']:
+            data_train, t, f = compute_stft(data_train, config)
+            data_test, t, f = compute_stft(data_test, config)
+
+            train_dataset = ds_stft.EEG_Dataset_stft(data_train, labels_train)
+            test_dataset = ds_stft.EEG_Dataset_stft(data_test, labels_test)
+        else:
+            train_dataset = ds.EEG_Dataset(data_train, labels_train)
+            test_dataset = ds.EEG_Dataset(data_test, labels_test)
+
+        train_dataset, validation_dataset = sf.split_dataset(train_dataset, config['percentage_split_train_validation'])
+
+    return train_dataset, validation_dataset, test_dataset
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Test preprocess function
