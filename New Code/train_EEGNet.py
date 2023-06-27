@@ -49,9 +49,6 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config):
         
         # Loss evaluation
         batch_train_loss = loss_function(predict_label, true_label)
-
-        print(predict_label)
-        print(true_label)
     
         # Backward/Optimization pass
         batch_train_loss.backward()
@@ -99,10 +96,6 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
 def main_stft():
     C = 22
     T = 512 
-
-    # dataset_config = cd.get_moabb_dataset_config()
-    # train_config = ct.get_config_MBEEGNet_training()
-    # model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
 
     dataset_config = cd.get_moabb_dataset_config([3])
     dataset_config['stft_parameters'] = cd.get_config_stft()
