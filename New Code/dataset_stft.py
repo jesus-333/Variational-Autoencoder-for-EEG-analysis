@@ -23,39 +23,6 @@ import dataset_stft as ds_stft
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Dataset 2A BCI Competition IV
-
-def get_train_data_d2a(config : dict):
-    # Get data and labels
-    data, labels, ch_list = download.get_D2a_data(config, 'train')
-    data, t, f = pp.compute_stft(data, config)
-
-    # By default the labels obtained through the moabb have value between 1 and 4. 
-    # But Pytorch for 4 classes want values between 0 and 3
-    labels -= 1
-
-    # Create Pytorch dataset
-    full_dataset = EEG_Dataset_stft(data, labels)
-    
-    # Split in train and validation set
-    train_dataset, validation_dataset = sf.split_dataset(full_dataset, config['percentage_split_train_validation'])
-    
-    return train_dataset, validation_dataset
-
-def get_test_data_d2a(config : dict):
-    data, labels = download.get_D2a_data(config, 'test')
-    data, t, f = pp.compute_stft(data, config)
-
-    # By default the labels obtained through the moabb have value between 1 and 4. 
-    # But Pytorch for 4 classes want values between 0 and 3
-    labels -= 1
-
-    # Create Pytorch dataset
-    test_dataset = EEG_Dataset_stft(data, labels)
-    
-    return test_dataset
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% PyTorch Dataset
 
 class EEG_Dataset_stft(Dataset):
@@ -74,5 +41,8 @@ class EEG_Dataset_stft(Dataset):
     
     def __len__(self):
         return len(self.labels)
+    
+    def visualize_trial(self, idx_trial, ch):
+        pass
 
 #%% End file

@@ -49,7 +49,7 @@ def split_dataset(full_dataset, percentage_split):
     """
 
     size_1 = int(len(full_dataset) * percentage_split) 
-    size_2 = len(full_dataset) - size_train
+    size_2 = len(full_dataset) - size_1
     dataset_1, dataset_2 = torch.utils.data.random_split(full_dataset, [size_1, size_2])
     
     return dataset_1, dataset_2

@@ -23,29 +23,6 @@ import dataset as ds
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Dataset 2A BCI Competition IV
-
-def get_train_data_d2a(config : dict):
-    # Get data and labels
-    data, labels, ch_list = download.get_D2a_data(config, 'train')
-
-    # Create Pytorch dataset
-    full_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
-    
-    # Split in train and validation set
-    train_dataset, validation_dataset = sf.split_dataset(full_dataset, config['percentage_split'])
-    
-    return train_dataset, validation_dataset
-
-def get_test_data_d2a(config : dict):
-    data, labels = download.get_D2a_data(config, 'test')
-    
-    # Create Pytorch dataset
-    test_dataset = EEG_Dataset(data, labels, config['normalize_trials'])
-    
-    return test_dataset
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% PyTorch Dataset
 
 class EEG_Dataset(Dataset):

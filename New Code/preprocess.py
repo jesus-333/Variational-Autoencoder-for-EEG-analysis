@@ -149,22 +149,24 @@ def get_dataset_d2a(config : dict):
     return train_dataset, validation_dataset, test_dataset
         
 def get_dataset_d2a_original_division(config : dict):
-        # Get the original train and test data
-        data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
-        data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
-        labels -= 1
+    # Get the original train and test data
+    data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
+    data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
+    
+    labels_train -= 1
+    labels_test -= 1
 
-        if config['use_stft_representation']:
-            data_train, t, f = compute_stft(data_train, config)
-            data_test, t, f = compute_stft(data_test, config)
+    if config['use_stft_representation']:
+        data_train, t, f = compute_stft(data_train, config)
+        data_test, t, f = compute_stft(data_test, config)
 
-            train_dataset = ds_stft.EEG_Dataset_stft(data_train, labels_train)
-            test_dataset = ds_stft.EEG_Dataset_stft(data_test, labels_test)
-        else:
-            train_dataset = ds.EEG_Dataset(data_train, labels_train)
-            test_dataset = ds.EEG_Dataset(data_test, labels_test)
+        train_dataset = ds_stft.EEG_Dataset_stft(data_train, labels_train)
+        test_dataset = ds_stft.EEG_Dataset_stft(data_test, labels_test)
+    else:
+        train_dataset = ds.EEG_Dataset(data_train, labels_train)
+        test_dataset = ds.EEG_Dataset(data_test, labels_test)
 
-        train_dataset, validation_dataset = sf.split_dataset(train_dataset, config['percentage_split_train_validation'])
+    train_dataset, validation_dataset = sf.split_dataset(train_dataset, config['percentage_split_train_validation'])
 
     return train_dataset, validation_dataset, test_dataset
 
