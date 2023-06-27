@@ -110,6 +110,14 @@ def compute_ERS_single_channels(stft_channel, idx_rest):
     return stft_channel_ERS
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Get dataset
+
+def get_dataset(config : dict):
+    data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
+    data_train, t, f = compute_stft(data_train, config)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Test preprocess function
 
 def download_preprocess_and_visualize():
     subjects_list = [1,2,3,4,5,6,7,8,9]
@@ -276,3 +284,4 @@ def show_after_before_ERS():
 
         pp_plot.show_after_before_ERS_on_trial(stft_trials_matrix, stft_trials_matrix_ERS, ch_list, f, t, plot_config)
 
+#%% End file

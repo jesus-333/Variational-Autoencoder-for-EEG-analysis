@@ -19,7 +19,7 @@ import support_function as sf
 %load_ext autoreload
 %autoreload 2
 
-import dataset as ds
+import dataset_stft as ds_stft
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,7 +38,7 @@ def get_train_data_d2a(config : dict):
     full_dataset = EEG_Dataset_stft(data, labels)
     
     # Split in train and validation set
-    train_dataset, validation_dataset = sf.split_dataset(full_dataset, config['percentage_split'])
+    train_dataset, validation_dataset = sf.split_dataset(full_dataset, config['percentage_split_train_validation'])
     
     return train_dataset, validation_dataset
 
