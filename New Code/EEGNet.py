@@ -48,7 +48,8 @@ class EEGNet(nn.Module):
         
         # Block 1 - Temporal filters
         self.temporal_filter = nn.Sequential(
-            nn.Conv2d(depth_first_layer, config['filter_1'], kernel_size = config['c_kernel_1'], padding = 'same', bias = use_bias),
+            nn.Conv2d(depth_first_layer, config['filter_1'], kernel_size = config['c_kernel_1'], 
+                      padding = 'same', bias = use_bias),
             nn.BatchNorm2d(config['filter_1']),
         )
         

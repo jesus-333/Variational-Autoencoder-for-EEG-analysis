@@ -14,6 +14,7 @@ import torch
 import os
 import sys
 import wandb
+import pprint
 
 # Custom functions
 import wandb_support
@@ -91,7 +92,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
     
     # TODO
-    # test(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
+    test(model, test_dataloader, train_config)
 
     return model
 
@@ -189,6 +190,16 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
     # Save the model with the best loss on validation set
     if train_config['wandb_training']:
         wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth'))
+
+def test(model, test_loader, config):
+    print("Metrics at the end of the training (END)")
+    metrics_dict = metrics.compute_metrics(model, test_loader, 'cpu')
+    pprint.pprint(metrics_dict)
+    
+    print("Metrics at the minimum of validation loss (BEST)")
+    model.load_state_dict(torch.load(config['path_to_save_model'] + '/model_BEST.pth'))
+    metrics_dict = metrics.compute_metrics(model, test_loader, 'cpu')
+    pprint.pprint(metrics_dict)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
