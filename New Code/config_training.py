@@ -83,7 +83,7 @@ def get_config_sweep(metric_name, metric_goal):
 
     sweep_config = dict(
         # Fields needed by wandb
-        method = 'bayes',
+        method = 'random',
         metric = dict(
             name = metric_name,
             goal = metric_goal
@@ -100,22 +100,22 @@ def get_config_sweep(metric_name, metric_goal):
                 values = [30, 40, 50],
             ),
             subjects_list = dict(
-                values = [[2], [3], [8]],
+                values = [[1], [2], [3], [4], [5], [6], [7], [8], [9]],
             ),
             channels_list = dict(
                 values = [['C3', 'Cz', 'C4'], ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6','CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']],
             ),
-            window_stft = dict(
+            window = dict(
                 values = ['hann', ('gaussian', 1), ('gaussian', 2)],
             ),
             kernel = dict(
-                values = [(5,5), (7,7), (9,9)],
+                values = [(3,3), (5,5), (7,7), (9,9)],
             ),
             filter_1 = dict(
                 values = [8, 16, 32],
             ),
             D = dict(
-                values = [2, 4, 8],
+                values = [2, 4, 8, 16],
             ),
             prob_dropout = dict(
                 values = [0.3, 0.4, 0.5],

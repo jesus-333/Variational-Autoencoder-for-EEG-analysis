@@ -45,7 +45,7 @@ def get_config_stft():
         sampling_freq = 250,
         nperseg = 50,
         noverlap = 40,
-        window = 'hann',
+        window = ('gaussian', 1),
     )
 
     return config
