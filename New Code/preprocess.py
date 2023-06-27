@@ -135,9 +135,9 @@ def get_dataset_d2a(config : dict):
             data, t, f = compute_stft(data, config)
             
             # Create Pytorch dataset
-            full_dataset = ds_stft.EEG_Dataset_stft(data, labels)
+            full_dataset = ds_stft.EEG_Dataset_stft(data, labels, ch_list)
         else:
-            full_dataset = ds.EEG_Dataset(data, labels)
+            full_dataset = ds.EEG_Dataset(data, labels, ch_list)
             
         # Split in train and validation set
         train_dataset, test_dataset = sf.split_dataset(full_dataset, config['percentage_split_train_test'])
@@ -160,11 +160,11 @@ def get_dataset_d2a_original_division(config : dict):
         data_train, t, f = compute_stft(data_train, config)
         data_test, t, f = compute_stft(data_test, config)
 
-        train_dataset = ds_stft.EEG_Dataset_stft(data_train, labels_train)
-        test_dataset = ds_stft.EEG_Dataset_stft(data_test, labels_test)
+        train_dataset = ds_stft.EEG_Dataset_stft(data_train, labels_train, ch_list)
+        test_dataset = ds_stft.EEG_Dataset_stft(data_test, labels_test, ch_list)
     else:
-        train_dataset = ds.EEG_Dataset(data_train, labels_train)
-        test_dataset = ds.EEG_Dataset(data_test, labels_test)
+        train_dataset = ds.EEG_Dataset(data_train, labels_train, ch_list)
+        test_dataset = ds.EEG_Dataset(data_test, labels_test, ch_list)
 
     train_dataset, validation_dataset = sf.split_dataset(train_dataset, config['percentage_split_train_validation'])
 

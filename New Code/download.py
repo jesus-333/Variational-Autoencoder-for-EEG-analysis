@@ -94,9 +94,14 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
 
         # Select only the data channels
         if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
-            trials_matrix = trials_matrix[:, 0:22, :]
-            ch_list = ch_list[0:22]
-        
+            if 'channel_list' in config:
+                idx_ch = get_idx_ch(ch_list, config)
+            else:
+                idx_ch = np.arange(22)
+            
+            trials_matrix = trials_matrix[:, idx_ch, :]
+            ch_list = ch_list[idx_ch]
+            
         # Save trials and labels for each subject
         trials_per_subject.append(trials_matrix)
         labels_per_subject.append(labels)
@@ -188,6 +193,20 @@ def divide_by_event(raw_run, events, config):
     trials_matrix = np.asarray(trials_list) * 1e6
 
     return trials_matrix
+
+def get_idx_ch(ch_list_dataset, config):
+    """
+    Function to create a list of indices to select only specific channels
+    """
+    
+    idx_ch = np.zeros(len(config['channel_list']))
+    for i in range(len(config['channel_list'])):
+        ch_to_use = config['channel_list'][i]
+        for j in range(len(ch_list_dataset)):
+            ch_dataset = ch_list_dataset[j]
+            if ch_to_use == ch_dataset: idx_ch[i] = j
+            
+    return idx_ch
         
 def get_data_subjects(subjecs_list : list):
     """

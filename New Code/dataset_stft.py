@@ -27,7 +27,7 @@ import dataset_stft as ds_stft
 
 class EEG_Dataset_stft(Dataset):
 
-    def __init__(self, data, labels):
+    def __init__(self, data, labels, ch_list):
         """
         data = data used for the dataset. Must have shape [Trials x channels x frequency samples x time samples]
         """
@@ -35,6 +35,8 @@ class EEG_Dataset_stft(Dataset):
         # Transform data in torch array
         self.data = torch.from_numpy(data).float()
         self.labels = torch.from_numpy(labels).long()
+        
+        self.ch_list = ch_list
             
     def __getitem__(self, idx : int):
         return self.data[idx], self.labels[idx]    

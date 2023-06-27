@@ -27,7 +27,7 @@ import dataset as ds
 
 class EEG_Dataset(Dataset):
 
-    def __init__(self, data, labels, normalize = False):
+    def __init__(self, data, labels, ch_list, normalize = False):
         """
         data = data used for the dataset. Must have shape [Trials x 1 x channels x time samples]
         Note that if you use normale EEG data depth dimension (the second axis) has value 1. 
@@ -35,6 +35,8 @@ class EEG_Dataset(Dataset):
         # Transform data in torch array
         self.data = torch.from_numpy(data).unsqueeze(1).float()
         self.labels = torch.from_numpy(labels).long()
+        
+        self.ch_list = ch_list
         
         # (OPTIONAL) Normalize
         if normalize:
