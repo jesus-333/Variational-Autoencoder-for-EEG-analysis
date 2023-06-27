@@ -78,7 +78,6 @@ def main_EEGNet_classifier():
             
             
             dataset_config = cd.get_moabb_dataset_config([subject])
-            dataset_config['stft_parameters'] = cd.get_config_stft()
             
             train_config = ct.get_config_classifier()
             train_config['wandb_training'] = True

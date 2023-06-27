@@ -35,6 +35,8 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         normalize_trials = True, # TODO CHECK/REMOVE
         normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
     )
+    
+    if dataset_config['use_stft_representation']: dataset_config['stft_parameters'] = get_config_stft()
 
     return dataset_config
 

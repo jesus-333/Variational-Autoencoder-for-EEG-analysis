@@ -49,7 +49,7 @@ def get_config_vEEGNet_training():
         batch_size = 30,                    
         lr = 1e-3,                          # Learning rate (lr)
         epochs = 10,                        # Number of epochs to train the model
-        use_scheduler = False,              # Use the lr scheduler
+        use_scheduler = True,              # Use the lr scheduler
         lr_decay_rate = 0.995,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,
@@ -90,45 +90,38 @@ def get_config_sweep(metric_name, metric_goal):
         ),
         parameters = dict(
             epochs = dict(
-                values = [200, 300, 500],
-                # values = [1,2,3] # Used for debug
-                parameters_type = 'training'
+                # values = [200, 300, 500],
+                values = [1,2,3] # Used for debug
             ),
             lr_decay_rate = dict(
                 values = [1, 0.995],
-                parameters_type = 'training'
             ),
             batch_size = dict(
                 values = [30, 40, 50],
-                parameters_type = 'training'
+            ),
+            subjects_list = dict(
+                values = [[2], [3], [8]],
             ),
             channels_list = dict(
                 values = [['C3', 'Cz', 'C4'], ['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6','CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz']],
-                parameters_type = 'dataset'
             ),
             window_stft = dict(
                 values = ['hann', ('gaussian', 1), ('gaussian', 2)],
-                parameters_type = 'dataset_stft'
             ),
             kernel = dict(
                 values = [(5,5), (7,7), (9,9)],
-                parameters_type = 'model'
             ),
             filter_1 = dict(
                 values = [8, 16, 32],
-                parameters_type = 'model'
             ),
             D = dict(
                 values = [2, 4, 8],
-                parameters_type = 'model'
             ),
             prob_dropout = dict(
                 values = [0.3, 0.4, 0.5],
-                parameters_type = 'model'
             ),
             use_dropout_2d = dict(
                 values = [True, False],
-                parameters_type = 'model'
             )
         ),
     )
