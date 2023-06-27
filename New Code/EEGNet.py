@@ -34,7 +34,8 @@ class EEGNet(nn.Module):
         D = config['D']
         activation = support_function.get_activation(config['activation'])
         dropout = support_function.get_dropout(config['prob_dropout'], config['use_dropout_2d'])
-
+        
+        # NOT USED
         self.C = config['C']
         self.T = config['T']
         

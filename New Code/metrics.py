@@ -21,9 +21,9 @@ import wandb
 def compute_metrics(model, loader, device):
     true_label, predict_label = compute_label(model, loader, device)
 
-    metrics_list = compute_metrics_from_labels(true_label, predict_label)
+    computed_metrics = compute_metrics_from_labels(true_label, predict_label)
 
-    return metrics_list
+    return computed_metrics
 
 def compute_label(model, loader, device):
     """
@@ -55,15 +55,17 @@ def compute_label(model, loader, device):
     return true_label, predict_label
 
 def compute_metrics_from_labels(true_label, predict_label):
-    accuracy    = accuracy_score(true_label, predict_label)
-    cohen_kappa = cohen_kappa_score(true_label, predict_label)
-    sensitivity = recall_score(true_label, predict_label, average = 'weighted')
-    specificity = compute_specificity_multiclass(true_label, predict_label)
-    f1          = f1_score(true_label, predict_label, average = 'weighted')
-    # confusion_matrix = multilabel_confusion_matrix(true_label, predict_label)
-    confusion_matrix = compute_multiclass_confusion_matrix(true_label, predict_label)
-
-    return accuracy, cohen_kappa, sensitivity, specificity, f1, confusion_matrix
+    computed_metrics = dict(
+        accuracy    = accuracy_score(true_label, predict_label),
+        cohen_kappa = cohen_kappa_score(true_label, predict_label),
+        sensitivity = recall_score(true_label, predict_label, average = 'weighted'),
+        specificity = compute_specificity_multiclass(true_label, predict_label),
+        f1          = f1_score(true_label, predict_label, average = 'weighted'),
+        # confusion_matrix = multilabel_confusion_matrix(true_label, predict_label),
+        confusion_matrix = compute_multiclass_confusion_matrix(true_label, predict_label),
+    )
+    
+    return computed_metrics
 
 
 def compute_specificity_multiclass(true_label, predict_label, weight_sum = True):

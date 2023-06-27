@@ -48,17 +48,18 @@ import sys
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact = None):
-    # Get the training data
-    # if dataset_config['use_stft_representation']:
-    #     train_dataset, validation_dataset = dataset_stft.get_train_data_d2a(dataset_config)
-    # else:
-    #     train_dataset, validation_dataset = dataset.get_train_data_d2a(dataset_config)
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
+    
+    if dataset_config['use_stft_representation']:
+        model_config['C'] = train_dataset[0][0].shape[0]
+        model_config['T'] = train_dataset[0][0].shape[2]
+        model_config['depth_first_layer'] = train_dataset[0][0].shape[0]
     
     # Create dataloader
     train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
     validation_dataloader   = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
     loader_list             = [train_dataloader, validation_dataloader]
+    test_dataloader         = torch.utils.data.DataLoader(test_dataset, batch_size = train_config['batch_size'], shuffle = True)
     
     # Create model
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
@@ -144,8 +145,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
         # (OPTIONAL) Measure the various metrics
         if train_config['measure_metrics_during_training']:
             # Compute the various metrics
-            train_metrics_list = metrics.compute_metrics(model, train_loader, train_config['device'])    
-            validation_metrics_list = metrics.compute_metrics(model, validation_loader, train_config['device'])
+            train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])    
+            validation_metrics_dict = metrics.compute_metrics(model, validation_loader, train_config['device'])
 
         # (OPTIONAL) Update learning rate (if a scheduler is provided)
         if lr_scheduler is not None: 
@@ -163,8 +164,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
 
             if lr_scheduler is not None: print("\t Learning rate     = {}".format(optimizer.param_groups[0]['lr']))
             if train_config['measure_metrics_during_training']:
-                print("\t Accuracy (TRAIN)  = {}".format(train_metrics_list[0]))
-                print("\t Accuracy (VALID)  = {}".format(validation_metrics_list[0]))
+                print("\t Accuracy (TRAIN)  = {}".format(train_metrics_dict['accuracy']))
+                print("\t Accuracy (VALID)  = {}".format(validation_metrics_dict['accuracy']))
 
         # (OPTIONAL) Log data on wandb
         if train_config['wandb_training']:
@@ -174,8 +175,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
         
             # Save the metrics in the log 
             if train_config['measure_metrics_during_training']:
-                wandb_support.update_log_dict_metrics(train_metrics_list, log_dict, 'train')
-                wandb_support.update_log_dict_metrics(validation_metrics_list, log_dict, 'validation')
+                wandb_support.update_log_dict_metrics(train_metrics_dict, log_dict, 'train')
+                wandb_support.update_log_dict_metrics(validation_metrics_dict, log_dict, 'validation')
             
             # Add the model to the artifact
             if (epoch + 1) % train_config['epoch_to_save_model'] == 0:

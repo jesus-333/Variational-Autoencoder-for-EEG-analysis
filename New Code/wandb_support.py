@@ -23,13 +23,13 @@ def add_file_to_artifact(artifact, file_name):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function related to load classification metrics
 
-def update_log_dict_metrics(metrics_list, log_dict, label):
+def update_log_dict_metrics(metrics_dict, log_dict, label):
     # return accuracy, cohen_kappa, sensitivity, specificity, f1
-    accuracy = metrics_list[0]
-    cohen_kappa = metrics_list[1]
-    sensitivity = metrics_list[2]
-    specificity = metrics_list[3]
-    f1 = metrics_list[4]
+    accuracy = metrics_dict['accuracy']
+    cohen_kappa = metrics_dict['cohen_kappa']
+    sensitivity = metrics_dict['sensitivity']
+    specificity = metrics_dict['specificity']
+    f1 = metrics_dict['f1']
 
     log_dict['accuracy_{}'.format(label)] = accuracy
     log_dict['cohen_kappa_{}'.format(label)] = cohen_kappa

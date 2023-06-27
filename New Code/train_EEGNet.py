@@ -97,7 +97,7 @@ def main_stft():
     C = 22
     T = 512 
 
-    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset_config = cd.get_moabb_dataset_config([1])
     dataset_config['stft_parameters'] = cd.get_config_stft()
 
     train_config = ct.get_config_classifier()
