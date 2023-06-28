@@ -8,6 +8,8 @@ Function to the creation the PyTorch dataset with EEG data trasformed through st
 #%% Imports
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 import torch
 from torch.utils.data import Dataset
 
@@ -23,23 +25,27 @@ import dataset_stft as ds_stft
 
 class EEG_Dataset_stft(Dataset):
 
-    def __init__(self, data, labels, ch_list, t, f):
+    def __init__(self, data, labels, info : dict):
         """
         data = data used for the dataset. Must have shape [Trials x channels x frequency samples x time samples]
         labels = labels of each trial
-        ch_list = list with the name of the eeg channel
-        t = time array with the value of the time instants after the stft
-        f = frequency array with the value of the frequency bins after the stft    
+        info = dictionary with extra info about the data
+            channels_list = list with the name of the eeg channel
+            subjects_list = List of the subject of the original dataset used to create this istance of the dataset
+            t = time array with the value of the time instants after the stft
+            f = frequency array with the value of the frequency bins after the stft    
         """
 
         # Transform data in torch array
         self.data = torch.from_numpy(data).float()
         self.labels = torch.from_numpy(labels).long()
         
-        self.ch_list = ch_list
-        
-        self.t = t
-        self.f = f
+        self.ch_list = info['channels_list'] 
+        self.t = info['t'] 
+        self.f = info['f'] 
+        if 'subjects_list' in info: self.subjects_list = info['subjects_list']
+
+        self.labels_dict = { 0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue'}
             
     def __getitem__(self, idx : int):
         return self.data[idx], self.labels[idx]    
@@ -47,10 +53,57 @@ class EEG_Dataset_stft(Dataset):
     def __len__(self):
         return len(self.labels)
     
-    def visualize_trial(self, idx_trial, ch):
-        # TODO
-        pass
+    def visualize_trial(self, idx_trial, ch, vmin = None, vmax = None):
+        idx_ch = self.ch_list == ch
+        trial = self.data[idx_trial, idx_ch].squeeze()
+        
+        if vmin is None: vmin = float(trial.min())
+        if vmax is None: vmax = float(trial.max())
+
+        plot_config = self.create_plot_config(vmin, vmax, ch)
+        plot_config['title'] = "Trials n. {} - {} - Ch. {}".format(idx_trial, self.labels_dict[int(self.labels[idx_trial])], ch)
+        self.__plot_stft(trial, plot_config)
+
+    def visualize_average_trial(self, ch, label, vmin = None, vmax = None):
+        idx_ch = self.ch_list == ch
+        idx_trial = self.labels == label
+        trial = self.data[idx_trial, idx_ch].mean(0)
+
+        if vmin is None: vmin = float(trial.min())
+        if vmax is None: vmax = float(trial.max())
+
+        plot_config = self.create_plot_config(vmin, vmax, ch)
+        plot_config['title'] = "Average for class {} and Ch. {}".format(self.labels_dict[label], ch)
+        self.__plot_stft(trial, plot_config)
+
+    def create_plot_config(self, vmin, vmax, ch):
+        plot_config = dict(
+            figsize = (15, 10),
+            fontsize = 11,
+            vmin = vmin,
+            vmax = vmax,
+            ch_to_plot = ch,
+            cmap = 'Blues_r'
+        )
+
+        return plot_config
     
+    def __plot_stft(self, stft_data, config):
+        fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
+        plt.rcParams.update({'font.size': config['fontsize']})
+        im = ax.pcolormesh(self.t, self.f, stft_data, 
+                           shading = 'gouraud', cmap = config['cmap'],
+                           vmin = config['vmin'], vmax = config['vmax'])
+
+        ax.set_ylabel('Frequency [Hz]')
+        ax.set_xlabel('Time [sec]')
+        ax.title.set_text(config['title'])
+
+        fig.colorbar(im)
+        fig.tight_layout()
+        plt.show()
+        
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Check data
 
 def main():
@@ -64,7 +117,8 @@ def main():
     
     print(train_dataset[0][0].shape)
     print(train_dataset.ch_list)
-
+    
+    train_dataset.visualize_average_trial('C3', 1)
 
 if __name__ == "__main__":
     main()

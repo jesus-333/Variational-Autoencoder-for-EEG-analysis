@@ -81,11 +81,6 @@ def update_config_with_sweep_parameters(sweep_config, other_config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%%
 
-def debug_sweep():
-    sweep_config = ct.get_config_sweep('accuracy_validation', 'maximize')
-    sweep_config['window'] = ['gaussian', 1]
-    train_sweep(sweep_config)
-
 def main_sweep():
     sweep_config = ct.get_config_sweep('accuracy_validation', 'maximize')
     
@@ -102,5 +97,4 @@ def main_sweep():
     wandb.agent(sweep_id = sweep_id, function = train_sweep)
 
 if __name__ == '__main__':
-    # debug_sweep()
     main_sweep()

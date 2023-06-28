@@ -119,6 +119,7 @@ def get_dataset_d2a(config : dict):
     # Get the original train and test data
     data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
     data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
+    config['channels_list'] = ch_list
     
     # Transform with stft (if you want time-frequency representation)
     if config['use_stft_representation']: 
@@ -144,9 +145,12 @@ def get_dataset_d2a(config : dict):
     
     # Create PyTorch dataset
     if config['use_stft_representation']:
-        train_dataset       = ds_stft.EEG_Dataset_stft(data_train, labels_train, ch_list, t, f)
-        test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, ch_list, t, f)
-        validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, ch_list, t, f)
+        config['t'] = t
+        config['f'] = f
+
+        train_dataset       = ds_stft.EEG_Dataset_stft(data_train, labels_train, config)
+        test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, config)
+        validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, config)
     else:
         train_dataset       = ds.EEG_Dataset(data_train, labels_train, ch_list)
         test_dataset        = ds.EEG_Dataset(data_test, labels_test, ch_list)
