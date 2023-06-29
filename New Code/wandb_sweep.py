@@ -88,19 +88,22 @@ def update_config_with_sweep_parameters(sweep_config, other_config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% 
 
-def compute_metrics_from_sweep_EEGNet_classifier(sweep_id : str):
+def compute_metrics_from_sweep_EEGNet_classifier(sweep_id : str, download_path = None):
     # Get the runs from wandb Api
     api = wandb.Api()
     # Keep only the run with accuracy validation higher than 0.6
     runs = filter_list_of_runs(api.sweep(sweep_id).runs, 'accuracy_validation', 0.6)
-
+    
+    if download_path is None: download_path = 'TMP/'
     weight_path = support_function.get_sweep_path(sweep_id)
     tmp_str = ""
+    metrics_info = {}
     for run in runs:
         dataset_config  = run.config['dataset_config']
         model_config    = run.config['model_config']
         train_config    = run.config['train_config']
         if type(dataset_config['stft_parameters']['window']) == list: dataset_config['stft_parameters']['window'] = tuple(dataset_config['stft_parameters']['window'])
+        if dataset_config['subjects_list'][0] not in metrics_info: metrics_info[dataset_config['subjects_list'][0]] = []
 
         # Create dataset and dataloader
         train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
@@ -116,30 +119,36 @@ def compute_metrics_from_sweep_EEGNet_classifier(sweep_id : str):
         model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
         model_config['print_var'] = False
         model = train_generic.get_untrained_model('EEGNet', model_config)
+        
+        run_download_path = download_path + run.id + "/"
+        os.makedirs(download_path, exist_ok = True)
 
-        # Create temporary folder to download and save the weights of the network
-        os.makedirs('TMP/', exist_ok = True)
-
+        # Create folder to download and save the weights of the network
         # Download the weight
         path_end = weight_path + str(train_config['epochs']) + '.pth' # Path for the files of the weights at the end of the training
         path_BEST = weight_path + 'BEST.pth' # Path for the files of the weights that give the minimum validation loss
 
-        run.file(path_end).download('TMP/', exist_ok=True)
-        run.file(path_BEST).download('TMP/', exist_ok=True)
+        run.file(path_end).download(run_download_path, exist_ok=True)
+        run.file(path_BEST).download(run_download_path, exist_ok=True)
 
         tmp_str += "Subject : " + str(dataset_config['subjects_list']) + "\n"
-
-        model.load_state_dict(torch.load('TMP/' + path_end, map_location = 'cpu'))
+        tmp_accuracy = {}
+        model.load_state_dict(torch.load(run_download_path + path_end, map_location = 'cpu'))
         metrics_dict = metrics.compute_metrics(model, test_dataloader, 'cpu')
         tmp_str += "\tEND ACCURACY  : " + str(metrics_dict['accuracy']) + "\n"
+        tmp_accuracy['END'] = metrics_dict['accuracy']
 
-        model.load_state_dict(torch.load('TMP/' + path_BEST, map_location = 'cpu'))
+        model.load_state_dict(torch.load(run_download_path + path_BEST, map_location = 'cpu'))
         metrics_dict = metrics.compute_metrics(model, test_dataloader, 'cpu')
         tmp_str += "\tBEST ACCURACY : " + str(metrics_dict['accuracy']) + "\n\n"
-
+        tmp_accuracy['BEST'] = metrics_dict['accuracy']
         print(tmp_str)
+
+        metrics_info[dataset_config['subjects_list'][0]].append(tmp_accuracy)
     
     print(tmp_str)
+
+    return metrics_info
 
 def filter_list_of_runs(list_of_runs, metric, min_value,):
     """
