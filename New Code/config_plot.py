@@ -21,8 +21,8 @@ def get_config_plot_preprocess_ERS():
     config = dict(
         # Data config
         ch_to_plot = ['C3', 'Cz', 'C4'],
-        # label_to_plot = [0,1,2]
-        label_to_plot = [1,2,3],
+        label_to_plot = [0,1,2],
+        # label_to_plot = [1,2,3],
         # Figure config
         figsize = (18, 12),
         fontsize = 12,

@@ -78,6 +78,7 @@ def visualize_single_subject_average_channel_ERS(stft_data, label_list, ch_list,
     
     # Name of the class labels
     label_legend = {1 : 'Left', 2 : 'Right', 3 : 'Foot'}
+    label_legend = {0 : 'Left', 1 : 'Right', 2 : 'Foot'}
 
     if 'cmap' in config: cmap = config['cmap']
     else: cmap = None

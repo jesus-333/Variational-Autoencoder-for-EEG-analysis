@@ -125,7 +125,7 @@ def get_dataset_d2a(config : dict):
     if config['use_stft_representation']: 
         data_train, t, f = compute_stft(data_train, config)
         data_test, t, f = compute_stft(data_test, config)
-    
+
     # (OPTIONAL) Mix the original training and test data
     if config['percentage_split_train_test'] != -1: # Mix the original training and test data
         # Merge them together
