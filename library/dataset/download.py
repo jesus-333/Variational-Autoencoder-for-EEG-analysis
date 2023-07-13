@@ -8,14 +8,11 @@ Function related to download the data
 #%% Imports
 
 import numpy as np
-import matplotlib.pyplot as plt
 import mne
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
-from .. import config
-from config import config_dataset as cd
-from . import support_function as sf
+from ..config import config_dataset as cd
 from .. import check_config
 
 """

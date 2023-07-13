@@ -1,12 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import mne
-from scipy import signal
-
-import moabb.datasets as mb
-import moabb.paradigms as mp
-import config_dataset as cd
-import config_plot as cp
 
 """
 %load_ext autoreload

@@ -11,7 +11,7 @@ Implementation of EEGNet model using PyTorch
 import torch
 from torch import nn
 
-import support_function
+from . import support_function
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Network declaration
