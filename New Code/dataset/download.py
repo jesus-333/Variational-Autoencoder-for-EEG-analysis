@@ -13,9 +13,10 @@ import mne
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
-import config_dataset as cd
-import support_function as sf
-import check_config
+from .. import config
+from config import config_dataset as cd
+from . import support_function as sf
+from .. import check_config
 
 """
 %load_ext autoreload

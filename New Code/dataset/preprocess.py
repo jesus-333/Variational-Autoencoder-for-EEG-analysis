@@ -14,13 +14,16 @@ from scipy import signal
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
-import config_dataset as cd
-import config_plot as cp
-import preprocess_plot as pp_plot
-import download
-import dataset as ds
-import dataset_stft as ds_stft
-import support_function as sf
+
+from .. import config
+import config.config_dataset as cd
+import config.config_plot as cp
+from .. import plot
+import plot.preprocess_plot as pp_plot
+from . import download
+from . import dataset as ds
+from . import dataset_stft as ds_stft
+from . import support_function as sf
 
 """
 %load_ext autoreload
