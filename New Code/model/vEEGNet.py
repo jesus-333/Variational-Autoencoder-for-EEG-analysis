@@ -181,6 +181,7 @@ def check_vEEGNet():
     """
     Function to check the absence of breaking bug during the creation and the forward pass of vEEGNet
     """
+
     C = 22
     T = 512
     hidden_space = 16
