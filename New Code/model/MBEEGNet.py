@@ -11,8 +11,7 @@ Implementation of MBEEGNet model using PyTorch
 import torch
 from torch import nn
 
-import EEGNet
-import config_model
+from . import EEGNet
 
 """
 %load_ext autoreload
