@@ -41,10 +41,7 @@ class hvae_encoder(nn.Module):
         last_depth = tmp_x.shape[1]
         
         # Map the output of the last layer in the mean and logsigma of the distribution
-        self.map_to_distribution_parameters = nn.Sequential(
-            support_function.get_activation(config['activation']) if config['use_activation_last_layer'] else nn.Identity(),
-            nn.Conv2d(last_depth, int(last_depth * 2), 1)
-        )
+        self.map_to_distribution_parameters = map_to_distribution_parameters_with_convolution(last_depth, config['use_activation_last_layer'], config['activation'])
 
         self.convert_logvar_to_var = config['convert_logvar_to_var']
 
@@ -70,22 +67,41 @@ class hvae_encoder(nn.Module):
 
         return x, cell_output
 
+
 class hVAE_decoder(nn.Module):
 
-    def __init__(self, decoder_cell_list, config : dict):
+    def __init__(self, decoder_cell_list : list, config : dict):
         super().__init__()
+        
+        # Temporary list to save section of the decoder
+        tmp_decoder = [] # Save the "main" module of the network
+        tmp_map_parameters = []
+        tmp_features_combination_z = [] # Save the modules used to combine the output of encoder and decoder
+        tmp_features_combination_decoder = [] # Save the modules used to combine the output of the decoder with the samples from the latens spaces
 
-        self.decoder = nn.ModuleList(*decoder_cell_list)
+        # Temporary input used to track shapes during network creations
+        tmp_x = torch.rand(config['shape_decoder_input'])
+        
+        for cell in decoder_cell_list:
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+            # Main network
+            tmp_decoder.append(cell)
+            tmp_x = cell(x)
+            tmp_map_parameters.append(map_to_distribution_parameters_with_convolution(tmp_x.shape[1], config['use_activation_in_decoder_distribution_map'], config['activation']))
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+
+        self.decoder = nn.ModuleList(*tmp_decoder)
+        self.map_to_distribution_parameters(*tmp_map_parameters)
         
         # Operation used to combine the various output of the encoder with the corresponding output of the decoder
         # Used only during training
         self.features_combination_z = nn.ModuleList(
-            *[weighted_sum_features_map(config['depth_list_encoder'][i]) for i in range(len(decoder_cell_list) - 1)]
+            *[weighted_sum_features_map() for i in range(len(decoder_cell_list) - 1)]
         )
         
         # Combine the output of the cell of the decoder with the z of the various latent spaces
         self.features_combination_decoder = nn.ModuleList(
-            *[weighted_sum_features_map(config['depth_list_decoder'][i]) for i in range(len(decoder_cell_list))]
+            *[weighted_sum_features_map() for i in range(len(decoder_cell_list))]
         )
 
 
@@ -93,6 +109,17 @@ class hVAE_decoder(nn.Module):
         if h is None: h = torch.zeros(x.shape).to(x.device)
         z = torch.cat([x, h], dim = 1)
         x = self.features_combination_decoder[0](z)
+
+        for i in range(len(self.decoder)):
+            x = self.decoder[i](x)
+            
+            # Map the output of the decoder cell in mean (mu) and logvar (sigma)
+            mu, sigma = self.map_to_distribution_parameters[i](x).chunk(2, dim = 1)
+            
+            # This section is used only during the training
+            if encoder_cell_output is not None:
+                pass
+
         return x 
             
 
@@ -110,3 +137,19 @@ class weighted_sum_features_map(nn.Module):
         x = torch.cat([x1, x2], dim = 1)
         x = self.mix(x)
         return x
+
+class map_to_distribution_parameters_with_convolution(nn.Module):
+    def __init__(self, depth : int, use_activation : bool = False, activation : str = 'elu'):
+        """
+        Take in input a tensor of size B x D x H x W and return a tensor of size B x 2D x H x W
+        It practically doubles the size of the depth. The first D map will be used as mean and the other will be used a logvar 
+        """
+        super().__init__()
+
+        self.map = nn.Sequential(
+            support_function.get_activation(activation) if use_activation else nn.Identity(),
+            nn.Conv2d(depth, int(depth * 2), 1)
+        )
+
+    def forward(self, x):
+        return self.map(x)
