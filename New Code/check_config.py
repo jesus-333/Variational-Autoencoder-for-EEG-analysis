@@ -2,7 +2,7 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Function used to check the dictionary of parameters
+Functions used to check the dictionary of parameters
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
