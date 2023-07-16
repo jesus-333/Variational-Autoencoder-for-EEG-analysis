@@ -134,19 +134,21 @@ class sample_layer(nn.Module):
                 get_activation(config['activation']) if config['use_activation'] else nn.Identity(),
             )
 
+            self.input_shappe[0] = -1
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
     def forward(self, x):
         if self.parameters_map_type == 1: # Feedforward
             x = x.flatten(1)
-
+        
+        # Get distribution parameters and "sample" through reparametrization trick
         mean, log_var = self.parameters_map(x)
-
         z = self.reparametrize(mean, log_var)
 
         if self.parameters_map_type == 0: # Convolution
-
+            x = self.ff_layer(z)
+            x = x.reshape(self.input_shappe)
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
             x = z
         else:
@@ -154,5 +156,15 @@ class sample_layer(nn.Module):
 
         return x
 
-    def reparametrize(self, mean, log_var):
-        var = torch.exp(0.5 * log_var)
+    def reparametrize(self, mu, log_var):
+        """
+        Execute the reparametrization trick to allow gradient backpropagation
+        mu = mean of the normal distribution 
+        log_var = logarithm of the variance of the normal distribution
+        """
+        sigma = torch.exp(0.5, log_var)
+
+        eps = torch.randn_like(sigma)
+        eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
+
+        return  mu + sigma * eps

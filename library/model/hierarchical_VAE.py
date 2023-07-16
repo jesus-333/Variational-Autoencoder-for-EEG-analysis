@@ -120,7 +120,7 @@ class hVAE_decoder(nn.Module):
     def build_decoder(self, decoder_cell_list, config : dict):
         # Temporary list to save section of the decoder
         tmp_decoder = [] # Save the "main" module of the network
-        tmp_map_parameters = []
+        tmp_sample_layers = []
         tmp_features_combination_z = [] # Save the modules used to combine the output of encoder and decoder that IT IS USED TO OBTAIN Z
         tmp_features_combination_decoder = [] # Save the modules used to combine the output of the decoder with the samples from the latens spaces
 
@@ -134,7 +134,7 @@ class hVAE_decoder(nn.Module):
         for i in range(len(decoder_cell_list)):
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
             # Features combination latent space (i.e. Decoder/encoder output combination, merge to create the z)
-            # And paramters map
+            # And Sample layer (layer that sample from the hidden space)
 
             if i > 0:
                 # Nota that in the deepest layer the output of the encoder IS the input of the encoder
@@ -148,25 +148,16 @@ class hVAE_decoder(nn.Module):
                 # So at position 0 we will have the output of the first cell of the encoder and at position -1 (the last) we will have the last output of the encoder
                 # For the DECODER we need to use this information in reverse order, i.e. from last to first. 
 
-                # Get the parameters map
-                if config['paramters_map_type'] == 0: # Convolution (i.e. matrix latent space)
-                    paramters_map = sf.map_to_distribution_parameters_with_convolution(depth = tmp_x.shape[1],
-                                                                                       use_activation = config['use_activation_in_decoder_distribution_map'], 
-                                                                                       activation = config['activation'])
-                elif config['paramters_map_type'] == 1: # Feedforward (i.e. vector latent space)
-                    paramters_map = sf.map_to_distribution_parameters_with_vector(hidden_space_dimension = config['hidden_space_dimension_list'][i],
-                                                                                  input_shape = tmp_x.shape,
-                                                                                  use_activation = config['use_activation_in_decoder_distribution_map'], 
-                                                                                  activation = config['activation'])
-                else:
-                    raise ValueError("config['paramters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
+                # Get the sample layer
+                if 'hidden_space_dimension_list' in config: # Feedforward map (vector latent space)
+                    sample_layer = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
+                else: # Convolutional map (matrix latent space)
+                    sample_layer = sf.sample_layer(tmp_x.shape, config)
+                tmp_sample_layers.append(sample_layer)
 
-                # Save the parameters map
-                tmp_map_parameters.append(paramters_map)
-
-                # Pass the "data" through the module
+                # Pass the "data" through the modules
                 tmp_encoder_output = torch.rand(encoder_output_shape[-1-i])
-                tmp_z = paramters_map(tmp_x, tmp_encoder_output)
+                tmp_z = sample_layer(dec_enc_combination(tmp_x, tmp_encoder_output))
 
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             # Features combination decoder
@@ -177,7 +168,7 @@ class hVAE_decoder(nn.Module):
                 if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
                     # Module creation
                     z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
-                    # Pass the "data"
+                    # Pass the "data" through the module
                     tmp_x = z_dec_combination(tmp_x, torch.rand(config['h_shape']))
                 else:
                     z_dec_combination = nn.Identity()
