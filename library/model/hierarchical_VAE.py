@@ -82,45 +82,43 @@ class hVAE_decoder(nn.Module):
     def __init__(self, decoder_cell_list : list, config : dict):
         super().__init__()
         
-        # TODO
+        tmp_decoder, tmp_sample_layers_z, tmp_sample_layers_z_given_x, tmp_features_combination_z, tmp_features_combination_decoder = self.build_decoder(decoder_cell_list, config)
+
         self.decoder = nn.ModuleList(*tmp_decoder)
-        self.map_to_distribution_parameters(*tmp_map_parameters)
-        
-        # Operation used to combine the various output of the encoder with the corresponding output of the decoder
-        # Used only during training
-        self.features_combination_z = nn.ModuleList(
-            *[sf.weighted_sum_features_tensor() for i in range(len(decoder_cell_list) - 1)]
-        )
-        
-        # Combine the output of the cell of the decoder with the z of the various latent spaces
-        self.features_combination_decoder = nn.ModuleList(
-            *[sf.weighted_sum_features_tensor() for i in range(len(decoder_cell_list))]
-        )
+        self.sample_layers_z = nn.ModuleList(*tmp_sample_layers_z)
+        self.sample_layers_z_given_x = nn.ModuleList(*tmp_sample_layers_z_given_x)
+        self.features_combination_z = nn.ModuleList(*tmp_features_combination_z)
+        self.features_combination_decoder = nn.ModuleList(*tmp_features_combination_decoder)
 
-
-    def forward(self, x, h = None, encoder_cell_output = None):
+    def forward(self, z, h = None, encoder_cell_output = None):
         if h is not None: 
             z = torch.cat([x, h], dim = 1)
         else:
             z = x
 
         for i in range(len(self.decoder)):
+            if i == 0: # Only for the deepest layer
+                if h is not None:
+                    
             x = self.features_combination_decoder[i](z)
             x = self.decoder[i](x)
             
-            # Map the output of the decoder cell in mean (mu) and logvar (sigma)
-            mu, sigma = self.map_to_distribution_parameters[i](x).chunk(2, dim = 1)
+            z, mu, log_var = self.sample_layers_z[i](x)
             
             # This section is used only during the training
             if encoder_cell_output is not None:
-                pass
+                _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-1 - i]))
+
+                # "Correct" the normal distribution (section 3.2 NVAE paper)
+                z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var)
 
         return x 
             
     def build_decoder(self, decoder_cell_list, config : dict):
         # Temporary list to save section of the decoder
         tmp_decoder = [] # Save the "main" module of the network
-        tmp_sample_layers = []
+        tmp_sample_layers_z = [] # Sampling using during generation
+        tmp_sample_layers_z_given_x = [] # Sampling using during training
         tmp_features_combination_z = [] # Save the modules used to combine the output of encoder and decoder that IT IS USED TO OBTAIN Z
         tmp_features_combination_decoder = [] # Save the modules used to combine the output of the decoder with the samples from the latens spaces
 
@@ -150,14 +148,18 @@ class hVAE_decoder(nn.Module):
 
                 # Get the sample layer
                 if 'hidden_space_dimension_list' in config: # Feedforward map (vector latent space)
-                    sample_layer = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
+                    sample_layer_z = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
+                    sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
                 else: # Convolutional map (matrix latent space)
-                    sample_layer = sf.sample_layer(tmp_x.shape, config)
-                tmp_sample_layers.append(sample_layer)
+                    sample_layer_z = sf.sample_layer(tmp_x.shape, config)
+                    sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config)
+
+                tmp_sample_layers_z.append(sample_layer_z)
+                tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
 
                 # Pass the "data" through the modules
                 tmp_encoder_output = torch.rand(encoder_output_shape[-1-i])
-                tmp_z = sample_layer(dec_enc_combination(tmp_x, tmp_encoder_output))
+                tmp_z = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
 
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             # Features combination decoder
@@ -180,7 +182,7 @@ class hVAE_decoder(nn.Module):
             tmp_features_combination_decoder.append(z_dec_combination)
             
             # Pass the "data" inside the module
-            tmp_x = z_dec_combination(tmp_x)
+            tmp_x = z_dec_combination(tmp_x, tmp_z)
 
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             # Main network 
@@ -192,5 +194,5 @@ class hVAE_decoder(nn.Module):
             # Pass the "data" through the cell
             tmp_x = cell(tmp_x)
 
-        return tmp_decoder, tmp_map_parameters, tmp_features_combination_z, tmp_features_combination_decoder
+        return tmp_decoder, tmp_sample_layers_z, tmp_sample_layers_z_given_x, tmp_features_combination_z, tmp_features_combination_decoder
 

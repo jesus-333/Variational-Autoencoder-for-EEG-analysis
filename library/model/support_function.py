@@ -154,7 +154,7 @@ class sample_layer(nn.Module):
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
-        return x
+        return x, mean, log_var
 
     def reparametrize(self, mu, log_var):
         """
