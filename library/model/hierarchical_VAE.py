@@ -22,15 +22,25 @@ class hVAE(nn.Module):
         super().__init__()
         # Create encoder
         self.encoder = hvae_encoder(encoder_cell_list, config)
-        _, _, encoder_output_shape = self.encoder.encode(torch.rand(1, 1, config['C'], config['T']))
-        config['encoder_output_shape'] = encoder_output_shape
+        _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['C'], config['T']))
+        config['encoder_outputs_shape'] = encoder_outputs_shape
 
         # Create decoder
         self.decoder = nn.ModuleList(*decoder_cell_list, config)
 
-    def forward(self, x):
+    def forward(self, x, h = None):
+        # Encoder 
+        mu, log_var, encoder_cell_outputs = self.encoder(x)
 
-        return x
+        z = sf.reparametrize(mu, sigma)
+        
+        # Decoder
+        decoder_output = self.decoder(z, h, encoder_cell_outputs)
+        x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = decoder_output
+        mu_list.insert(0, mu)
+        log_var_list.insert(0, log_var)
+
+        return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
 
 
 class hvae_encoder(nn.Module):
@@ -51,7 +61,7 @@ class hvae_encoder(nn.Module):
 
     def forward(self, x):
         # Pass the data through the decoder
-        x, cell_output = self.encode(x)
+        x, cell_outputs = self.encode(x)
         x = self.map_to_distribution_parameters(x)
         
         # Divide the output in mean (mu) and logvar (sigma). Note that the first half of the depth maps are used for the mean and the second half for the logvar
@@ -59,22 +69,22 @@ class hvae_encoder(nn.Module):
 
         if self.convert_logvar_to_var: sigma = torch.exp(sigma)
 
-        return mu, sigma, cell_output
+        return mu, sigma, cell_outputs
 
     def encode(self, x, return_shape = False):
         # List with the output of each cell of the encoder
-        cell_output = []
+        cell_outputs = []
         output_shape = []
         
         for cell in self.encoder_modules: 
             x = cell(x)
-            cell_output.append(x)
+            cell_outputs.append(x)
             if return_shape: output_shape.append(x.shape)
         
         if return_shape:
-            return x, cell_output, output_shape
+            return x, cell_outputs, output_shape
         else: 
-            return x, cell_output
+            return x, cell_outputs
 
 
 class hVAE_decoder(nn.Module):
@@ -91,28 +101,55 @@ class hVAE_decoder(nn.Module):
         self.features_combination_decoder = nn.ModuleList(*tmp_features_combination_decoder)
 
     def forward(self, z, h = None, encoder_cell_output = None):
-        if h is not None: 
-            z = torch.cat([x, h], dim = 1)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # List to save the parameters of the distribution of the various layers
+        mu_list = []
+        log_var_list = []
+        
+        # Save the relative location (see section 3.2 paper NVAE)
+        if h is not None:
+            delta_mu_list = []
+            delta_log_var_list = []
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+        if h is not None:
+            x = h
         else:
-            z = x
+            x = torch.zeros_like(z)
 
         for i in range(len(self.decoder)):
-            if i == 0: # Only for the deepest layer
-                if h is not None:
-                    
-            x = self.features_combination_decoder[i](z)
+            # Combine the z with the output of the decoder
+            # In the deepest layer (i == 0) combine h with z. If h is not passed a vector of zeros is used instead
+            # TODO check after training the use of identity for the i == 0 if h is not passed
+            x = self.features_combination_decoder[i](x, z)
+
+            # Pass the data through the decoder cell
             x = self.decoder[i](x)
             
-            z, mu, log_var = self.sample_layers_z[i](x)
-            
-            # This section is used only during the training
-            if encoder_cell_output is not None:
-                _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-1 - i]))
+            # Sampling section
+            # Note that in the last layer (i.e. the output I don't need to create a laten space and sampling from it... I'm only interested in the final results)
+            if i != len(self.decoder) -1:
+                # Sample from the distribution and save the results
+                z, mu, log_var = self.sample_layers_z[i](x)
+                mu_list.append(mu)
+                log_var_list.append(log_var)
+                
+                # This section is used only during the training
+                if encoder_cell_output is not None:
+                    _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-1 - i]))
 
-                # "Correct" the normal distribution (section 3.2 NVAE paper)
-                z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var)
-
-        return x 
+                    # "Correct" the normal distribution (section 3.2 NVAE paper)
+                    z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var)
+                
+                    # Save the parameters
+                    delta_mu_list.append(delta_mu)
+                    delta_log_var_list.append(delta_log_var)
+        
+        if encoder_cell_output is None: # During generation
+            return x, mu_list, log_var_list
+        else: # During training
+            return x, mu_list, log_var_list, delta_mu_list, delta_log_var_list
             
     def build_decoder(self, decoder_cell_list, config : dict):
         # Temporary list to save section of the decoder
@@ -158,7 +195,7 @@ class hVAE_decoder(nn.Module):
                 tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
 
                 # Pass the "data" through the modules
-                tmp_encoder_output = torch.rand(encoder_output_shape[-1-i])
+                tmp_encoder_output = torch.rand(encoder_output_shape[-1-i]) # Simulate the output of the ENCODER
                 tmp_z = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
 
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -168,12 +205,11 @@ class hVAE_decoder(nn.Module):
             # Create the module to combine features
             if i == 0:
                 if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
-                    # Module creation
                     z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
-                    # Pass the "data" through the module
-                    tmp_x = z_dec_combination(tmp_x, torch.rand(config['h_shape']))
+                    tmp_z = torch.rand(config['h_shape'])
                 else:
-                    z_dec_combination = nn.Identity()
+                    z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_x.shape[1], tmp_x.shape[1])
+                    tmp_z = torch.rand(tmp_x.shape)
             else:
                 # Module creation
                 z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_z.shape[1], tmp_x.shape[1])

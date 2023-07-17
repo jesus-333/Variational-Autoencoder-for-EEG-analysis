@@ -162,9 +162,19 @@ class sample_layer(nn.Module):
         mu = mean of the normal distribution 
         log_var = logarithm of the variance of the normal distribution
         """
-        sigma = torch.exp(0.5, log_var)
 
-        eps = torch.randn_like(sigma)
-        eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
+        return reparametrize(mu, log_var)
 
-        return  mu + sigma * eps
+
+def reparametrize(mu, log_var):
+    """
+    Execute the reparametrization trick to allow gradient backpropagation
+    mu = mean of the normal distribution 
+    log_var = logarithm of the variance of the normal distribution
+    """
+    sigma = torch.exp(0.5, log_var)
+
+    eps = torch.randn_like(sigma)
+    eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
+
+    return  mu + sigma * eps
