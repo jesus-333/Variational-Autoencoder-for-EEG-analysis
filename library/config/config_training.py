@@ -66,7 +66,7 @@ def get_config_vEEGNet_training():
 
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "MBEEGNet",
+        project_name = "ICT4AWE_Extension",
         model_artifact_name = "MBEEGNet_test",    # Name of the artifact used to save the models
         log_freq = 1,
         notes = "",

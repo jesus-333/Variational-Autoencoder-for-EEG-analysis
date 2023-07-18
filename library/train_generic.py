@@ -17,9 +17,9 @@ import wandb
 import pprint
 
 # Custom functions
-import wandb_support
-import metrics
-import loss_function
+from . import wandb_support
+from . import metrics
+from . import loss_function
 from .dataset import preprocess as pp
 
 # Config files
@@ -37,7 +37,7 @@ from .model import hvEEGNet
 # Training functions for specific model
 from . import train_EEGNet
 from . import train_vEEGNet
-from . import train_vEEGNet
+from . import train_hvEEGNet
     
 """
 %load_ext autoreload
@@ -210,8 +210,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return MBEEGNet.MBEEGNet_Classifier(model_config)
     elif model_name == 'vEEGNet':
         return vEEGNet.vEEGNet(model_config)
-    elif model_name == 'hvEEGNet':
-        return hvEEGNet.hvEEGNet(model_config)
+    elif model_name == 'hvEEGNet_shallow':
+        return hvEEGNet.hvEEGNet_shallow(model_config)
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -220,7 +220,7 @@ def get_loss_function(model_name):
         return torch.nn.NLLLoss()
     elif model_name == 'vEEGNet':
         return loss_function.vEEGNet_loss 
-    elif model_name == 'hvEEGNet':
+    elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss
     else:
         raise ValueError("Type of the model not recognized")
@@ -232,7 +232,7 @@ def get_train_and_validation_function(model):
         return train_EEGNet.train_epoch, train_EEGNet.validation_epoch
     elif 'vEEGNet.vEEGNet' in str(type(model)):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
-    elif 'hvEEGNet.hvEEGNet' in str(type(model)):
+    elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")

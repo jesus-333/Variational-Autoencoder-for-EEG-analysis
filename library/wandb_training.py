@@ -64,13 +64,12 @@ def main_EEGNet_classifier():
     
     return model
 
-def main_hvEEGNet():
+def main_hvEEGNet_shallow():
     dataset_config = cd.get_moabb_dataset_config([3])
     
     train_config = ct.get_config_vEEGNet_training()
     train_config['wandb_training'] = True
-    train_config['model_name'] = 'hvEEGNet'
-    train_config['model_artifact_name'] = 'hvEEGNet_v1'
+    train_config['model_artifact_name'] = 'hvEEGNet_shallow'
 
     C = 22
     T = 512 
@@ -78,7 +77,7 @@ def main_hvEEGNet():
     parameters_map_type = 1
     model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
     
-    model = train_wandb('hvEEGNet', dataset_config, train_config, model_config)
+    model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
     
     return model
 
