@@ -154,83 +154,84 @@ class hVAE_decoder(nn.Module):
             return x, mu_list, log_var_list, delta_mu_list, delta_log_var_list
             
     def build_decoder(self, decoder_cell_list, config : dict):
-        # Temporary list to save section of the decoder
-        tmp_decoder = [] # Save the "main" module of the network
-        tmp_sample_layers_z = [] # Sampling using during generation
-        tmp_sample_layers_z_given_x = [] # Sampling using during training
-        tmp_features_combination_z = [] # Save the modules used to combine the output of encoder and decoder that IT IS USED TO OBTAIN Z
-        tmp_features_combination_decoder = [] # Save the modules used to combine the output of the decoder with the samples from the latens spaces
+        with torch.no_grad():
+            # Temporary list to save section of the decoder
+            tmp_decoder = [] # Save the "main" module of the network
+            tmp_sample_layers_z = [] # Sampling using during generation
+            tmp_sample_layers_z_given_x = [] # Sampling using during training
+            tmp_features_combination_z = [] # Save the modules used to combine the output of encoder and decoder that IT IS USED TO OBTAIN Z
+            tmp_features_combination_decoder = [] # Save the modules used to combine the output of the decoder with the samples from the latens spaces
 
-        # Temporary variables used to track shapes during network creations
-        tmp_x = torch.rand(config['encoder_outputs_shape'][-1])
-        tmp_z = torch.rand(config['encoder_outputs_shape'][-1])
-        
-        # List used to save the output of the decoder
-        encoder_output_shape = config['encoder_outputs_shape']
+            # Temporary variables used to track shapes during network creations
+            tmp_x = torch.rand(config['encoder_outputs_shape'][-1])
+            tmp_z = torch.rand(config['encoder_outputs_shape'][-1])
+            
+            # List used to save the output of the decoder
+            encoder_output_shape = config['encoder_outputs_shape']
 
-        for i in range(len(decoder_cell_list)):
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-            # Features combination latent space (i.e. Decoder/encoder output combination, merge to create the z)
-            # And Sample layer (layer that sample from the hidden space)
+            for i in range(len(decoder_cell_list)):
+                # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+                # Features combination latent space (i.e. Decoder/encoder output combination, merge to create the z)
+                # And Sample layer (layer that sample from the hidden space)
 
-            if i > 0:
-                # Nota that in the deepest layer the output of the encoder IS the input of the encoder
-                # So there isn't necessity of combine anything
+                if i > 0:
+                    # Nota that in the deepest layer the output of the encoder IS the input of the encoder
+                    # So there isn't necessity of combine anything
 
-                # Create and save the module
-                dec_enc_combination = sf.weighted_sum_tensor(encoder_output_shape[-1-i][1], tmp_x.shape[1], tmp_x.shape[1])
-                tmp_features_combination_z.append(dec_enc_combination)
+                    # Create and save the module
+                    dec_enc_combination = sf.weighted_sum_tensor(encoder_output_shape[-1-i][1], tmp_x.shape[1], tmp_x.shape[1])
+                    tmp_features_combination_z.append(dec_enc_combination)
+                    
+                    # Notes on the -1-i index. The output of the encoder are saved in the order obtained from the encoder
+                    # So at position 0 we will have the output of the first cell of the encoder and at position -1 (the last) we will have the last output of the encoder
+                    # For the DECODER we need to use this information in reverse order, i.e. from last to first. 
+
+                    # Get the sample layer
+                    if 'hidden_space_dimension_list' in config: # Feedforward map (vector latent space)
+                        sample_layer_z = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
+                        sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
+                    else: # Convolutional map (matrix latent space)
+                        sample_layer_z = sf.sample_layer(tmp_x.shape, config)
+                        sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config)
+
+                    tmp_sample_layers_z.append(sample_layer_z)
+                    tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
+
+                    # Pass the "data" through the modules
+                    tmp_encoder_output = torch.rand(encoder_output_shape[-1-i]) # Simulate the output of the ENCODER
+                    tmp_z, _, _ = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
+
+                # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                # Features combination decoder
+                # z/decoder combination (i.e. after sampling from latent space combine the result with the output of the decoder)
                 
-                # Notes on the -1-i index. The output of the encoder are saved in the order obtained from the encoder
-                # So at position 0 we will have the output of the first cell of the encoder and at position -1 (the last) we will have the last output of the encoder
-                # For the DECODER we need to use this information in reverse order, i.e. from last to first. 
-
-                # Get the sample layer
-                if 'hidden_space_dimension_list' in config: # Feedforward map (vector latent space)
-                    sample_layer_z = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
-                    sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config, config['hidden_space_dimension_list'][i])
-                else: # Convolutional map (matrix latent space)
-                    sample_layer_z = sf.sample_layer(tmp_x.shape, config)
-                    sample_layer_z_given_x = sf.sample_layer(tmp_x.shape, config)
-
-                tmp_sample_layers_z.append(sample_layer_z)
-                tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
-
-                # Pass the "data" through the modules
-                tmp_encoder_output = torch.rand(encoder_output_shape[-1-i]) # Simulate the output of the ENCODER
-                tmp_z, _, _ = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
-
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            # Features combination decoder
-            # z/decoder combination (i.e. after sampling from latent space combine the result with the output of the decoder)
-            
-            # Create the module to combine features
-            if i == 0:
-                if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
-                    z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
-                    tmp_z = torch.rand(config['h_shape'])
+                # Create the module to combine features
+                if i == 0:
+                    if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
+                        z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
+                        tmp_z = torch.rand(config['h_shape'])
+                    else:
+                        z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_x.shape[1], tmp_x.shape[1])
+                        tmp_z = torch.rand(tmp_x.shape)
                 else:
-                    z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_x.shape[1], tmp_x.shape[1])
-                    tmp_z = torch.rand(tmp_x.shape)
-            else:
-                # Module creation
-                z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_z.shape[1], tmp_x.shape[1])
-            
-            # Save the module
-            tmp_features_combination_decoder.append(z_dec_combination)
-            
-            # Pass the "data" inside the module
-            tmp_x = z_dec_combination(tmp_x, tmp_z)
+                    # Module creation
+                    z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], tmp_z.shape[1], tmp_x.shape[1])
+                
+                # Save the module
+                tmp_features_combination_decoder.append(z_dec_combination)
+                
+                # Pass the "data" inside the module
+                tmp_x = z_dec_combination(tmp_x, tmp_z)
 
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            # Main network 
+                # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                # Main network 
 
-            # Get cell and obtain the output of the cell
-            cell = decoder_cell_list[i]
-            tmp_decoder.append(cell)
-            
-            # Pass the "data" through the cell
-            tmp_x = cell(tmp_x)
+                # Get cell and obtain the output of the cell
+                cell = decoder_cell_list[i]
+                tmp_decoder.append(cell)
+                
+                # Pass the "data" through the cell
+                tmp_x = cell(tmp_x)
 
         return tmp_decoder, tmp_sample_layers_z, tmp_sample_layers_z_given_x, tmp_features_combination_z, tmp_features_combination_decoder
 

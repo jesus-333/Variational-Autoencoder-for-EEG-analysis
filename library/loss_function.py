@@ -82,9 +82,11 @@ def vEEGNet_loss(x, x_r, mu, log_var, true_label, predicted_label, config):
     return final_loss, recon_loss, kl_loss, clf_loss
 
 
-def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, config : dict):
+def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, config : dict, predicted_label = None, true_label = None):
+    # Reconstruction loss
     recon_loss = recon_loss_function(x, x_r)
-    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # Kullback
     kl_loss = 0
     kl_loss_list = []
     for i in range(len(mu_list)):
@@ -98,7 +100,18 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
         kl_loss += tmp_kl
         kl_loss_list.append(tmp_kl)
 
-    final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # Classifier
 
-    return final_loss, recon_loss, kl_loss, kl_loss_list
+    if config['use_classifier'] and (predicted_label is not None and true_label is not None):
+        clf_loss = classifier_loss(true_label, predicted_label)
+
+        final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss + config['gamma'] * clf_loss
+
+        return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
+    else:
+
+        final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss
+
+        return final_loss, recon_loss, kl_loss, kl_loss_list
 
