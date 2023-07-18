@@ -57,8 +57,6 @@ class weighted_sum_tensor(nn.Module):
         self.mix = nn.Conv2d(depth_x1 + depth_x2, depth_output, 1)
 
     def forward(self, x1, x2):
-        print(x1.shape)
-        print(x2.shape, "\n")
         x = torch.cat([x1, x2], dim = 1)
         x = self.mix(x)
         return x
@@ -117,7 +115,7 @@ class sample_layer(nn.Module):
         """
 
         self.parameters_map_type = config['parameters_map_type']
-        self.input_shappe = list( input_shape)
+        self.input_shape = list( input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
             self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],
@@ -136,7 +134,7 @@ class sample_layer(nn.Module):
                 get_activation(config['sampling_activation']) if config['use_activation_in_sampling'] else nn.Identity(),
             )
 
-            self.input_shappe[0] = -1
+            self.input_shape[0] = -1
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
@@ -152,23 +150,24 @@ class sample_layer(nn.Module):
             x = z
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
             x = self.ff_layer(z)
-            x = x.reshape(self.input_shappe)
+            x = x.reshape(self.input_shape)
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
         return x, mean, log_var
 
-    def reparametrize(self, mu, log_var, return_as_matrix = False):
+    def reparametrize(self, mu, log_var, return_as_tensor = False):
         """
         Execute the reparametrization trick to allow gradient backpropagation
         mu = mean of the normal distribution 
         log_var = logarithm of the variance of the normal distribution
-        return_as_matrix = reshape z as matrix. Works only if self.parameters_map_type == 1
+        return_as_matrix = pass z through the ff layer and return it with the dimension of the orignal tensor. Works only if self.parameters_map_type == 1
         """
 
         z = reparametrize(mu, log_var)
 
-        if return_as_matrix: return z.reshape(self.input_shape)
+        if return_as_tensor: 
+            return self.ff_layer(z).reshape(self.input_shape)
         else: return z
 
 

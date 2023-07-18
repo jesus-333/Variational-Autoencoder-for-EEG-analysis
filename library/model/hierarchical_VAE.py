@@ -118,8 +118,6 @@ class hVAE_decoder(nn.Module):
             x = torch.zeros_like(z)
 
         for i in range(len(self.decoder)):
-            print(i, "DECODER")
-            print(z.shape)
             # Combine the z with the output of the decoder
             # In the deepest layer (i == 0) combine h with z. If h is not passed a vector of zeros is used instead
             # TODO check after training the use of identity for the i == 0 if h is not passed
@@ -145,7 +143,7 @@ class hVAE_decoder(nn.Module):
                     # For i = 0 what I want is element -2. So the correct indexing is -2-i
 
                     # "Correct" the normal distribution (section 3.2 NVAE paper)
-                    z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var, return_as_matrix = True)
+                    z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var, return_as_tensor = True)
                 
                     # Save the parameters
                     delta_mu_list.append(delta_mu)

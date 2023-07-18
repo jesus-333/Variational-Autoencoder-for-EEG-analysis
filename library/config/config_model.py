@@ -122,8 +122,9 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         convert_logvar_to_var = False,
         hidden_space_dimension_list = [64, 256, 1024],
         parameters_map_type = parameters_map_type,
-        print_var = False,
     )
+
+    config['encoder_config']['print_var'] = False
 
     return config
 
