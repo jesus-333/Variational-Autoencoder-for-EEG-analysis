@@ -57,6 +57,8 @@ class weighted_sum_tensor(nn.Module):
         self.mix = nn.Conv2d(depth_x1 + depth_x2, depth_output, 1)
 
     def forward(self, x1, x2):
+        print(x1.shape)
+        print(x2.shape)
         x = torch.cat([x1, x2], dim = 1)
         x = self.mix(x)
         return x

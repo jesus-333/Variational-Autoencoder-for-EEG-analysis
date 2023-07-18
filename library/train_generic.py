@@ -122,6 +122,7 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
     train_epoch_function, validation_epoch_function = get_train_and_validation_function(model)
     
     for epoch in range(train_config['epochs']):
+        print("\n\n", epoch)
         
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # (MANDATORY) Advance epoch, check validation loss and save the network

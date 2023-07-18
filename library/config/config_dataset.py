@@ -29,14 +29,17 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
         # Other
         n_classes = 4,
-        use_stft_representation = True,
+        use_stft_representation = False,
         subjects_list = subjects_list,
         channels_list = ['C3', 'Cz', 'C4'],
         normalize_trials = True, # TODO CHECK/REMOVE
         normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
     )
     
-    if dataset_config['use_stft_representation']: dataset_config['stft_parameters'] = get_config_stft()
+    if dataset_config['use_stft_representation']: 
+        dataset_config['stft_parameters'] = get_config_stft()
+    else:
+        del dataset_config['channels_list']
 
     return dataset_config
 

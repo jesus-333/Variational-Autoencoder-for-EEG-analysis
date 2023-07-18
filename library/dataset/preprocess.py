@@ -19,7 +19,7 @@ from ..config import config_dataset as cd
 from ..config import config_plot as cp
 from ..plot import preprocess_plot as pp_plot
 from . import download
-from . import dataset_time as ds_tims
+from . import dataset_time as ds_time
 from . import dataset_stft as ds_stft
 from . import support_function as sf
 

@@ -58,7 +58,7 @@ class EEGNet(nn.Module):
             nn.Conv2d(config['filter_1'], config['filter_1'] * D, kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
             nn.BatchNorm2d(config['filter_1'] * D),
             activation,
-            nn.AvgPool2d(config['p_kernel_1']) if config['p_kernel_1'] is not None else nn.nn.Identity(),
+            nn.AvgPool2d(config['p_kernel_1']) if config['p_kernel_1'] is not None else nn.Identity(),
             dropout
         )
 
@@ -68,7 +68,7 @@ class EEGNet(nn.Module):
             nn.Conv2d(config['filter_1'] * D, config['filter_2'], kernel_size = (1, 1), groups = 1, bias = use_bias),
             nn.BatchNorm2d(config['filter_2']),
             activation,
-            nn.AvgPool2d(config['p_kernel_2']) if config['p_kernel_2'] is not None else nn.nn.Identity(),
+            nn.AvgPool2d(config['p_kernel_2']) if config['p_kernel_2'] is not None else nn.Identity(),
             dropout 
         )
         

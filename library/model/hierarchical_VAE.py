@@ -76,7 +76,10 @@ class hvae_encoder(nn.Module):
         output_shape = []
         
         for cell in self.encoder_modules: 
+            print(x.shape)
             x = cell(x)
+            print(cell)
+            print(x.shape)
             cell_outputs.append(x)
             if return_shape: output_shape.append(x.shape)
         
@@ -136,6 +139,7 @@ class hVAE_decoder(nn.Module):
                 
                 # This section is used only during the training
                 if encoder_cell_output is not None:
+                    for el in encoder_cell_output: print("\t\t", el.shape)
                     _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-2 - i]))
                     # Note that the encoder_cell_output has ALL the output of the decoder, including the last (deepest) layer that is also the input of the decoder
                     # Due to the way the loop is structured I don't want the element corresponding to -1-i but the element corresponding to -2-i
