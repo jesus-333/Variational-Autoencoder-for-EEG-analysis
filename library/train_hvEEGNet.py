@@ -45,14 +45,17 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config):
         x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = model(x)
         
         # Loss evaluation
-        batch_train_loss = loss_function(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list)
+        batch_train_loss = loss_function(x, x_r, 
+                                         mu_list, log_var_list, 
+                                         delta_mu_list, delta_log_var_list,
+                                         train_config)
     
         # Backward/Optimization pass
-        batch_train_loss.backward()
+        batch_train_loss[0].backward()
         optimizer.step()
 
         # Accumulate the loss
-        train_loss += batch_train_loss * x.shape[0]
+        train_loss += batch_train_loss[0] * x.shape[0]
 
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
@@ -78,10 +81,12 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
             x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = model(x)
             
             # Loss evaluation
-            batch_validation_loss = loss_function(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list)
-            
+            batch_validation_loss = loss_function(x, x_r, 
+                                             mu_list, log_var_list, 
+                                             delta_mu_list, delta_log_var_list,
+                                             train_config)
             # Accumulate loss
-            validation_loss += batch_validation_loss * x.shape[0]
+            validation_loss += batch_validation_loss[0] * x.shape[0]
 
     # Compute final loss
     validation_loss = validation_loss / len(validation_loader.sampler)

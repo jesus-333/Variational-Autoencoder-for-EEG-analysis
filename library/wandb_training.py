@@ -72,15 +72,21 @@ def main_hvEEGNet_shallow():
     train_config['model_artifact_name'] = 'hvEEGNet_shallow'
 
     C = 22
-    T = 512 
+    if dataset_config['resample_data']: sf = dataset_config['resample_freq']
+    else: sf = 250
+    T = int((dataset_config['trial_end'] - dataset_config['trial_start']) * 250 )
     type_decoder = 0
     parameters_map_type = 1
     model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
     
-    model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
+    # model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
+    
+    train_config['wandb_training'] = False
+    model = train_generic.train_and_test_model('hvEEGNet_shallow', dataset_config, train_config, model_config, None)
+        
     
     return model
 
 if __name__ == '__main__':
     # model = main_EEGNet_classifier()
-    main_hvEEGNet()
+    main_hvEEGNet_shallow()

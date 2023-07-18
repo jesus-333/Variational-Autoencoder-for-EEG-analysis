@@ -43,7 +43,7 @@ def kl_loss_normal_function(mu, log_var, delta_mu = None, delta_log_var = None):
     if delta_mu is None and delta_log_var is None: # Classic KL
         return torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = dim_sum), dim = 0)
     else: # "Shifted" KL (Section 3.2 NVAE Paper)
-        return -0.5 * torch.sum(1 + delta_log_var - delta_mu ** 2 / log_var.exp() - delta_log_var.exp(), dim = dim_sum)
+        return torch.mean(-0.5 * torch.sum(1 + delta_log_var - delta_mu ** 2 / log_var.exp() - delta_log_var.exp(), dim = dim_sum), dim = 0)
 
 
 def kl_loss_function(mu_1, log_var_1, mu_2, log_var_2):
@@ -94,7 +94,7 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
             # Remember that there are 1 element less the of the shift term (i.e. delta_mu and delta_log_var) respect the mus and log_vars
             # This because the deepest layer has not a shift term
 
-        kl += tmp_kl
+        kl_loss += tmp_kl
 
     final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss
 

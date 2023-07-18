@@ -48,7 +48,7 @@ def check_hVAE_shallow():
     Function to check the absence of breaking bug during the creation and the forward pass of the shallow hierarchical vEEGNet
     """
 
-    C, T = 22, 512
+    C, T = 22, 1250
 
     type_decoder = 0
     parameters_map_type = 1

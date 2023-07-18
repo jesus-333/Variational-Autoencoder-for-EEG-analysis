@@ -108,6 +108,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
     encoder_config = get_config_EEGNet(C, T)
     encoder_config['flatten_output'] = True
     encoder_config['p_kernel_1'] = None
+    encoder_config['p_kernel_2'] = (1, 10)
     
     # Config specific for vEEGNet
     config = dict(

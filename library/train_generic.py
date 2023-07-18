@@ -49,6 +49,8 @@ import sys
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact = None):
+    torch.cuda.empty_cache()
+    
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
     
     if dataset_config['use_stft_representation']:
