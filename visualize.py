@@ -50,10 +50,12 @@ with torch.no_grad():
     for i in range(1):
         idx_trial = int(np.random.randint(0, len(train_dataset), 1))
         idx_ch =  int(np.random.randint(0, 22, 1))
-        idx_trial = 251
+        idx_trial = 33
         idx_ch = 9
         x = train_dataset[idx_trial][0]
-        x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = model(x.unsqueeze(0))
+        output = model(x.unsqueeze(0))
+        x_r = output[0]
+        # x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
         
         # f, x_r_psd = signal.welch(tmp_x_r_ch, fs = fs, nperseg = nperseg, noverlap = noverlap)
         
@@ -64,12 +66,12 @@ with torch.no_grad():
         x_plot = x.squeeze()[idx_ch]
         x_r_plot = x_r.squeeze()[idx_ch, idx_t]
         
-        x_plot = (x_plot - x_plot.mean())/x_plot.std()
-        x_r_plot = (x_r_plot - x_r_plot.mean())/x_r_plot.std()
+        # x_plot = (x_plot - x_plot.mean())/x_plot.std()
+        # x_r_plot = (x_r_plot - x_r_plot.mean())/x_r_plot.std()
         
         plt.rcParams.update({'font.size': 20})
         plt.figure(figsize = (15, 10))
-        plt.plot(t, x_plot)
+        # plt.plot(t, x_plot)
         plt.plot(t[idx_t], x_r_plot)
         plt.xlabel("Time [s]")
         plt.title("Ampiezza originale")
