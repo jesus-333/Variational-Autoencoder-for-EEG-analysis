@@ -70,7 +70,6 @@ def main_hvEEGNet_shallow():
     train_config = ct.get_config_vEEGNet_training()
     train_config['wandb_training'] = True
     train_config['model_artifact_name'] = 'hvEEGNet_shallow'
-    train_config['measure_metrics_during_training'] = False
 
     C = 22
     if dataset_config['resample_data']: sf = dataset_config['resample_freq']
@@ -80,6 +79,8 @@ def main_hvEEGNet_shallow():
     parameters_map_type = 0
     model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
     
+    train_config['measure_metrics_during_training'] = model_config['use_classifier']
+
     model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
     
     # train_config['wandb_training'] = False

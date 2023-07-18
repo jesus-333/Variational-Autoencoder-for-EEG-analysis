@@ -122,8 +122,9 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         use_activation_in_sampling = True,
         sampling_activation = 'elu',
         convert_logvar_to_var = False,
-        hidden_space_dimension_list = [32, 128, 512],
+        hidden_space_dimension_list = [32, 128, 512], # Important only if parameters_map_type = 1
         parameters_map_type = parameters_map_type,
+        use_classifier = True,
     )
 
     config['encoder_config']['print_var'] = False

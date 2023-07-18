@@ -25,15 +25,15 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         use_moabb_segmentation = False,
         # Split in train/test/validation
         seed_split = 42, # Seed for the random function used for split the dataset. Used for reproducibility
-        percentage_split_train_test = 0.7,  # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
+        percentage_split_train_test = -1,  # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
         # Other
         n_classes = 4,
         use_stft_representation = False,
         subjects_list = subjects_list,
-        channels_list = ['C3', 'Cz', 'C4'],
-        normalize_trials = True, # TODO CHECK/REMOVE
-        normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
+        channels_list = ['C3', 'Cz', 'C4'], # Used only for the STFT
+        normalize = 1, # Used in the dataset class
+        # normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
     )
     
     if dataset_config['use_stft_representation']: 

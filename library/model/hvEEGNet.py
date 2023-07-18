@@ -8,6 +8,7 @@ Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
 
+import torch
 from torch import nn
 
 from . import vEEGNet, hierarchical_VAE
@@ -22,9 +23,27 @@ class hvEEGNet_shallow(nn.Module):
 
         self.h_vae = hierarchical_VAE.hVAE(encoder_cell_list, decoder_cell_list, config)
 
+        tmp_x = torch.rand((1, 1, config['encoder_config']['C'], config['encoder_config']['T']))
+        _, mu_list, _, _, _ = self.h_vae(tmp_x)
+        n_neurons = len(mu_list[0].flatten()) * 2
+
+        self.clf = nn.Sequential(
+            nn.Linear(n_neurons, config['n_classes']),
+            nn.LogSoftmax(dim = 1),
+        )
+
+        self.use_classifier = config['use_classifier']
+
     def forward(self, x):
-        x = self.h_vae(x)
-        return x
+        output = self.h_vae(x)
+        x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = output
+
+        if self.use_classifier: 
+            z = torch.cat([mu_list[0], log_var_list[0]], dim = 1).flatten(1)
+            label = self.clf(z)
+            return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, label
+        else:
+            return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
 
     def build_cell_list(self, config : dict):
         # List to save the cell of the encoder
@@ -49,4 +68,16 @@ class hvEEGNet_shallow(nn.Module):
         return encoder_cell_list, decoder_cell_list
 
 
+    def classify(self, x, return_as_index = True):
+        """
+        Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
+        """
+
+        label = self.forward(x)
+
+        if return_as_index:
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
+
+        return label
 
