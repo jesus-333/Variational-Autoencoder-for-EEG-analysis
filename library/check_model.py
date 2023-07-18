@@ -4,11 +4,17 @@
 
 Functions used to check the creation of the various models
 """
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import torch
 
-import config_model as cm
+from config import config_model as cm
 import model as md
+
+"""
+%load_ext autoreload
+%autoreload 2
+"""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def check_vEEGNet():
@@ -24,7 +30,7 @@ def check_vEEGNet():
 
     config = cm.get_config_vEEGNet(C, T, hidden_space, type_encoder, type_decoder)
     model = md.vEEGNet(config)
-
+    
     x = torch.rand(5, 1, C, T)
     x_r, z_mean, z_log_var = model(x)
 
@@ -33,3 +39,6 @@ def check_vEEGNet():
     print(z_mean.shape)
     print(z_log_var.shape)
 
+
+def check_hVAE_shallow():
+    pass

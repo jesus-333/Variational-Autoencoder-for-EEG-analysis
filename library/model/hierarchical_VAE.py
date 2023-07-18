@@ -55,7 +55,7 @@ class hvae_encoder(nn.Module):
         last_depth = tmp_x.shape[1]
         
         # Map the output of the last layer in the mean and logsigma of the distribution
-        self.map_to_distribution_parameters = sf.map_to_distribution_parameters_with_convolution(last_depth, config['use_activation_last_layer'], config['activation'])
+        self.map_to_distribution_parameters = sf.map_to_distribution_parameters_with_convolution(last_depth, config['use_activation_in_sampling'], config['sampling_activation'])
 
         self.convert_logvar_to_var = config['convert_logvar_to_var']
 

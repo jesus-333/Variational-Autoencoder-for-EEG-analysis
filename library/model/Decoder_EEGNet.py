@@ -49,7 +49,7 @@ class EEGNet_Decoder_Upsample(nn.Module):
 
         self.separable_convolution_transpose = nn.Sequential(
             dropout,
-            nn.Upsample(scale_factor = config['p_kernel_2']),
+            nn.Upsample(scale_factor = config['p_kernel_2']) if config['p_kernel_2'] is not None else nn.Identity(),
             activation,
             nn.BatchNorm2d(config['filter_2']),
             nn.Conv2d(config['filter_1'] * D, config['filter_2'], kernel_size = (1, 1), groups = 1, bias = use_bias),
@@ -58,7 +58,7 @@ class EEGNet_Decoder_Upsample(nn.Module):
 
         self.spatial_convolution_transpose = nn.Sequential(
             dropout,
-            nn.Upsample(scale_factor = config['p_kernel_1']),
+            nn.Upsample(scale_factor = config['p_kernel_1']) if config['p_kernel_2'] is not None else nn.Identity(),
             activation,
             nn.BatchNorm2d(config['filter_1'] * D),
             nn.ConvTranspose2d(config['filter_1'] * D, config['filter_1'], kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
