@@ -13,11 +13,11 @@ Works also with similar architecture like MBEEGNet
 import torch
 
 # Config files
-import config_model as cm
-import config_dataset as cd
-import config_training as ct
+from .config import config_model as cm
+from .config import config_dataset as cd
+from .config import config_training as ct
 
-import train_generic
+from . import train_generic
     
 """
 %load_ext autoreload

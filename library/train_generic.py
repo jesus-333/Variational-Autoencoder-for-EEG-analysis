@@ -20,15 +20,13 @@ import pprint
 import wandb_support
 import metrics
 import loss_function
-from .dataset import dataset
-from .dataset import dataset_stft
 from .dataset import preprocess as pp
 
 # Config files
 from .config import config_model as cm
 from .config import config_dataset as cd
 from .config import config_training as ct
-from .config import check_config
+from . import check_config
 
 # Possible model to train
 from .model import EEGNet
@@ -37,9 +35,9 @@ from .model import vEEGNet
 from .model import hvEEGNet
 
 # Training functions for specific model
-import train_EEGNet
-import train_vEEGNet
-import .train_vEEGNet
+from . import train_EEGNet
+from . import train_vEEGNet
+from . import train_vEEGNet
     
 """
 %load_ext autoreload

@@ -15,18 +15,18 @@ import os
 import sys
 
 # Custom functions
-import wandb_support
-import metrics
-import dataset
-import vEEGNet 
+# import wandb_support
+# import metrics
+# from .dataset import dataset
+# from .model  import vEEGNet 
 
-# Config files
-import config_model as cm
-import config_dataset as cd
-import config_training as ct
-import loss_function as lf
+# # Config files
+# import config_model as cm
+# import config_dataset as cd
+# import config_training as ct
+# import loss_function as lf
 
-import train_generic
+# import train_generic
     
 """
 %load_ext autoreload

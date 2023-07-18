@@ -12,12 +12,12 @@ Script with the function to train the various network and save the results with 
 import wandb
 
 # Custom functions
-import train_generic
+from . import train_generic
 
 # Config files
-import config_model as cm
-import config_dataset as cd 
-import config_training as ct
+from .config import config_model as cm
+from .config import config_dataset as cd 
+from .config import config_training as ct
 
 """
 %load_ext autoreload
@@ -83,4 +83,5 @@ def main_hvEEGNet():
     return model
 
 if __name__ == '__main__':
-    model = main_EEGNet_classifier()
+    # model = main_EEGNet_classifier()
+    main_hvEEGNet()

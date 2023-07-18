@@ -19,7 +19,7 @@ from ..config import config_dataset as cd
 from ..config import config_plot as cp
 from ..plot import preprocess_plot as pp_plot
 from . import download
-from . import dataset as ds
+from . import dataset_time as ds_tims
 from . import dataset_stft as ds_stft
 from . import support_function as sf
 
@@ -153,9 +153,9 @@ def get_dataset_d2a(config : dict):
         test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, config)
         validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, config)
     else:
-        train_dataset       = ds.EEG_Dataset(data_train, labels_train, ch_list)
-        test_dataset        = ds.EEG_Dataset(data_test, labels_test, ch_list)
-        validation_dataset  = ds.EEG_Dataset(data_validation, labels_validation, ch_list)  
+        train_dataset       = ds_time.EEG_Dataset(data_train, labels_train, ch_list)
+        test_dataset        = ds_time.EEG_Dataset(data_test, labels_test, ch_list)
+        validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list)  
 
     return train_dataset, validation_dataset, test_dataset
         
