@@ -30,9 +30,9 @@ def check_config_dataset(config):
         config['use_moabb_segmentation'] = False
         print('use_moabb_segmentation not specified. Set to False')
 
-    if config['normalization_type'] not in config:
-        config['normalization_type'] = 0
-        print('normalization_type not specified. Set to 0 (no normalization)')
+    # if 'normalization_type not in config:
+    #     config['normalization_type'] = 0
+    #     print('normalization_type not specified. Set to 0 (no normalization)')
 
     if 'use_stft_representation' in config:
         if config['use_stft_representation'] and 'stft_parameters' not in config:

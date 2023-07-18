@@ -15,7 +15,7 @@ import torch.nn.functional as F
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Classifier loss
 
-def classifier_loss(true_label, predicted_label):
+def classifier_loss(predicted_label, true_label):
     return F.nll_loss(predicted_label, true_label)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -104,7 +104,7 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
     # Classifier
 
     if config['use_classifier'] and (predicted_label is not None and true_label is not None):
-        clf_loss = classifier_loss(true_label, predicted_label)
+        clf_loss = classifier_loss(predicted_label, true_label)
 
         final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss + config['gamma'] * clf_loss
 

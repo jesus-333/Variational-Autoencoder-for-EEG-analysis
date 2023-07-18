@@ -73,7 +73,8 @@ class hvEEGNet_shallow(nn.Module):
         Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
         """
 
-        label = self.forward(x)
+        output = self.forward(x)
+        label = output[5]
 
         if return_as_index:
             predict_prob = torch.squeeze(torch.exp(label).detach())

@@ -80,6 +80,7 @@ def main_hvEEGNet_shallow():
     model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
     
     train_config['measure_metrics_during_training'] = model_config['use_classifier']
+    train_config['use_classifier'] = model_config['use_classifier']
 
     model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
     

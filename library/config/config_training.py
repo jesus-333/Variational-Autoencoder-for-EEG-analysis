@@ -48,9 +48,9 @@ def get_config_vEEGNet_training():
         # Training settings
         batch_size = 30,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 333,                        # Number of epochs to train the model
+        epochs = 100,                        # Number of epochs to train the model
         use_scheduler = True,              # Use the lr scheduler
-        lr_decay_rate = 0.98,              # Parameter of the lr exponential scheduler
+        lr_decay_rate = 0.99,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,
         beta = 1,
@@ -67,7 +67,7 @@ def get_config_vEEGNet_training():
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
         project_name = "ICT4AWE_Extension",
-        model_artifact_name = "MBEEGNet_test",    # Name of the artifact used to save the models
+        model_artifact_name = "TMP_NAME",    # Name of the artifact used to save the models
         log_freq = 1,
         notes = "",
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)

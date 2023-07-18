@@ -58,7 +58,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
                                          mu_list, log_var_list, 
                                          delta_mu_list, delta_log_var_list,
                                          train_config,
-                                         true_label, predict_label)
+                                         predict_label, true_label)
     
         # Backward/Optimization pass
         batch_train_loss[0].backward()
@@ -68,7 +68,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
         train_loss += batch_train_loss[0] * x.shape[0]
         recon_loss += batch_train_loss[1] * x.shape[0]
         kl_loss    += batch_train_loss[2] * x.shape[0]
-        if train_config['use_classifier']: clf_loss += batch_train_loss[3] * x.shape[0]
+        if train_config['use_classifier']: clf_loss += batch_train_loss[4] * x.shape[0]
 
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
@@ -77,13 +77,13 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
     if train_config['use_classifier']: clf_loss /= len(train_loader.sampler)
 
     if log_dict is not None:
-        log_dict['train_loss'] = train_loss
-        log_dict['train_loss_recon'] = recon_loss
-        log_dict['train_kl_loss'] = kl_loss
+        log_dict['train_loss'] = float(train_loss)
+        log_dict['train_loss_recon'] = float(recon_loss)
+        log_dict['train_kl_loss'] = float(kl_loss)
         # for i in range(len(train_loss[3])):
         #     kl_loss = train_loss[3][i]
         #     log_dict['train_loss_recon_{}'.format(i+1)] = kl_loss
-        if train_config['use_classifier']:  log_dict['train_loss_clf'] = clf_loss
+        if train_config['use_classifier']:  log_dict['train_loss_clf'] = float(clf_loss)
         print("TRAIN LOSS")
         pprint.pprint(log_dict)
     
@@ -125,7 +125,7 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
             validation_loss += batch_validation_loss[0] * x.shape[0]
             recon_loss      += batch_validation_loss[1] * x.shape[0]
             kl_loss         += batch_validation_loss[2] * x.shape[0]
-            if train_config['use_classifier']: clf_loss += batch_validation_loss[3] * x.shape[0]
+            if train_config['use_classifier']: clf_loss += batch_validation_loss[4] * x.shape[0]
 
     # Compute final loss
     validation_loss = validation_loss / len(validation_loader.sampler)
@@ -134,13 +134,13 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
     if train_config['use_classifier']: clf_loss /= len(validation_loader.sampler)
     
     if log_dict is not None:
-        log_dict['validation_loss'] = validation_loss
-        log_dict['validation_loss_recon'] = recon_loss
-        log_dict['validation_kl_loss'] = kl_loss
+        log_dict['validation_loss'] = float(validation_loss)
+        log_dict['validation_loss_recon'] = float(recon_loss)
+        log_dict['validation_kl_loss'] = float(kl_loss)
         # for i in range(len(validation_loss[3])):
         #     kl_loss = validation_loss[3][i]
         #     log_dict['validation_loss_recon_{}'.format(i+1)] = validation_loss
-        if train_config['use_classifier']:  log_dict['validation_loss_clf'] = clf_loss
+        if train_config['use_classifier']:  log_dict['validation_loss_clf'] = float(clf_loss)
         print("VALIDATION LOSS")
         pprint.pprint(log_dict)
     

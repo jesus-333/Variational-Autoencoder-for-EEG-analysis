@@ -49,7 +49,7 @@ class EEG_Dataset(Dataset):
         """
         Normalize the entire dataset between a and b.
         """
-        self.data = (self.data - self.data.min()) / (self.data.max() - self.data.min()) * (b - a + a)
+        self.data = ((self.data - self.data.min()) / (self.data.max() - self.data.min())) * (b - a) + a 
 
 
     def normalize_channel_by_channel(self, a, b):
