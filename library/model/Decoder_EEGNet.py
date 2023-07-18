@@ -12,7 +12,7 @@ import torch
 from torch import nn
 import numpy as np
 
-from .. import support_function
+from . import support_function
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

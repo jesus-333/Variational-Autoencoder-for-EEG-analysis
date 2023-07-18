@@ -2,14 +2,15 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Functions used to check the creation of the various models
+Functions used to check the creation of the various models and the forward step
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import torch
 
-from config import config_model as cm
-import model as md
+# from . import config 
+from .config import config_model as cm
+from .model import vEEGNet
 
 """
 %load_ext autoreload
@@ -28,11 +29,11 @@ def check_vEEGNet():
     type_encoder = 0
     type_decoder = 0
 
-    config = cm.get_config_vEEGNet(C, T, hidden_space, type_encoder, type_decoder)
-    model = md.vEEGNet(config)
+    model_config = cm.get_config_vEEGNet(C, T, hidden_space, type_encoder, type_decoder)
+    model = vEEGNet.vEEGNet(model_config)
     
     x = torch.rand(5, 1, C, T)
-    x_r, z_mean, z_log_var = model(x)
+    x_r, z_mean, z_log_var, predict_labels = model(x)
 
     print("Input shape : ", x.shape)
     print("Output shape: ", x_r.shape)
@@ -41,4 +42,8 @@ def check_vEEGNet():
 
 
 def check_hVAE_shallow():
-    pass
+    """
+    Function to check the absence of breaking bug during the creation and the forward pass of the shallow hierarchical vEEGNet
+    """
+
+    C, T = 22, 512

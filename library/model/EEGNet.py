@@ -84,7 +84,7 @@ class EEGNet(nn.Module):
             print("\tNumber of trainable parameters (Block 1 - Temporal) = {}".format(support_function.count_trainable_parameters(self.temporal_filter)))
             print("\tNumber of trainable parameters (Block 1 - Spatial)  = {}".format(support_function.count_trainable_parameters(self.spatial_filter)))
             print("\tNumber of trainable parameters (Block 2)            = {}\n".format(support_function.count_trainable_parameters(self.separable_convolution)))
-            self.debug_shape(config['input_size'])
+            if 'input_size' in config: self.debug_shape(config['input_size'])
 
 
     def forward(self, x):

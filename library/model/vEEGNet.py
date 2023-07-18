@@ -87,13 +87,14 @@ class vEEGNet(nn.Module):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Decoder
-
         x_r = self.decoder(z)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Classifier
         
-        predicted_label = self.classifier(torch.cat((z_mean, z_log_var), 0))
+        # Note that since the input of the classifier are vector their size is "Batch x n_elements"
+        # So the concatenation will be along the dimension with index 1
+        predicted_label = self.classifier(torch.cat((z_mean, z_log_var), 1))
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

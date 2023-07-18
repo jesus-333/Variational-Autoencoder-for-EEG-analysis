@@ -103,14 +103,14 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
 
     return config
 
-def get_config_hierarchical_vEEGNet(C : int, T : int, hidden_space : int, type_decoder : int) -> dict:
+def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int) -> dict:
     # Get the config for the encoder (used also for the decoder)
     encoder_config = get_config_EEGNet(C, T)
     encoder_config['flatten_output'] = True
     
     # Config specific for vEEGNet
     config = dict(
-        hidden_space = hidden_space, 
+        hidden_space = 1, # Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
         encoder_config = encoder_config, # Used also for the decoder
         type_decoder = type_decoder, # N.b. specified the architecture of decoder 
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
