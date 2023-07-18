@@ -7,8 +7,8 @@ Functions used to check the creation of the various models and the forward step
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import torch
+import time
 
-# from . import config 
 from .config import config_model as cm
 from .model import vEEGNet, hvEEGNet
 
@@ -52,10 +52,20 @@ def check_hVAE_shallow():
 
     type_decoder = 0
     parameters_map_type = 1
-
+    
+    start = time.time()
     model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
     model = hvEEGNet.hvEEGNet_shallow(model_config)
+    print("Model creation: {:0.4f}s".format(time.time() - start))
 
+    start = time.time()
     x = torch.rand(5, 1, C, T)
     output = model(x)
+    print("Forward step : {:0.4f}s (cpu)".format(time.time() - start))
 
+    if torch.cuda.is_available():
+        x = x.to('cuda')
+        model.to('cuda')
+        start = time.time()
+        output = model(x)
+        print("Forward step : {:0.4f}s (cuda)".format(time.time() - start))
