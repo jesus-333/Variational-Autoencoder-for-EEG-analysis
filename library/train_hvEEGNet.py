@@ -64,11 +64,13 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
 
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
+    recon_loss = recon_loss / len(train_loader.sampler)
+    kl_loss = kl_loss / len(train_loader.sampler)
     
     if log_dict is not None:
         log_dict['train_loss'] = train_loss
         log_dict['train_loss_recon'] = recon_loss
-        log_dict['kl_loss'] = kl_loss
+        log_dict['train_kl_loss'] = kl_loss
         # for i in range(len(train_loss[3])):
         #     kl_loss = train_loss[3][i]
         #     log_dict['train_loss_recon_{}'.format(i+1)] = kl_loss
@@ -109,11 +111,13 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
 
     # Compute final loss
     validation_loss = validation_loss / len(validation_loader.sampler)
+    recon_loss = recon_loss / len(validation_loader.sampler)
+    kl_loss = kl_loss / len(validation_loader.sampler)
     
     if log_dict is not None:
         log_dict['validation_loss'] = validation_loss
         log_dict['validation_loss_recon'] = recon_loss
-        log_dict['validationkl_loss'] = kl_loss
+        log_dict['validation_kl_loss'] = kl_loss
         # for i in range(len(validation_loss[3])):
         #     kl_loss = validation_loss[3][i]
         #     log_dict['validation_loss_recon_{}'.format(i+1)] = validation_loss

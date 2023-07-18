@@ -11,9 +11,9 @@ Contain the config for the various models
 def get_config_EEGNet(C : int, T : int) -> dict:
     config = dict(
         # Convolution: kernel size
-        c_kernel_1 = (1, 64),
+        c_kernel_1 = (1, 125),
         c_kernel_2 = (C, 1),
-        c_kernel_3 = (1, 16),
+        c_kernel_3 = (1, 32),
         # Convolution: number of filter
         filter_1 = 8,
         filter_2 = 16,
