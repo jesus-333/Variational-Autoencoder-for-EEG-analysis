@@ -22,7 +22,7 @@ import dataset as ds
 
 class EEG_Dataset(Dataset):
 
-    def __init__(self, data, labels, ch_list, normalize = False):
+    def __init__(self, data, labels, ch_list, normalize = -1):
         """
         data = data used for the dataset. Must have shape [Trials x 1 x channels x time samples]
         Note that if you use normale EEG data depth dimension (the second axis) has value 1. 
@@ -34,7 +34,9 @@ class EEG_Dataset(Dataset):
         self.ch_list = ch_list
         
         # (OPTIONAL) Normalize
-        if normalize:
+        if normalize == 1:
+            self.minmax_normalize_all_dataset(-1, 1)
+        elif normalize == 2:
             self.normalize_channel_by_channel(-1, 1)
             
     def __getitem__(self, idx : int):
@@ -42,7 +44,14 @@ class EEG_Dataset(Dataset):
     
     def __len__(self):
         return len(self.labels)
-    
+
+    def minmax_normalize_all_dataset(self, a, b):
+        """
+        Normalize the entire dataset between a and b.
+        """
+        self.data = (self.data - self.data.min()) / (self.data.max() - self.data.min()) * (b - a + a)
+
+
     def normalize_channel_by_channel(self, a, b):
         """
         Normalize each channel so the value are between a and b
