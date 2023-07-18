@@ -86,6 +86,7 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
     recon_loss = recon_loss_function(x, x_r)
     
     kl_loss = 0
+    kl_loss_list = []
     for i in range(len(mu_list)):
         if i == 0:
             tmp_kl = kl_loss_normal_function(mu_list[i], log_var_list[i])
@@ -95,8 +96,9 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
             # This because the deepest layer has not a shift term
 
         kl_loss += tmp_kl
+        kl_loss_list.append(tmp_kl)
 
     final_loss = config['alpha'] * recon_loss + config['beta'] * kl_loss
 
-    return final_loss, recon_loss, kl_loss
+    return final_loss, recon_loss, kl_loss, kl_loss_list
 

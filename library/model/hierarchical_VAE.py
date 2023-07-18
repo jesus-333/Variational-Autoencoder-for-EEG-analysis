@@ -74,7 +74,6 @@ class hvae_encoder(nn.Module):
         # List with the output of each cell of the encoder
         cell_outputs = []
         output_shape = []
-        
         for cell in self.encoder_modules: 
             x = cell(x)
             cell_outputs.append(x)

@@ -166,7 +166,7 @@ class sample_layer(nn.Module):
 
         z = reparametrize(mu, log_var)
 
-        if return_as_tensor: 
+        if return_as_tensor and self.parameters_map_type == 1: 
             return self.ff_layer(z).reshape(self.input_shape)
         else: return z
 

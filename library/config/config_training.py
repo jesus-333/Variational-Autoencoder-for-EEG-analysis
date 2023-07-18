@@ -47,10 +47,10 @@ def get_config_vEEGNet_training():
     config = dict(
         # Training settings
         batch_size = 30,                    
-        lr = 1e-3,                          # Learning rate (lr)
-        epochs = 10,                        # Number of epochs to train the model
+        lr = 1e-2,                          # Learning rate (lr)
+        epochs = 333,                        # Number of epochs to train the model
         use_scheduler = True,              # Use the lr scheduler
-        lr_decay_rate = 0.995,              # Parameter of the lr exponential scheduler
+        lr_decay_rate = 0.98,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,
         beta = 1,

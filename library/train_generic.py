@@ -49,7 +49,7 @@ import sys
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact = None):
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
     
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
     
@@ -94,7 +94,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
     
     # TODO
-    test(model, test_dataloader, train_config)
+    # test(model, test_dataloader, train_config)
 
     return model
 
@@ -123,15 +123,14 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
 
     train_epoch_function, validation_epoch_function = get_train_and_validation_function(model)
     
-    for epoch in range(train_config['epochs']):
-        print("\n\n", epoch)
-        
+    for epoch in range(train_config['epochs']):     
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # (MANDATORY) Advance epoch, check validation loss and save the network
 
         # Advance epoch for train set (backward pass) and validation (no backward pass)
-        train_loss      = train_epoch_function(model, loss_function, optimizer, train_loader, train_config)
-        validation_loss = validation_epoch_function(model, loss_function, validation_loader, train_config)
+        # TODO add log dict to eegnet train/val function
+        train_loss      = train_epoch_function(model, loss_function, optimizer, train_loader, train_config, log_dict)
+        validation_loss = validation_epoch_function(model, loss_function, validation_loader, train_config, log_dict)
         
         # Save the new BEST model if a new minimum is reach for the validation loss
         if validation_loss < best_loss_val:

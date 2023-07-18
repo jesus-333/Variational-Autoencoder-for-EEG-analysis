@@ -108,7 +108,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
     encoder_config = get_config_EEGNet(C, T)
     encoder_config['flatten_output'] = True
     encoder_config['p_kernel_1'] = None
-    encoder_config['p_kernel_2'] = (1, 10)
+    encoder_config['p_kernel_2'] = (1, 25)
     
     # Config specific for vEEGNet
     config = dict(
@@ -122,7 +122,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         use_activation_in_sampling = True,
         sampling_activation = 'elu',
         convert_logvar_to_var = False,
-        hidden_space_dimension_list = [64, 256, 1024],
+        hidden_space_dimension_list = [32, 128, 512],
         parameters_map_type = parameters_map_type,
     )
 
