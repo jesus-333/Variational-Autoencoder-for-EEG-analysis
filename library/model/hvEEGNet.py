@@ -8,7 +8,6 @@ Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
 
-import torch
 from torch import nn
 
 from . import vEEGNet, hierarchical_VAE
@@ -21,7 +20,7 @@ class hvEEGNet_shallow(nn.Module):
 
         encoder_cell_list, decoder_cell_list = self.build_cell_list(config)
 
-        self.h_vae = hierarchical_VAE.hierarchical_VAE(encoder_cell_list, decoder_cell_list, config)
+        self.h_vae = hierarchical_VAE.hVAE(encoder_cell_list, decoder_cell_list, config)
 
     def forward(self, x):
         x = self.h_vae(x)

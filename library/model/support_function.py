@@ -57,6 +57,8 @@ class weighted_sum_tensor(nn.Module):
         self.mix = nn.Conv2d(depth_x1 + depth_x2, depth_output, 1)
 
     def forward(self, x1, x2):
+        print(x1.shape)
+        print(x2.shape, "\n")
         x = torch.cat([x1, x2], dim = 1)
         x = self.mix(x)
         return x
@@ -115,23 +117,23 @@ class sample_layer(nn.Module):
         """
 
         self.parameters_map_type = config['parameters_map_type']
-        self.input_shappe = input_shape
+        self.input_shappe = list( input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
             self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],
-                                                                               use_activation = config['use_activation_in_decoder_distribution_map'], 
-                                                                               activation = config['activation'])
+                                                                               use_activation = config['use_activation_in_sampling'], 
+                                                                               activation = config['sampling_activation'])
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
             self.parameters_map = map_to_distribution_parameters_with_vector(hidden_space_dimension = hidden_space_dimension,
                                                                           input_shape = input_shape,
-                                                                          use_activation = config['use_activation_in_decoder_distribution_map'], 
-                                                                          activation = config['activation'])
+                                                                          use_activation = config['use_activation_in_sampling'], 
+                                                                          activation = config['sampling_activation'])
             n_neurons_input = hidden_space_dimension
             n_neurons_output = input_shape[1] * input_shape[2] * input_shape[3]
             
             self.ff_layer = nn.Sequential(
                 nn.Linear(n_neurons_input, n_neurons_output),
-                get_activation(config['activation']) if config['use_activation'] else nn.Identity(),
+                get_activation(config['sampling_activation']) if config['use_activation_in_sampling'] else nn.Identity(),
             )
 
             self.input_shappe[0] = -1
@@ -147,23 +149,27 @@ class sample_layer(nn.Module):
         z = self.reparametrize(mean, log_var)
 
         if self.parameters_map_type == 0: # Convolution
+            x = z
+        elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
             x = self.ff_layer(z)
             x = x.reshape(self.input_shappe)
-        elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
-            x = z
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
         return x, mean, log_var
 
-    def reparametrize(self, mu, log_var):
+    def reparametrize(self, mu, log_var, return_as_matrix = False):
         """
         Execute the reparametrization trick to allow gradient backpropagation
         mu = mean of the normal distribution 
         log_var = logarithm of the variance of the normal distribution
+        return_as_matrix = reshape z as matrix. Works only if self.parameters_map_type == 1
         """
 
-        return reparametrize(mu, log_var)
+        z = reparametrize(mu, log_var)
+
+        if return_as_matrix: return z.reshape(self.input_shape)
+        else: return z
 
 
 def reparametrize(mu, log_var):
@@ -172,7 +178,7 @@ def reparametrize(mu, log_var):
     mu = mean of the normal distribution 
     log_var = logarithm of the variance of the normal distribution
     """
-    sigma = torch.exp(0.5, log_var)
+    sigma = torch.exp(0.5 * log_var)
 
     eps = torch.randn_like(sigma)
     eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
