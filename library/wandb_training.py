@@ -28,7 +28,7 @@ import sys
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def train_wandb_EEGNet(dataset_config, train_config, model_config):
+def train_wandb(model_name, dataset_config, train_config, model_config):
     notes = train_config['notes']
 
     wandb_config = dict(
@@ -45,7 +45,7 @@ def train_wandb_EEGNet(dataset_config, train_config, model_config):
                                         description = "Trained {} model".format(train_config['model_artifact_name']),
                                         metadata = metadata)
 
-        model = train_generic.train_and_test_model('EEGNet', dataset_config, train_config, model_config, model_artifact)
+        model = train_generic.train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact)
         
         return model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -60,7 +60,25 @@ def main_EEGNet_classifier():
     T = 512 
     model_config = cm.get_config_EEGNet_stft_classifier(C, T, 22)
     
-    model = train_wandb_EEGNet(dataset_config, train_config, model_config)
+    model = train_wandb('EEGNet', dataset_config, train_config, model_config)
+    
+    return model
+
+def main_hvEEGNet():
+    dataset_config = cd.get_moabb_dataset_config([3])
+    
+    train_config = ct.get_config_vEEGNet_training()
+    train_config['wandb_training'] = True
+    train_config['model_name'] = 'hvEEGNet'
+    train_config['model_artifact_name'] = 'hvEEGNet_v1'
+
+    C = 22
+    T = 512 
+    type_decoder = 0
+    parameters_map_type = 1
+    model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
+    
+    model = train_wandb('hvEEGNet', dataset_config, train_config, model_config)
     
     return model
 

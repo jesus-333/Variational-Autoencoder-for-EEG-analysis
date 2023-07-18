@@ -19,25 +19,27 @@ import pprint
 # Custom functions
 import wandb_support
 import metrics
-import dataset
-import dataset_stft
 import loss_function
-import preprocess as pp
+from .dataset import dataset
+from .dataset import dataset_stft
+from .dataset import preprocess as pp
 
 # Config files
-import config_model as cm
-import config_dataset as cd
-import config_training as ct
-import check_config
+from .config import config_model as cm
+from .config import config_dataset as cd
+from .config import config_training as ct
+from .config import check_config
 
 # Possible model to train
-import EEGNet
-import MBEEGNet
-import vEEGNet
+from .model import EEGNet
+from .model import MBEEGNet
+from .model import vEEGNet
+from .model import hvEEGNet
 
 # Training functions for specific model
 import train_EEGNet
 import train_vEEGNet
+import .train_vEEGNet
     
 """
 %load_ext autoreload
@@ -210,6 +212,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return MBEEGNet.MBEEGNet_Classifier(model_config)
     elif model_name == 'vEEGNet':
         return vEEGNet.vEEGNet(model_config)
+    elif model_name == 'hvEEGNet':
+        return hvEEGNet.hvEEGNet(model_config)
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -218,6 +222,8 @@ def get_loss_function(model_name):
         return torch.nn.NLLLoss()
     elif model_name == 'vEEGNet':
         return loss_function.vEEGNet_loss 
+    elif model_name == 'hvEEGNet':
+        return loss_function.hvEEGNet_loss
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -228,6 +234,8 @@ def get_train_and_validation_function(model):
         return train_EEGNet.train_epoch, train_EEGNet.validation_epoch
     elif 'vEEGNet.vEEGNet' in str(type(model)):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
+    elif 'hvEEGNet.hvEEGNet' in str(type(model)):
+        return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")
 

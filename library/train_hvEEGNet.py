@@ -15,8 +15,6 @@ import torch
 from .config import config_model as cm
 from .config import config_dataset as cd
 from .config import config_training as ct
-
-import train_generic
     
 """
 %load_ext autoreload
@@ -91,3 +89,9 @@ def validation_epoch(model, loss_function, validation_loader, train_config):
     return validation_loss
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()

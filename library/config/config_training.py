@@ -75,9 +75,10 @@ def get_config_vEEGNet_training():
 
     return config
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Sweep 
 
-def get_config_sweep(metric_name, metric_goal):
+def get_config_sweep_EEGNet_classifier(metric_name, metric_goal):
     if metric_goal != 'maximize' and metric_goal != 'minimize':
         raise ValueError('The metric_goal parameter must have value \'maximize\' or \'minimize\'')
 
