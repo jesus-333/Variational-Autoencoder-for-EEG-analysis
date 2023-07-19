@@ -15,11 +15,13 @@ import scipy.signal as signal
 from library.config import config_dataset as cd
 from library.config import config_model as cm
 from library.dataset import preprocess as pp
-import library.train_generic as train_generic
+import library.training.train_generic as train_generic
 
 #%%
 
-dataset_config = cd.get_moabb_dataset_config([3])
+subj = [2]
+
+dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
 
 C = 22
@@ -39,29 +41,43 @@ model.to(device)
 
 #%%
 
+tmp_dataset = test_dataset
+
 epoch = 'BEST'
-path_weight = 'TMP_Folder/primo_training/model_{}.pth'.format(epoch)
+path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
+
 # path_weight = 'TMP_Folder/model_BEST_2.pth'
+# path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
+path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
 
 model.load_state_dict(torch.load(path_weight))
 
 # subj 3 idx --> label  
-# 12 --> 0 (left), 33 --> 1 (right), 9 --> 2 (tongue) 254 --> 3 (tongue)
+# 12 --> 0 (left), 33 --> 1 (right), 9 --> 2 (foot) 254 --> 3 (tongue)
+
+label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'togue' }
+label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'togue' : -1 }
 
 with torch.no_grad():
-    for i in range(1):
-        idx_trial = int(np.random.randint(0, len(train_dataset), 1))
-        idx_ch =  int(np.random.randint(0, 22, 1))
-        idx_trial = 33
-        idx_ch = 7
-        x = train_dataset[idx_trial][0]
+    for i in range(33):
+        # idx_trial = 33
+        # idx_ch = 7
+        # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
+        # idx_ch =  int(np.random.randint(0, 22, 1))
+        # x = tmp_dataset[idx_trial][0]
+        
+        idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
+        x = tmp_dataset[idx_trial][0]
+        label = label_dict[int(tmp_dataset[idx_trial][1])]
+        if label == 'tongue': pass
+        idx_ch = label_to_ch[label]
+        
         output = model(x.unsqueeze(0))
         x_r = output[0]
-        # x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
-        
+                
         
         t = np.linspace(2, 7, x.shape[-1])
-        idx_t = np.logical_and(t > 5, t < 6)
+        idx_t = np.logical_and(t > 2, t < 6)
         # idx_t = np.ones(len(t)) == 1
         
         x_plot = x.squeeze()[idx_ch, idx_t]
@@ -72,10 +88,11 @@ with torch.no_grad():
         
         plt.rcParams.update({'font.size': 20})
         plt.figure(figsize = (15, 10))
-        plt.plot(t[idx_t], x_plot)
-        plt.plot(t[idx_t], x_r_plot * 250 - 125)
+        plt.plot(t[idx_t], x_plot, label = 'Original Signal')
+        plt.plot(t[idx_t], x_r_plot, label = 'Reconstructed Signal')
         plt.xlabel("Time [s]")
-        plt.title("Ampiezza originale")
+        plt.title("Subj {} - Trial {} - Label: {} - Ch: {}".format(subj[0], idx_trial, label, tmp_dataset.ch_list[idx_ch]))
+        plt.legend()
         plt.grid(True)
         plt.show()
         

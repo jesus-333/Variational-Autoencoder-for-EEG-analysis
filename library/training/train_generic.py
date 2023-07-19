@@ -70,7 +70,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     model.to(train_config['device'])
     
     # Declare loss function
-    loss_function = get_loss_function(model_name)
+    loss_function = get_loss_function(model_name, train_config)
 
     # Setup optimizer
     optimizer = torch.optim.AdamW(model.parameters(), 
@@ -223,7 +223,7 @@ def get_loss_function(model_name, config = None):
     elif model_name == 'vEEGNet':
         return loss_function.vEEGNet_loss 
     elif model_name == 'hvEEGNet_shallow':
-        return loss_function.hvEEGNet_loss
+        return loss_function.hvEEGNet_loss(config)
     else:
         raise ValueError("Type of the model not recognized")
 

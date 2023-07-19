@@ -165,16 +165,16 @@ class hvEEGNet_loss():
         
     def compute_recon_loss(self, x, x_r):
         # (OPTIONAL) Remove sample from border (could contain artifacts due to padding)
-        x = x[:, :, : self.edge_samples_ignored:-1-self.edge_samples_ignored]
-        x_r = x_r[:, :, : self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        x = x[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        x_r = x_r[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
         elif self.recon_loss_type == 1: # SDTW
             recon_loss = 0
             for i in range(x.shape[2]): # Iterate through EEG Channels
-                x_ch = x[:, 0, i, :].swapaxes(1,2)
-                x__r_ch = x_r[:, 0, i, :].swapaxes(1,2)
+                x_ch = x[:, :, i, :].swapaxes(1,2)
+                x__r_ch = x_r[:, :, i, :].swapaxes(1,2)
                 # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
                 # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
                 
