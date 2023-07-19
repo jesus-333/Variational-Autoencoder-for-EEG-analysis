@@ -32,7 +32,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         use_stft_representation = False,
         subjects_list = subjects_list,
         channels_list = ['C3', 'Cz', 'C4'], # Used only for the STFT
-        normalize = 1, # Used in the dataset class
+        normalize = 0, # Used in the dataset class
         # normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
     )
     
