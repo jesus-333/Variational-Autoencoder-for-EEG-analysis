@@ -308,10 +308,10 @@ class SoftDTW(torch.nn.Module):
         assert dx == dy  # Equal feature dimensions
 
         use_cuda = self.use_cuda
-
-        if use_cuda and (lx > 1024 or ly > 1024):  # We should be able to spawn enough threads in CUDA
-                print("SoftDTW: Cannot use CUDA because the sequence length > 1024 (the maximum block size supported by CUDA)")
-                use_cuda = False
+        
+        # if use_cuda and (lx > 1024 or ly > 1024):  # We should be able to spawn enough threads in CUDA
+        #     print("SoftDTW: Cannot use CUDA because the sequence length > 1024 (the maximum block size supported by CUDA)")
+        #     use_cuda = False
 
         # Finally, return the correct function
         return _SoftDTWCUDA.apply if use_cuda else _SoftDTW.apply

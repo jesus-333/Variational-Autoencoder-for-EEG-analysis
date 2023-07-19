@@ -217,7 +217,7 @@ def get_untrained_model(model_name : str, model_config : dict):
     else:
         raise ValueError("Type of the model not recognized")
 
-def get_loss_function(model_name):
+def get_loss_function(model_name, config = None):
     if model_name == 'EEGNet' or model_name == 'MBEEGNet':
         return torch.nn.NLLLoss()
     elif model_name == 'vEEGNet':

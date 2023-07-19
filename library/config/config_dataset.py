@@ -21,7 +21,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         resample_freq = 128,
         # Trial segmentation
         trial_start = 2, # Time (in seconds) when the trial starts
-        trial_end = 7, # Time (in seconds) when the trial end
+        trial_end = 6, # Time (in seconds) when the trial end
         use_moabb_segmentation = False,
         # Split in train/test/validation
         seed_split = 42, # Seed for the random function used for split the dataset. Used for reproducibility

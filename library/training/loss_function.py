@@ -12,7 +12,11 @@ List of loss function used during training.
 import torch
 import torch.nn.functional as F
 
+from .soft_dtw_cuda import SoftDTW
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Losses declaration
+
 # Classifier loss
 
 def classifier_loss(predicted_label, true_label):
@@ -52,6 +56,23 @@ def kl_loss_function(mu_1, log_var_1, mu_2, log_var_2):
     """
     pass
 
+def hierarchical_KL(mu_list, log_var_list, delta_mu_list, delta_log_var_list):
+    # Kullback
+    kl_loss = 0
+    kl_loss_list = []
+    for i in range(len(mu_list)):
+        if i == 0:
+            tmp_kl = kl_loss_normal_function(mu_list[i], log_var_list[i])
+        else:
+            tmp_kl = kl_loss_normal_function(mu_list[i], log_var_list[i], delta_mu_list[i - 1], delta_log_var_list[i - 1])
+            # Remember that there are 1 element less the of the shift term (i.e. delta_mu and delta_log_var) respect the mus and log_vars
+            # This because the deepest layer has not a shift term
+
+        kl_loss += tmp_kl
+        kl_loss_list.append(tmp_kl)
+        
+    return kl_loss, kl_loss_list
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # VAE loss
 
@@ -86,19 +107,8 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
     # Reconstruction loss
     recon_loss = recon_loss_function(x, x_r)
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-    # Kullback
-    kl_loss = 0
-    kl_loss_list = []
-    for i in range(len(mu_list)):
-        if i == 0:
-            tmp_kl = kl_loss_normal_function(mu_list[i], log_var_list[i])
-        else:
-            tmp_kl = kl_loss_normal_function(mu_list[i], log_var_list[i], delta_mu_list[i - 1], delta_log_var_list[i - 1])
-            # Remember that there are 1 element less the of the shift term (i.e. delta_mu and delta_log_var) respect the mus and log_vars
-            # This because the deepest layer has not a shift term
-
-        kl_loss += tmp_kl
-        kl_loss_list.append(tmp_kl)
+    # Kullback        
+    kl_loss, kl_loss_list = hierarchical_KL(mu_list, log_var_list, delta_mu_list, delta_log_var_list)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Classifier
@@ -115,3 +125,63 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
 
         return final_loss, recon_loss, kl_loss, kl_loss_list
 
+
+class hvEEGNet_loss():
+    
+    def __init__(self, config : dict):
+        # Reconstruction loss
+        if config['recon_loss_type'] == 0: # L2 loss
+            self.recon_loss_function = recon_loss_function
+        elif config['recon_loss_type'] == 1: # Soft-DTW 
+            gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
+            self.recon_loss_function = SoftDTW(use_cuda = torch.cuda.is_available(), gamma = gamma_dtw)
+        self.recon_loss_type = config['recon_loss_type']
+        
+        self.edge_samples_ignored = config['edge_samples_ignored'] if 'edge_samples_ignored' in config else 0
+        if self.edge_samples_ignored < 0: self.edge_samples_ignored = 0
+            
+        # Kullback
+        self.kl_loss_function = hierarchical_KL
+        
+        # Classifier loss
+        self.clf_loss_function = classifier_loss
+        
+        # Hyperparameter for the various part of the loss
+        self.alpha = config['alpha'] if 'alpha' in config else 1 # Recon
+        self.beta = config['beta'] if 'beta' in config else 1    # KL
+        self.gamma = config['gamma'] if 'gamma' in config else 1 # Clf
+        
+    def compute_loss(self, x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, predicted_label = None, true_label = None):
+        recon_loss = self.compute_recon_loss(x, x_r)
+        kl_loss, kl_loss_list = self.kl_loss_function(mu_list, log_var_list, delta_mu_list, delta_log_var_list) 
+        
+        if predicted_label is not None and true_label is not None:
+            clf_loss = classifier_loss(predicted_label, true_label)
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
+            return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
+        else:
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
+            return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
+        
+    def compute_recon_loss(self, x, x_r):
+        # (OPTIONAL) Remove sample from border (could contain artifacts due to padding)
+        x = x[:, :, : self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        x_r = x_r[:, :, : self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        
+        if self.recon_loss_type == 0: # Mean Squere Error (L2)
+            recon_loss = self.recon_loss_function(x, x_r)
+        elif self.recon_loss_type == 1: # SDTW
+            recon_loss = 0
+            for i in range(x.shape[2]): # Iterate through EEG Channels
+                x_ch = x[:, 0, i, :].swapaxes(1,2)
+                x__r_ch = x_r[:, 0, i, :].swapaxes(1,2)
+                # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+                # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+                
+                tmp_recon_loss = self.recon_loss_function(x_ch, x__r_ch)
+                
+                recon_loss += tmp_recon_loss.mean()
+        else:
+            raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
+            
+        return recon_loss

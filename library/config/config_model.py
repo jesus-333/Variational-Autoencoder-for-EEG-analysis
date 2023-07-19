@@ -11,9 +11,9 @@ Contain the config for the various models
 def get_config_EEGNet(C : int, T : int) -> dict:
     config = dict(
         # Convolution: kernel size
-        c_kernel_1 = (1, 64),
+        c_kernel_1 = (1, 128),
         c_kernel_2 = (C, 1),
-        c_kernel_3 = (1, 16),
+        c_kernel_3 = (1, 32),
         # Convolution: number of filter
         filter_1 = 8,
         filter_2 = 16,
@@ -124,7 +124,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         convert_logvar_to_var = False,
         hidden_space_dimension_list = [32, 128, 512], # Important only if parameters_map_type = 1
         parameters_map_type = parameters_map_type,
-        use_classifier = False,
+        use_classifier = True,
     )
 
     config['encoder_config']['print_var'] = False

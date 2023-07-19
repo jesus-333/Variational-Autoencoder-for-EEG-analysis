@@ -48,13 +48,15 @@ def get_config_vEEGNet_training():
         # Training settings
         batch_size = 30,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 1,                        # Number of epochs to train the model
+        epochs = 10,                        # Number of epochs to train the model
         use_scheduler = True,              # Use the lr scheduler
         lr_decay_rate = 0.99,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,
         beta = 1,
         gamma = 1,
+        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW)
+        edge_samples_ignored = 65,          # Ignore this number of samples during the computation of the reconstructation loss
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
