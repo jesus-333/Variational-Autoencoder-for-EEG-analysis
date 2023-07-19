@@ -13,9 +13,9 @@ Works also with similar architecture like MBEEGNet
 import torch
 
 # Config files
-from .config import config_model as cm
-from .config import config_dataset as cd
-from .config import config_training as ct
+from ..config import config_model as cm
+from ..config import config_dataset as cd
+from ..config import config_training as ct
 
 from . import train_generic
     

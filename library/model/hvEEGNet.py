@@ -26,11 +26,13 @@ class hvEEGNet_shallow(nn.Module):
         tmp_x = torch.rand((1, 1, config['encoder_config']['C'], config['encoder_config']['T']))
         _, mu_list, _, _, _ = self.h_vae(tmp_x)
         n_neurons = len(mu_list[0].flatten()) * 2
+        
+        if config['use_classifier']: 
 
-        self.clf = nn.Sequential(
-            nn.Linear(n_neurons, config['n_classes']),
-            nn.LogSoftmax(dim = 1),
-        )
+            self.clf = nn.Sequential(
+                nn.Linear(n_neurons, config['n_classes']),
+                nn.LogSoftmax(dim = 1),
+            )
 
         self.use_classifier = config['use_classifier']
 
@@ -72,13 +74,18 @@ class hvEEGNet_shallow(nn.Module):
         """
         Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
         """
+        
+        if self.use_classifier:
 
-        output = self.forward(x)
-        label = output[5]
-
-        if return_as_index:
-            predict_prob = torch.squeeze(torch.exp(label).detach())
-            label = torch.argmax(predict_prob, dim = 1)
-
-        return label
+            output = self.forward(x)
+            label = output[5]
+    
+            if return_as_index:
+                predict_prob = torch.squeeze(torch.exp(label).detach())
+                label = torch.argmax(predict_prob, dim = 1)
+    
+            return label
+        
+        else:
+            raise ValueError("Model created without classifier")
 

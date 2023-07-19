@@ -18,21 +18,21 @@ import pprint
 
 # Custom functions
 from . import wandb_support
-from . import metrics
+from .. import metrics
 from . import loss_function
-from .dataset import preprocess as pp
+from ..dataset import preprocess as pp
 
 # Config files
-from .config import config_model as cm
-from .config import config_dataset as cd
-from .config import config_training as ct
-from . import check_config
+from ..config import config_model as cm
+from ..config import config_dataset as cd
+from ..config import config_training as ct
+from .. import check_config
 
 # Possible model to train
-from .model import EEGNet
-from .model import MBEEGNet
-from .model import vEEGNet
-from .model import hvEEGNet
+from ..model import EEGNet
+from ..model import MBEEGNet
+from ..model import vEEGNet
+from ..model import hvEEGNet
 
 # Training functions for specific model
 from . import train_EEGNet

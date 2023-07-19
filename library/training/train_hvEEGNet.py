@@ -13,9 +13,9 @@ import torch
 import pprint
 
 # Config files
-from .config import config_model as cm
-from .config import config_dataset as cd
-from .config import config_training as ct
+from ..config import config_model as cm
+from ..config import config_dataset as cd
+from ..config import config_training as ct
     
 """
 %load_ext autoreload
