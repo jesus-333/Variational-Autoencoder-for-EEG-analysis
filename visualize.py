@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%%
 
-subj = [2]
+subj = [3]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -45,18 +45,19 @@ tmp_dataset = test_dataset
 
 epoch = 'BEST'
 path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
+path_weight = 'Saved model/hvae_dwt/subj_3_100_{}.pth'.format(epoch)
 
 # path_weight = 'TMP_Folder/model_BEST_2.pth'
 # path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
-path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
+# path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
 
-model.load_state_dict(torch.load(path_weight))
+model.load_state_dict(torch.load(path_weight, map_location=torch.device('cpu')))
 
 # subj 3 idx --> label  
 # 12 --> 0 (left), 33 --> 1 (right), 9 --> 2 (foot) 254 --> 3 (tongue)
 
-label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'togue' }
-label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'togue' : -1 }
+label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
 
 with torch.no_grad():
     for i in range(33):
@@ -74,8 +75,7 @@ with torch.no_grad():
         
         output = model(x.unsqueeze(0))
         x_r = output[0]
-                
-        
+                  
         t = np.linspace(2, 7, x.shape[-1])
         idx_t = np.logical_and(t > 2, t < 6)
         # idx_t = np.ones(len(t)) == 1
@@ -105,3 +105,37 @@ with torch.no_grad():
         # plt.xlabel("Frequency [Hz]")
         # plt.title("Ampiezza originale")
         # plt.show()
+        
+#%% Test generation different subject
+
+epoch = 'BEST'
+tmp_dataset = test_dataset
+
+label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
+
+path_weight_1 = 'Saved model/hvae_dwt/subj_1_30_{}.pth'.format(epoch)
+path_weight_2 = 'Saved model/hvae_dwt/subj_3_100_{}.pth'.format(epoch)
+
+with torch.no_grad():
+    for i in range(33):
+        idx_ch =  int(np.random.randint(0, 22, 1))
+        z = torch.randn(model.h_vae.hidden_space_shape)
+        
+        model.load_state_dict(torch.load(path_weight_1, map_location=torch.device('cpu')))
+        x_1 = model.generate()
+        
+        model.load_state_dict(torch.load(path_weight_2, map_location=torch.device('cpu')))
+        x_2 = model.generate()
+        
+        t = np.linspace(2, 6, x_1.shape[-1])
+        
+        plt.rcParams.update({'font.size': 20})
+        plt.figure(figsize = (15, 10))
+        plt.plot(t, x_1.squeeze()[idx_ch], label = 'Subject 1')
+        plt.plot(t, x_2.squeeze()[idx_ch], label = 'Subject 3')
+        plt.xlabel("Time [s]")
+        plt.title("Ch: {}".format(tmp_dataset.ch_list[idx_ch]))
+        plt.legend()
+        plt.grid(True)
+        plt.show()
