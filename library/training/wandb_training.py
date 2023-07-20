@@ -65,7 +65,7 @@ def main_EEGNet_classifier():
     return model
 
 def main_hvEEGNet_shallow():
-    dataset_config = cd.get_moabb_dataset_config([9])
+    dataset_config = cd.get_moabb_dataset_config([1])
     
     train_config = ct.get_config_vEEGNet_training()
     train_config['wandb_training'] = True
