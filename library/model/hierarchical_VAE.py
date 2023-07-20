@@ -22,7 +22,7 @@ class hVAE(nn.Module):
         super().__init__()
         # Create encoder
         self.encoder = hvae_encoder(encoder_cell_list, config)
-        _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_shape = True)
+        _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_distribution = False, return_shape = True)
         config['encoder_outputs_shape'] = encoder_outputs_shape
         self.hidden_space_shape = list(config['encoder_outputs_shape'][-1])
         self.hidden_space_size_flatten = torch.zeros(config['encoder_outputs_shape'][-1]).flatten()

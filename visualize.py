@@ -46,6 +46,8 @@ tmp_dataset = test_dataset
 epoch = 'BEST'
 path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
 path_weight = 'Saved model/hvae_dwt/subj_3_100_{}.pth'.format(epoch)
+# path_weight = 'Saved model/hvae_dwt/subj_1_30_{}.pth'.format(epoch)
+# path_weight = 'Saved model/hvae_dwt/subj_2_20_{}.pth'.format(epoch)
 
 # path_weight = 'TMP_Folder/model_BEST_2.pth'
 # path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
@@ -60,9 +62,9 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
 
 with torch.no_grad():
-    for i in range(33):
-        # idx_trial = 33
-        # idx_ch = 7
+    for i in range(20):
+        # idx_trial = 50
+        # idx_ch = 11
         # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
         # idx_ch =  int(np.random.randint(0, 22, 1))
         # x = tmp_dataset[idx_trial][0]
@@ -77,7 +79,7 @@ with torch.no_grad():
         x_r = output[0]
                   
         t = np.linspace(2, 7, x.shape[-1])
-        idx_t = np.logical_and(t > 2, t < 6)
+        idx_t = np.logical_and(t > 4, t < 6)
         # idx_t = np.ones(len(t)) == 1
         
         x_plot = x.squeeze()[idx_ch, idx_t]
