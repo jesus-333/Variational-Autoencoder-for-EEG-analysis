@@ -52,3 +52,21 @@ def get_config_plot_preprocess_average_stft():
     )
 
     return config
+
+
+def get_config_latent_plot_representation():
+    config = dict(
+        sample_from_distribution = True,
+        # - - - - - - - - - - 
+        # tsne config
+        perplexity = 30,
+        n_iter = 1000,
+        # - - - - - - - - - - 
+        # Figure config
+        figsize = (15, 10),
+        fontsize = 12,
+        show_fig = True,
+        save_plot = False,
+    )
+
+    return config
