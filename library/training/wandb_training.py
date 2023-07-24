@@ -33,7 +33,7 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
 
     wandb_config = dict(
         dataset = dataset_config,
-        train = dataset_config,
+        train = train_config,
         model = model_config
     )
 
@@ -51,7 +51,7 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main_EEGNet_classifier(): 
-    dataset_config = cd.get_moabb_dataset_config([3])
+    dataset_config = cd.get_moabb_dataset_config([2])
     
     train_config = ct.get_config_classifier()
     train_config['wandb_training'] = True

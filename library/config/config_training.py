@@ -16,7 +16,7 @@ import torch
 def get_config_classifier():
     config = dict(
         # Training settings
-        batch_size = 30,                    
+        batch_size = 20,                    
         lr = 1e-3,                          # Learning rate (lr)
         epochs = 300,                        # Number of epochs to train the model
         use_scheduler = False,              # Use the lr scheduler
@@ -48,18 +48,19 @@ def get_config_vEEGNet_training():
         # Training settings
         batch_size = 30,                    
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 10,                        # Number of epochs to train the model
+        epochs = 20,                        # Number of epochs to train the model
         use_scheduler = True,              # Use the lr scheduler
-        lr_decay_rate = 0.99,              # Parameter of the lr exponential scheduler
+        lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,
         beta = 1,
         gamma = 1,
         recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW)
-        edge_samples_ignored = 65,          # Ignore this number of samples during the computation of the reconstructation loss
+        edge_samples_ignored = 0,          # Ignore this number of samples during the computation of the reconstructation loss
 
         # Support stuff (device, log frequency etc)
-        device = "cuda" if torch.cuda.is_available() else "cpu",
+        # device = "cuda" if torch.cuda.is_available() else "cpu",
+        device = "cpu",
         epoch_to_save_model = 5,
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,

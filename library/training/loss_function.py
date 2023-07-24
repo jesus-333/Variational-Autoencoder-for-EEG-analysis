@@ -134,7 +134,8 @@ class hvEEGNet_loss():
             self.recon_loss_function = recon_loss_function
         elif config['recon_loss_type'] == 1: # Soft-DTW 
             gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
-            self.recon_loss_function = SoftDTW(use_cuda = torch.cuda.is_available(), gamma = gamma_dtw)
+            use_cuda = True if config['device'] == 'cuda' else False
+            self.recon_loss_function = SoftDTW(use_cuda = use_cuda, gamma = gamma_dtw)
         self.recon_loss_type = config['recon_loss_type']
         
         self.edge_samples_ignored = config['edge_samples_ignored'] if 'edge_samples_ignored' in config else 0

@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%%
 
-subj = [2]
+subj = [3]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -48,7 +48,7 @@ path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
 
 # path_weight = 'TMP_Folder/model_BEST_2.pth'
 # path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
-path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
+# path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
 
 model.load_state_dict(torch.load(path_weight))
 
@@ -77,7 +77,7 @@ with torch.no_grad():
                 
         
         t = np.linspace(2, 7, x.shape[-1])
-        idx_t = np.logical_and(t > 2, t < 6)
+        idx_t = np.logical_and(t > 2, t < 4)
         # idx_t = np.ones(len(t)) == 1
         
         x_plot = x.squeeze()[idx_ch, idx_t]
