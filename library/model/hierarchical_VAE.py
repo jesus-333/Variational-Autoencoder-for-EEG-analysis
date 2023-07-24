@@ -22,8 +22,10 @@ class hVAE(nn.Module):
         super().__init__()
         # Create encoder
         self.encoder = hvae_encoder(encoder_cell_list, config)
-        _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_shape = True)
+        _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_distribution = False, return_shape = True)
         config['encoder_outputs_shape'] = encoder_outputs_shape
+        self.hidden_space_shape = list(config['encoder_outputs_shape'][-1])
+        self.hidden_space_size_flatten = torch.zeros(config['encoder_outputs_shape'][-1]).flatten()
 
         # Create decoder
         self.decoder = hVAE_decoder(decoder_cell_list, config)
@@ -42,6 +44,14 @@ class hVAE(nn.Module):
 
         return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
 
+    def generate(self, z = None):
+        # If not passed sampled the z
+        if z is None: z = torch.randn(self.hidden_space_shape)
+        
+        # Generate the eeg
+        x, _, _ = self.decoder(z)
+
+        return x
 
 class hvae_encoder(nn.Module):
 
@@ -51,7 +61,7 @@ class hvae_encoder(nn.Module):
         self.encoder_modules = nn.ModuleList(encoder_cell_list)
         
         # Compute the shape of x after passing through the encoder
-        tmp_x, _ = self.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']))
+        tmp_x, _ = self.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_distribution = False)
         
         # Create the last layer to map the encoder output into the parameters of the normal distribution and sampled from it
         if 'hidden_space_dimension_list' in config: # Feedforward map (vector latent space)
@@ -63,14 +73,22 @@ class hvae_encoder(nn.Module):
 
     def forward(self, x):
         # Pass the data through the decoder
-        x, cell_outputs = self.encode(x)
+        x, cell_outputs = self.encode(x, return_distribution = False, return_shape = False)
         z, mu, sigma = self.sample_layer_z(x)
 
         if self.convert_logvar_to_var: sigma = torch.exp(sigma)
 
         return z, mu, sigma, cell_outputs
 
-    def encode(self, x, return_shape = False):
+    def encode(self, x, return_distribution = True, return_shape = False):
+        """
+        Encode the input tensor x.
+        If return_distribution == True the return list will contain the sample from the latent space, the mean and the logvars. Otherwise the method will return the output of the last cell
+        If return_shape == True the return list will contain also the shape of the outputs of the various cells
+        """
+        # List with all the variables returned
+        return_list = []
+
         # List with the output of each cell of the encoder
         cell_outputs = []
         output_shape = []
@@ -79,10 +97,19 @@ class hvae_encoder(nn.Module):
             cell_outputs.append(x)
             if return_shape: output_shape.append(x.shape)
         
-        if return_shape:
-            return x, cell_outputs, output_shape
-        else: 
-            return x, cell_outputs
+        # Create the return list
+        if return_distribution:
+            z, mu, sigma = self.sample_layer_z(x)
+            if self.convert_logvar_to_var: sigma = torch.exp(sigma)
+            return_list.append(z)
+            return_list.append(mu)
+            return_list.append(sigma)
+        else:
+            return_list.append(x)
+        return_list.append(cell_outputs)
+        if return_shape: return_list.append(output_shape)
+
+        return return_list
 
 
 class hVAE_decoder(nn.Module):
