@@ -10,6 +10,8 @@ Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarc
 
 import torch
 from torch import nn
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw
 
 from . import vEEGNet, hierarchical_VAE
 
@@ -95,4 +97,29 @@ class hvEEGNet_shallow(nn.Module):
         
         else:
             raise ValueError("Model created without classifier")
+
+    def dtw_comparison(self, x, distance_function = None):
+        """
+        Compute the DTW between x and the reconstructed version of x (obtained through the model)
+        x : Tensor with eeg signal of shape B x 1 x C x T, with ( B = Batch dimension, 1 = Depth dimension, C = Number of channels, T = Time samples )
+        """
+        
+        with torch.no_grad():
+            output = self.forward(x)
+            x_r = output[0]
+            
+            # Matrix to save all the DTW distance of shape B x C
+            dtw_distance = np.zeros((x.shape[0], x.shape[2]))
+
+            for i in range(x.shape[0]): # Cycle through batch dimension (i.e. eeg trial)
+                eeg_trial = x[i]
+                eeg_trial_r = x_r[i] 
+                for j in range(x.shape[2]): # Cycle through channels
+                    eeg_ch = eeg_trial[j]
+                    eeg_ch_r = eeg_trial_r[j]
+
+                    dtw_distance[i, j] = fastdtw(eeg_ch, eeg_ch_r, distance = distance_function)
+            
+            return distance_function
+
 
