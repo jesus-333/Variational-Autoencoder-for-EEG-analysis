@@ -51,7 +51,7 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main_EEGNet_classifier(): 
-    dataset_config = cd.get_moabb_dataset_config([2])
+    dataset_config = cd.get_moabb_dataset_config([3])
     
     train_config = ct.get_config_classifier()
     train_config['wandb_training'] = True
@@ -65,7 +65,7 @@ def main_EEGNet_classifier():
     return model
 
 def main_hvEEGNet_shallow():
-    dataset_config = cd.get_moabb_dataset_config([1])
+    dataset_config = cd.get_moabb_dataset_config([8])
     
     train_config = ct.get_config_vEEGNet_training()
     train_config['wandb_training'] = True

@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%%
 
-subj = [3]
+subj = [8]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -45,13 +45,16 @@ tmp_dataset = test_dataset
 
 epoch = 'BEST'
 path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
-path_weight = 'Saved model/hvae_dwt/subj_3_100_{}.pth'.format(epoch)
+# path_weight = 'Saved model/hvae_dwt/subj_3_100_{}.pth'.format(epoch)
 # path_weight = 'Saved model/hvae_dwt/subj_1_30_{}.pth'.format(epoch)
 # path_weight = 'Saved model/hvae_dwt/subj_2_20_{}.pth'.format(epoch)
 
 # path_weight = 'TMP_Folder/model_BEST_2.pth'
-# path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
+path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
 # path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
+
+# path_weight = 'TMP_Folder/full_eeg/7/model_BEST.pth'
+
 
 model.load_state_dict(torch.load(path_weight, map_location=torch.device('cpu')))
 
@@ -62,9 +65,9 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
 
 with torch.no_grad():
-    for i in range(20):
+    for i in range(10):
         # idx_trial = 50
-        # idx_ch = 11
+        # idx_ch = 11 
         # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
         # idx_ch =  int(np.random.randint(0, 22, 1))
         # x = tmp_dataset[idx_trial][0]
@@ -95,6 +98,7 @@ with torch.no_grad():
         plt.xlabel("Time [s]")
         plt.title("Subj {} - Trial {} - Label: {} - Ch: {}".format(subj[0], idx_trial, label, tmp_dataset.ch_list[idx_ch]))
         plt.legend()
+        plt.ylim([-40, 40])
         plt.grid(True)
         plt.show()
 
