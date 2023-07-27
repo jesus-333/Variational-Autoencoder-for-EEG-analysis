@@ -10,10 +10,12 @@ Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarc
 
 import torch
 from torch import nn
+import numpy as np
 from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw
 
 from . import vEEGNet, hierarchical_VAE
+from ..training.soft_dtw_cuda import SoftDTW
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -98,7 +100,7 @@ class hvEEGNet_shallow(nn.Module):
         else:
             raise ValueError("Model created without classifier")
 
-    def dtw_comparison(self, x, distance_function = None):
+    def dtw_comparison(self, x, radius = 1, distance_function = None):
         """
         Compute the DTW between x and the reconstructed version of x (obtained through the model)
         x : Tensor with eeg signal of shape B x 1 x C x T, with ( B = Batch dimension, 1 = Depth dimension, C = Number of channels, T = Time samples )
@@ -112,14 +114,50 @@ class hvEEGNet_shallow(nn.Module):
             dtw_distance = np.zeros((x.shape[0], x.shape[2]))
 
             for i in range(x.shape[0]): # Cycle through batch dimension (i.e. eeg trial)
-                eeg_trial = x[i]
-                eeg_trial_r = x_r[i] 
+                print(i)
+                eeg_trial = x[i, 0]
+                eeg_trial_r = x_r[i, 0]
+                # The zero is needed to remove the depth dimension
                 for j in range(x.shape[2]): # Cycle through channels
-                    eeg_ch = eeg_trial[j]
-                    eeg_ch_r = eeg_trial_r[j]
-
-                    dtw_distance[i, j] = fastdtw(eeg_ch, eeg_ch_r, distance = distance_function)
+                    eeg_ch = eeg_trial[j].numpy()
+                    eeg_ch_r = eeg_trial_r[j].numpy()
+                    
+                    distance, _ = fastdtw(eeg_ch, eeg_ch_r, radius = radius, dist = distance_function)
+                    dtw_distance[i, j] = distance
             
-            return distance_function
+            return dtw_distance
+        
+    def dtw_comparison_2(self, x, device = 'cpu'):
+        """
+        Compute the DTW between x and the reconstructed version of x (obtained through the model)
+        x : Tensor with eeg signal of shape B x 1 x C x T, with ( B = Batch dimension, 1 = Depth dimension, C = Number of channels, T = Time samples )
+        """
+        
+        with torch.no_grad():
+            self.to(device)
+            x = x.to(device)
+            
+            output = self.forward(x)
+            x_r = output[0]
+            
+            # Matrix to save all the DTW distance of shape B x C
+            dtw_distance = np.zeros((x.shape[0], x.shape[2]))
+            
+            use_cuda = True if device == 'cuda' else False
+            recon_loss_function = SoftDTW(use_cuda = use_cuda, normalize = False)
+
+            for i in range(x.shape[2]): # Iterate through EEG Channels
+                x_ch = x[:, :, i, :].swapaxes(1,2)
+                x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
+                # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+                # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+                
+                tmp_recon_loss = recon_loss_function(x_ch, x_r_ch)
+                
+                dtw_distance[:, i] = tmp_recon_loss.cpu()
+
+            
+            return dtw_distance
+
 
 

@@ -175,11 +175,11 @@ class hvEEGNet_loss():
             recon_loss = 0
             for i in range(x.shape[2]): # Iterate through EEG Channels
                 x_ch = x[:, :, i, :].swapaxes(1,2)
-                x__r_ch = x_r[:, :, i, :].swapaxes(1,2)
+                x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
                 # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
                 # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
                 
-                tmp_recon_loss = self.recon_loss_function(x_ch, x__r_ch)
+                tmp_recon_loss = self.recon_loss_function(x_ch, x_r_ch)
                 
                 recon_loss += tmp_recon_loss.mean()
         else:
