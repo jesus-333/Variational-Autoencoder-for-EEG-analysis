@@ -56,7 +56,7 @@ def get_config_vEEGNet_training():
         beta = 1,
         gamma = 1,
         recon_loss_type = 1,               # Loss function for the reconstruction (0 = L2, 1 = SDTW)
-        edge_samples_ignored = 65,          # Ignore this number of samples during the computation of the reconstructation loss
+        edge_samples_ignored = 0,          # Ignore this number of samples during the computation of the reconstructation loss
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",

@@ -9,10 +9,10 @@ List of loss function used during training.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Imports
 
+from .soft_dtw_cuda import SoftDTW
+
 import torch
 import torch.nn.functional as F
-
-from .soft_dtw_cuda import SoftDTW
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Losses declaration

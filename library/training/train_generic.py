@@ -89,7 +89,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
 
     # (OPTIONAL)
     if train_config['wandb_training']: wandb.watch(model, log = "all", log_freq = train_config['log_freq'])
-
+    
     # Train the model
     train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler, model_artifact)
     

@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%% Load data
 
-subj = [3]
+subj = [2]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -65,7 +65,7 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
 
 with torch.no_grad():
-    for i in range(1):
+    for i in range(200):
         # idx_trial = 178
         # idx_ch = 0
         # idx_trial = 214

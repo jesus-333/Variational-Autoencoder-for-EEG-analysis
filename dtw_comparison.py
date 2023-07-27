@@ -21,11 +21,13 @@ import library.training.train_generic as train_generic
 #%%
 
 subj_list = [[1], [3], [4], [5], [6], [7], [8]]
-subj_list = [[3]]
+subj_list = [[2]]
 epoch = '20'
 
 results_per_subj_train = []
 results_per_subj_test = []
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 for i in range(len(subj_list)):
     print(i)
@@ -60,7 +62,7 @@ for i in range(len(subj_list)):
     
     dtw_per_trial_train = []
     for batch in train_dataloader:
-        dtw_distance_matrix_train_2 = model.dtw_comparison_2(batch[0], 'cuda')
+        dtw_distance_matrix_train_2 = model.dtw_comparison_2(batch[0], device)
         dtw_distance_matrix_train_2 /= 1000
         tmp_dtw_per_trial = dtw_distance_matrix_train_2.mean(1)
         
@@ -71,7 +73,7 @@ for i in range(len(subj_list)):
     
     dtw_per_trial_test = []
     for batch in test_dataloader:
-        dtw_distance_matrix_train_2 = model.dtw_comparison_2(batch[0], 'cuda')
+        dtw_distance_matrix_train_2 = model.dtw_comparison_2(batch[0], device)
         dtw_distance_matrix_train_2 /= 1000
         tmp_dtw_per_trial = dtw_distance_matrix_train_2.mean(1)
         

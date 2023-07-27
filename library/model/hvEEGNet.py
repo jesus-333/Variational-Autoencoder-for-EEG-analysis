@@ -12,7 +12,7 @@ import torch
 from torch import nn
 import numpy as np
 from scipy.spatial.distance import euclidean
-from fastdtw import fastdtw
+# from fastdtw import fastdtw
 
 from . import vEEGNet, hierarchical_VAE
 from ..training.soft_dtw_cuda import SoftDTW
@@ -100,32 +100,32 @@ class hvEEGNet_shallow(nn.Module):
         else:
             raise ValueError("Model created without classifier")
 
-    def dtw_comparison(self, x, radius = 1, distance_function = None):
-        """
-        Compute the DTW between x and the reconstructed version of x (obtained through the model)
-        x : Tensor with eeg signal of shape B x 1 x C x T, with ( B = Batch dimension, 1 = Depth dimension, C = Number of channels, T = Time samples )
-        """
+    # def dtw_comparison(self, x, radius = 1, distance_function = None):
+    #     """
+    #     Compute the DTW between x and the reconstructed version of x (obtained through the model)
+    #     x : Tensor with eeg signal of shape B x 1 x C x T, with ( B = Batch dimension, 1 = Depth dimension, C = Number of channels, T = Time samples )
+    #     """
         
-        with torch.no_grad():
-            output = self.forward(x)
-            x_r = output[0]
+    #     with torch.no_grad():
+    #         output = self.forward(x)
+    #         x_r = output[0]
             
-            # Matrix to save all the DTW distance of shape B x C
-            dtw_distance = np.zeros((x.shape[0], x.shape[2]))
+    #         # Matrix to save all the DTW distance of shape B x C
+    #         dtw_distance = np.zeros((x.shape[0], x.shape[2]))
 
-            for i in range(x.shape[0]): # Cycle through batch dimension (i.e. eeg trial)
-                print(i)
-                eeg_trial = x[i, 0]
-                eeg_trial_r = x_r[i, 0]
-                # The zero is needed to remove the depth dimension
-                for j in range(x.shape[2]): # Cycle through channels
-                    eeg_ch = eeg_trial[j].numpy()
-                    eeg_ch_r = eeg_trial_r[j].numpy()
+    #         for i in range(x.shape[0]): # Cycle through batch dimension (i.e. eeg trial)
+    #             print(i)
+    #             eeg_trial = x[i, 0]
+    #             eeg_trial_r = x_r[i, 0]
+    #             # The zero is needed to remove the depth dimension
+    #             for j in range(x.shape[2]): # Cycle through channels
+    #                 eeg_ch = eeg_trial[j].numpy()
+    #                 eeg_ch_r = eeg_trial_r[j].numpy()
                     
-                    distance, _ = fastdtw(eeg_ch, eeg_ch_r, radius = radius, dist = distance_function)
-                    dtw_distance[i, j] = distance
+    #                 distance, _ = fastdtw(eeg_ch, eeg_ch_r, radius = radius, dist = distance_function)
+    #                 dtw_distance[i, j] = distance
             
-            return dtw_distance
+    #         return dtw_distance
         
     def dtw_comparison_2(self, x, device = 'cpu'):
         """
