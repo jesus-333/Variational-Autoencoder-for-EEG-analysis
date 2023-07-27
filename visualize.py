@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%% Load data
 
-subj = [5]
+subj = [4]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'

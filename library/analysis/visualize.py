@@ -16,8 +16,40 @@ import scipy.signal as signal
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%%
 
-def visualize_reconstructed_signal(x_r, config : dict, x = None):
-    pass
+# plot_config = dict(
+#     idx_start = 93,
+#     idx_end = 107,
+#     idx_ch = 6,
+#     trial_length = 4,
+#     figsize = (15, 10),
+#     fontsize = 15,
+# )
+def visualize_set_of_trials(dataset, config : dict):
+    """
+    Concatenate a series of trial from the datset and plot them
+    """
+    n_trial = config['idx_end'] - config['idx_start']
+    x = dataset[config['idx_start']:config['idx_end']][0]
+    x_ch = x[:, 0, config['idx_ch'], :] # The dimension with 0 is the depth
+    x_plot = x_ch.flatten()
+    t_plot = np.linspace(0, n_trial * config['trial_length'], len(x_plot))
+
+    fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
+    plt.rcParams.update({'font.size': config['fontsize']})
+    ax.plot(t_plot, x_plot)
+    if config['add_trial_line']:
+        for i in range(n_trial): ax.axvline((i + 1) * config['trial_length'], color = 'red')
+        
+    ax.set_xlim([t_plot[0], t_plot[-1]])
+    ax.set_xlabel("N. trials")
+    ax.set_xticks(ticks = np.arange(n_trial) * 4, labels = np.arange(n_trial) + config['idx_start'])
+    
+    ax.set_ylabel("Amplitde [microV]")
+    
+    ax.grid(True)
+    
+    fig.tight_layout()
+    fig.show()
 
 # subj = [2]
 #
