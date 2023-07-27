@@ -21,8 +21,8 @@ import library.training.train_generic as train_generic
 #%%
 
 subj_list = [[1], [3], [4], [5], [6], [7], [8]]
-subj_list = [[9]]
-epoch = '20'
+subj_list = [[2]]
+epoch = 'BEST'
 
 results_per_subj_train = []
 results_per_subj_test = []
@@ -34,7 +34,7 @@ for i in range(len(subj_list)):
     subj = subj_list[i]
     
     dataset_config = cd.get_moabb_dataset_config(subj)
-    device = 'cpu'
+    # device = 'cpu'
     
     C = 22
     if dataset_config['resample_data']: sf = dataset_config['resample_freq']

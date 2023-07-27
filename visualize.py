@@ -19,7 +19,7 @@ import library.training.train_generic as train_generic
 
 #%% Load data
 
-subj = [2]
+subj = [5]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -224,8 +224,8 @@ with torch.no_grad():
     distance, _ = fastdtw(x[0,0,idx_ch], x_r[0,0,idx_ch], radius = radius, dist = dist)
     print("Distance (minmax):\t\t\t", distance)
     plot_quick(x[0,0,idx_ch], x_r[0,0,idx_ch])
-    
 #%%
-
-dtw_distance_matrix_train_2 = model.dtw_comparison_2(train_dataset[:][0], 'cuda')
     
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+dtw_distance_matrix_train_2_train = model.dtw_comparison_2(train_dataset[:][0], device)
+dtw_distance_matrix_train_2_test = model.dtw_comparison_2(test_dataset[:][0],  device)
