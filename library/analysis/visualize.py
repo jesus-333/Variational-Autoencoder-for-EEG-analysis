@@ -42,11 +42,12 @@ def visualize_set_of_trials(dataset, config : dict):
         
     ax.set_xlim([t_plot[0], t_plot[-1]])
     ax.set_xlabel("N. trials")
-    ax.set_xticks(ticks = np.arange(n_trial) * 4, labels = np.arange(n_trial) + config['idx_start'])
+    ax.set_xticks(ticks = (np.arange(n_trial) * 4) + 2, labels = np.arange(n_trial) + config['idx_start'])
     
     ax.set_ylabel("Amplitde [microV]")
     
-    ax.grid(True)
+    # ax.grid(True)
+    ax.grid(axis = 'y')
     
     fig.tight_layout()
     fig.show()
