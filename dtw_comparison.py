@@ -20,8 +20,8 @@ import library.training.train_generic as train_generic
 
 #%%
 
-subj_list = [[1], [3], [4], [5], [6], [7], [8]]
-subj_list = [[2]]
+subj_list = [[1], [2], [3], [4], [5], [6], [7], [8], [9]]
+# subj_list = [[2]]
 epoch = 'BEST'
 
 results_per_subj_train = []
@@ -67,9 +67,11 @@ for i in range(len(subj_list)):
         tmp_dtw_per_trial = dtw_distance_matrix_train_2.mean(1)
         
         dtw_per_trial_train.append(tmp_dtw_per_trial)
+        torch.cuda.empty_cache()
         
     final_results_train = np.concatenate(dtw_per_trial_train)
     results_per_subj_train.append(final_results_train)
+    
     
     dtw_per_trial_test = []
     for batch in test_dataloader:
@@ -78,6 +80,7 @@ for i in range(len(subj_list)):
         tmp_dtw_per_trial = dtw_distance_matrix_train_2.mean(1)
         
         dtw_per_trial_test.append(tmp_dtw_per_trial)
+        torch.cuda.empty_cache()
         
     final_results_test = np.concatenate(dtw_per_trial_test)
     results_per_subj_test.append(final_results_test)

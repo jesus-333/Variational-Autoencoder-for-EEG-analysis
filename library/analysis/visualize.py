@@ -16,29 +16,31 @@ import scipy.signal as signal
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%%
 
-# plot_config = dict(
-#     idx_start = 93,
-#     idx_end = 107,
-#     idx_ch = 6,
-#     trial_length = 4,
-#     figsize = (15, 10),
-#     fontsize = 15,
-# )
-def visualize_set_of_trials(dataset, config : dict):
+def visualize_set_of_trials(data, config : dict, x_r = None):
     """
     Concatenate a series of trial from the datset and plot them
     """
     n_trial = config['idx_end'] - config['idx_start']
-    x = dataset[config['idx_start']:config['idx_end']][0]
-    x_ch = x[:, 0, config['idx_ch'], :] # The dimension with 0 is the depth
-    x_plot = x_ch.flatten()
+    x_plot = extract_and_flat_trial(data, config)
     t_plot = np.linspace(0, n_trial * config['trial_length'], len(x_plot))
 
+    # Create figure
     fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
     plt.rcParams.update({'font.size': config['fontsize']})
-    ax.plot(t_plot, x_plot)
+    
+    # Plot signals
+    ax.plot(t_plot, x_plot, label = 'Original signal')
+    if x_r is not None: # If you want to plot also the reconstructed signal
+        x_r_plot = extract_and_flat_trial(x_r, config)
+        ax.plot(t_plot, x_r_plot, label = 'Reconstructed signal')
+        ax.legend()
+    
+    # "Beautify" plot
     if config['add_trial_line']:
         for i in range(n_trial): ax.axvline((i + 1) * config['trial_length'], color = 'red')
+        ax.grid(axis = 'y')
+    else:
+        ax.grid(True)
         
     ax.set_xlim([t_plot[0], t_plot[-1]])
     ax.set_xlabel("N. trials")
@@ -46,11 +48,17 @@ def visualize_set_of_trials(dataset, config : dict):
     
     ax.set_ylabel("Amplitde [microV]")
     
-    # ax.grid(True)
-    ax.grid(axis = 'y')
-    
+    # Show plot
     fig.tight_layout()
     fig.show()
+    
+
+def extract_and_flat_trial(data, config):
+    x = data[config['idx_start']:config['idx_end']]
+    x_ch = x[:, 0, config['idx_ch'], :] # The dimension with 0 is the depth
+    x_plot = x_ch.flatten()
+    
+    return x_plot
 
 # subj = [2]
 #
