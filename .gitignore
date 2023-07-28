@@ -5,6 +5,7 @@ Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
 TMP_File/
+TMP_Folder/
 artifacts/
 Dataset/D2A/v1_backup/Test.7z
 Dataset/D2A/v1_backup/Train.7z
