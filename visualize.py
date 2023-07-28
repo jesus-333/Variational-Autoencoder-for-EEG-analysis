@@ -14,12 +14,14 @@ import scipy.signal as signal
 
 from library.config import config_dataset as cd
 from library.config import config_model as cm
+from library.config import config_plot as cp
 from library.dataset import preprocess as pp
 import library.training.train_generic as train_generic
+import library.analysis.visualize as visualize
 
 #%% Load data
 
-subj = [2]
+subj = [5]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -41,7 +43,7 @@ model.to(device)
 
 #%% Test RECONSTRUCTION
 
-tmp_dataset = test_dataset
+tmp_dataset = train_dataset
 
 epoch = 'BEST'
 # path_weight = 'TMP_Folder/model_{}.pth'.format(epoch)
@@ -55,7 +57,6 @@ path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth
 
 path_weight = 'Saved Model/full_eeg/{}/model_BEST.pth'.format(subj[0])
 
-
 model.load_state_dict(torch.load(path_weight, map_location=torch.device('cpu')))
 
 # subj 3 idx --> label
@@ -65,13 +66,13 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 label_to_ch = {'left' : 11, 'right' : 7, 'foot' : 9, 'tongue' : -1 }
 
 with torch.no_grad():
-    for i in range(200):
-        # idx_trial = 178
-        # idx_ch = 0
+    for i in range(1):
+        idx_trial = 48
+        idx_ch = 6
         # idx_trial = 214
         # idx_ch = 0
-        idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
-        idx_ch =  int(np.random.randint(0, 22, 1))
+        # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
+        # idx_ch =  int(np.random.randint(0, 22, 1))
         # x = tmp_dataset[idx_trial][0]
 
         # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
@@ -80,36 +81,39 @@ with torch.no_grad():
         if label == 'tongue': pass
         # idx_ch = label_to_ch[label]
         
-        output = model(x.unsqueeze(0))
-        x_r = output[0]
+        output = model(x.unsqueeze(0).to(device))
+        x_r = output[0].to('cpu')
 
-        t = np.linspace(2, 7, x.shape[-1])
-        idx_t = np.logical_and(t > 2, t < 4)
+        t = np.linspace(2, 4, x.shape[-1])
+        idx_t = np.logical_and(t >= 2, t <= 4)
         # idx_t = np.ones(len(t)) == 1
 
         x_plot = x.squeeze()[idx_ch, idx_t]
         x_r_plot = x_r.squeeze()[idx_ch, idx_t]
 
-        plt.rcParams.update({'font.size': 20})
-        plt.figure(figsize = (15, 10))
-        plt.plot(t[idx_t], x_plot, label = 'Original Signal')
-        plt.plot(t[idx_t], x_r_plot, label = 'Reconstructed Signal')
-        plt.xlabel("Time [s]")
-        plt.title("Subj {} - Trial {} - Label: {} - Ch: {}".format(subj[0], idx_trial, label, tmp_dataset.ch_list[idx_ch]))
-        plt.legend()
-        # plt.ylim([-40, 40])
-        plt.grid(True)
-        plt.show()
-
-        # f, x_psd = signal.welch(x_plot, fs = 250,)
-        # f, x_r_psd = signal.welch(x_r_plot * 20, fs = 250,)
         # plt.rcParams.update({'font.size': 20})
         # plt.figure(figsize = (15, 10))
-        # plt.plot(f, x_psd)
-        # plt.plot(f, x_r_psd)
-        # plt.xlabel("Frequency [Hz]")
-        # plt.title("Ampiezza originale")
+        # plt.plot(t[idx_t], x_plot, label = 'Original Signal')
+        # plt.plot(t[idx_t], x_r_plot, label = 'Reconstructed Signal')
+        # plt.xlabel("Time [s]")
+        # plt.title("Subj {} - Trial {} - Label: {} - Ch: {}".format(subj[0], idx_trial, label, tmp_dataset.ch_list[idx_ch]))
+        # plt.legend()
+        # # plt.ylim([-40, 40])
+        # # plt.ylim([-40, 40])
+        # plt.grid(True)
         # plt.show()
+        
+        nperseg = 500
+        f, x_psd = signal.welch(x_plot, fs = 250, nperseg = nperseg)
+        f, x_r_psd = signal.welch(x_r_plot * 20, fs = 250, nperseg = nperseg)
+        plt.rcParams.update({'font.size': 20})
+        plt.figure(figsize = (15, 10))
+        plt.plot(f, x_psd, label = 'Original')
+        # plt.plot(f, x_r_psd, label = 'Recon')
+        plt.legend()
+        plt.xlabel("Frequency [Hz]")
+        plt.title("Ampiezza originale")
+        plt.show()
 
 #%% Test GENERATION different subject
 
@@ -227,5 +231,50 @@ with torch.no_grad():
 #%%
     
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-dtw_distance_matrix_train_2_train = model.dtw_comparison_2(train_dataset[:][0], device)
-dtw_distance_matrix_train_2_test = model.dtw_comparison_2(test_dataset[:][0],  device)
+dtw_distance_matrix_train_2_train = model.dtw_comparison_2(train_dataset[:][0], device) / 1000
+torch.cuda.empty_cache()
+dtw_distance_matrix_train_2_test = model.dtw_comparison_2(test_dataset[:][0],  device) / 1000
+torch.cuda.empty_cache()
+
+#%% Plot set of trials
+
+subj = [4]
+
+dataset_config = cd.get_moabb_dataset_config(subj)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
+C, T = 22, int((dataset_config['trial_end'] - dataset_config['trial_start']) * sf )
+sf = 250
+type_decoder, parameters_map_type = 0, 0
+model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
+
+train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
+
+# Create model
+model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
+model = train_generic.get_untrained_model('hvEEGNet_shallow', model_config)
+model.to(device)
+path_weight = 'Saved Model/full_eeg/{}/model_BEST.pth'.format(subj[0])
+model.load_state_dict(torch.load(path_weight, map_location = device))
+
+plot_config = dict(
+    # - - - - - - - - - - 
+    # Trials info
+    idx_start = 48,
+    idx_end = 49,
+    idx_ch = 6,
+    trial_length = 4,
+    # - - - - - - - - - - 
+    # Figure config
+    figsize = (15, 10),
+    fontsize = 15,
+    add_trial_line = True
+)
+
+x_r = model.reconstruct(train_dataset[:][0].to(device)).to('cpu')
+torch.cuda.empty_cache()
+visualize.visualize_set_of_trials(train_dataset[:][0], plot_config, x_r)
+
+# x_r = model.reconstruct(test_dataset[:][0].to(device)).to('cpu')
+# torch.cuda.empty_cache()
+# visualize.visualize_set_of_trials(test_dataset[:][0], plot_config, x_r)

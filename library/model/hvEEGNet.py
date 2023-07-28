@@ -53,6 +53,14 @@ class hvEEGNet_shallow(nn.Module):
 
     def generate(self, z = None):
         return self.h_vae.generate(z)
+    
+    def reconstruct(self, x, no_grad = True):
+        if no_grad:
+            with torch.no_grad():
+                output = self.forward(x)
+        else:
+            output = self.forward(x)
+        return output[0]
 
     def encode(self, x):
         z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = True, return_shape = False)
@@ -155,6 +163,9 @@ class hvEEGNet_shallow(nn.Module):
                 tmp_recon_loss = recon_loss_function(x_ch, x_r_ch)
                 
                 dtw_distance[:, i] = tmp_recon_loss.cpu()
+                
+            self.to('cpu')
+            x = x.to('cpu')
 
             
             return dtw_distance
