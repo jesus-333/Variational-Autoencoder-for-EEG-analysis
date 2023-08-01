@@ -56,7 +56,8 @@ def get_config_plot_preprocess_average_stft():
 
 def get_config_latent_plot_representation():
     config = dict(
-        sample_from_distribution = True,
+        sample_from_distribution = False,
+        compute_recon_error = True,
         # - - - - - - - - - - 
         # tsne config
         perplexity = 30,
@@ -67,6 +68,7 @@ def get_config_latent_plot_representation():
         fontsize = 12,
         show_fig = True,
         save_plot = False,
+        colormap = 'viridis'
     )
 
     return config
