@@ -22,6 +22,7 @@ import library.analysis.visualize as visualize
 #%% Load data
 
 subj = [5]
+subj = [1,2,3,4,5,6,7,8,9]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
