@@ -153,7 +153,7 @@ class EEGNetDecoderV2(nn.Module):
         module_list.append(cnn_layer_3)
 
         module_list.append(batch_norm_4)
-        module_list.append(cnn_layer_4)
+        # module_list.append(cnn_layer_4)
         
         self.conv_decoder = nn.Sequential(*module_list)
         
@@ -161,9 +161,9 @@ class EEGNetDecoderV2(nn.Module):
         
         # TODO reset kernel = (1, 64) and padding = (1, 32)
         # Layer to compute the mean
-        # self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, 
-        #                                             kernel_size = (1, 64), padding = (0, 32), 
-        #                                             bias = False)
+        self.mean_output_layer = nn.ConvTranspose2d(in_channels = 8, out_channels = 1, 
+                                                    kernel_size = (1, 64), padding = (0, 32), 
+                                                    bias = False)
         
         # Evaluate the final dimensio of the output
         dumb_shape = [i for i in self.shape_input_conv_decoder] # Copy the shape in a new list (i.e. the original list is not modified)
@@ -172,13 +172,13 @@ class EEGNetDecoderV2(nn.Module):
         print(dumb_output_shape)
         
         # Layer to compute the std 
-        # self.std_output_layer = nn.Sequential(
-        #     nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
-        #     nn.Linear(dumb_output_shape[-1] - 1, 1),
-        #     # nn.Linear(512, 1),
-        #     nn.Flatten(),
-        #     nn.Linear(22, 1)
-        # )
+        self.std_output_layer = nn.Sequential(
+            nn.ConvTranspose2d(in_channels = 8, out_channels = 1, kernel_size = (1, 64), padding=(0, 32),bias = False),
+            nn.Linear(dumb_output_shape[-1] - 1, 1),
+            # nn.Linear(512, 1),
+            nn.Flatten(),
+            nn.Linear(22, 1)
+        )
 
 
     def forward(self, z):
@@ -187,11 +187,11 @@ class EEGNetDecoderV2(nn.Module):
         
         x = self.conv_decoder(x)
 
-        # x_mean = self.mean_output_layer(x)
-        # x_std = self.std_output_layer(x)
+        x_mean = self.mean_output_layer(x)
+        x_std = self.std_output_layer(x)
         
-        x_mean = x
-        x_std = torch.ones(x_mean.shape)
+        # x_mean = x
+        # x_std = torch.ones(x_mean.shape)
         
         return x_mean, x_std
     
@@ -203,17 +203,18 @@ class CLF_V1(nn.Module):
         super().__init__()
         
         # ORIGINAL STRUCTURE
-        self.classifier = nn.Sequential(
-            nn.Linear(n_input_neurons, 64),
-            nn.ELU(),
-            nn.Linear(64, 4),
-            nn.LogSoftmax(dim = 1)
-        )
-        
         # self.classifier = nn.Sequential(
-        #     nn.Linear(n_input_neurons, 4),
+        #     nn.Linear(n_input_neurons, 64),
+        #     nn.ELU(),
+        #     nn.Linear(64, 4),
         #     nn.LogSoftmax(dim = 1)
         # )
+        
+        # CLASSIFIER SLIM
+        self.classifier = nn.Sequential(
+            nn.Linear(n_input_neurons, 4),
+            nn.LogSoftmax(dim = 1)
+        )
         
     def forward(self, x): 
         return self.classifier(x)
@@ -227,10 +228,10 @@ class EEGFramework(nn.Module):
         super().__init__()
         
         # VAE Definition
-        self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+        # self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
         
         config = config_file_model.get_config_vEEGNet_encoder(C, T)
-        # self.vae = vEEGNet.VAE(config, config)
+        self.vae = vEEGNet.VAE(config, config)
 
         # Classifier (Discriminator) definition        
         if(use_reparametrization_for_classification): self.classifier = CLF_V1(hidden_space_dimension)

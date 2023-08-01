@@ -114,11 +114,11 @@ train_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
 C = test_data[0][0].shape[1]
 T = test_data[0][0].shape[2]
 
-#%% create Dataset (moabb)
+#%% create Dataset (moabb) (ALL SUBJECT MERGE)
 
 dataset_config = cf.get_moabb_dataset_config()
 dataset_config['normalize_trials'] = True
-dataset_config['subject_by_subject_normalization'] = True
+dataset_config['subject_by_subject_normalization'] = False
 
 train_data, validation_data = md.get_train_data(dataset_config)
 test_data = md.get_test_data(dataset_config)
@@ -130,6 +130,33 @@ print("C = {}\nT = {}".format(C, T))
 train_loader = torch.utils.data.DataLoader(train_data, batch_size = 32)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
 loader_list = [test_loader]
+
+#%% create Dataset (moabb) (ALL SUBJECT DIVIDED)
+
+dataset_list_train = []
+dataset_list_test = []
+dataloader_list_train = []
+dataloader_list_test = []
+subj_list = [1,2,3,4,5,6,7,8,9]
+
+for i in range(len(subj_list)):
+    subj = [subj_list[i]]
+    print(subj)
+
+    dataset_config = cf.get_moabb_dataset_config(subj)
+    dataset_config['normalize_trials'] = True
+    dataset_config['subject_by_subject_normalization'] = False
+    
+    tmp_train_data, validation_data = md.get_train_data(dataset_config)
+    tmp_test_data = md.get_test_data(dataset_config)
+    
+    tmp_train_loader = torch.utils.data.DataLoader(tmp_train_data, batch_size = 32)
+    tmp_test_loader = torch.utils.data.DataLoader(tmp_test_data, batch_size = 32)
+    
+    dataset_list_train.append(tmp_train_data)
+    dataset_list_test.append(tmp_test_data)
+    dataloader_list_train.append(tmp_train_loader)
+    dataloader_list_test.append(tmp_test_loader)
 
 #%%
 
@@ -160,13 +187,15 @@ print(max_avg_accuracy)
 
 import VAE_EEGNet
 
+hidden_space_dimension = 64
 model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
                                 use_reparametrization_for_classification = False,
                                 print_var = True, tracking_input_dimension = True)
 
-version = 129
+version = 21
 epoch = 'END'
-tmp_path = './artifacts/vEEGNet_trained:v{}/model_{}.pth'.format(version, epoch)
+tmp_path = './artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch)
+tmp_path = './TMP_File/model_BEST_TOTAL.pth'
 model.load_state_dict(torch.load(tmp_path, map_location=torch.device('cpu')))
 
 # Order of metrics
@@ -177,6 +206,49 @@ metrics_test = metrics.compute_metrics(model, test_loader, 'cpu')
 
 print("Accuracy (TRAIN):\t{}".format(metrics_train[0]))
 print("Accuracy (TEST) :\t{}".format(metrics_test[0]))
+
+#%% Classification 3
+# Run first the cell call  create Dataset (moabb) (ALL SUBJECT DIVIDED)
+
+subj_list = [1,2,3,4,5,6,7,8,9]
+
+accuracy_list_test = []
+accuracy_list_train = []
+
+C = 22
+T = 513
+hidden_space_dimension = 16
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = True, tracking_input_dimension = True)
+
+for i in range(len(subj_list)):
+    subj = [subj_list[i]]
+    print(subj)
+    dataset_config = cf.get_moabb_dataset_config(subj)
+    
+    dataset_config['normalize_trials'] = True
+    dataset_config['subject_by_subject_normalization'] = False
+
+    train_data, validation_data = md.get_train_data(dataset_config)
+    test_data = md.get_test_data(dataset_config)
+
+    C = test_data[0][0].shape[1]
+    T = test_data[0][0].shape[2]
+    
+    version = 21
+    epoch = 'BEST_CLF'
+    tmp_path = './artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch)
+    model.load_state_dict(torch.load(tmp_path, map_location=torch.device('cpu')))
+
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size = 32)
+    metrics_train = metrics.compute_metrics(model, train_loader, 'cuda')
+    accuracy_list_train.append(metrics_train[0])
+    
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size = 32)
+    metrics_test = metrics.compute_metrics(model, test_loader, 'cuda')
+    accuracy_list_test.append(metrics_test[0])
+
 
 #%% PSD
 
@@ -213,7 +285,7 @@ sv.plot_psd_V1(psd_original, psd_reconstructed, plot_config)
 
 import support_visualization as sv
 
-version = 122
+version = 124
 epoch_file = 'END'
 
 # config = metrics.get_config_PSD()
@@ -254,6 +326,15 @@ plot_config = dict(
 import matplotlib
 import matplotlib.pyplot as plt
 
+version = 122
+epoch_file = 'END'
+path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
+state_dict = torch.load(path)
+state_dict = torch.load(path)
+
+
+hidden_space_dimension = 64
+
 model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
                                 use_reparametrization_for_classification = False,
                                 print_var = True, tracking_input_dimension = True)
@@ -264,15 +345,11 @@ idx_C3 = channel_list == 'C3'
 idx_C4 = channel_list == 'C4'
 idx_CZ = channel_list == 'Cz'
 
-idx = 997
+idx = 32
 left_list = [0]
 right_list = [1]
 device = 'cpu'
 
-version = 23
-epoch_file = 'END'
-path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
-state_dict = torch.load(path)
 model.load_state_dict(state_dict)
 
 name = '2_FE_original vs reconstructed_C4_normalized_FILTERED'
@@ -292,14 +369,18 @@ x_r_mean, x_r_std, mu, log_var, _ = model(sample.to(device))
 
 x = sample.cpu().squeeze().detach().numpy()
 x_r = x_r_mean.cpu().squeeze().detach().numpy()
+print(x.shape)
+print(x_r.shape)
 
-tmp_x = x[idx_C4].squeeze()
+tmp_x = x[idx_C3].squeeze()
+tmp_xr = x_r[idx_C3].squeeze()
 
-tmp_xr = x_r[idx_C4].squeeze()
+tmp_x = (tmp_x - tmp_x.min())/(tmp_x.max() - tmp_x.min()) * 2 - 1
 tmp_xr = (tmp_xr - tmp_xr.min())/(tmp_xr.max() - tmp_xr.min()) * 2 - 1
 
-tmp_x = filter_signale(tmp_x, order = 20)
-tmp_xr = filter_signale(tmp_xr, order = 20)
+# FILTER SIGNAL
+# tmp_x = filter_signale(tmp_x, order = 20)
+# tmp_xr = filter_signale(tmp_xr, order = 20)
 
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
@@ -324,15 +405,15 @@ plt.tight_layout()
 plt.grid(True)
 
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
-
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 #%% PLOT PSD
+
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -405,7 +486,7 @@ plt.grid(True)
 
 #%%
 
-version = 23
+version = 122
 epoch_file = 'END'
 
 path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
@@ -441,7 +522,7 @@ for i in range(1000):
 
 model.eval()
 
-tmp_list = foot_list
+tmp_list = foot_list  # SIGNAL TO PLOT
 name = '3_FE_average_reconstructed_c3_vs_c4_vs_cz_vs_fc3fc4'
 name = 'TMP_File/PLOT TMP/' + name
 
@@ -484,6 +565,13 @@ avg_tongue /= n_el
 
 print(np.mean(avg_c3), np.mean(avg_c4), np.mean(avg_cz))
 
+tmp_max = np.max([avg_c3, avg_c4, avg_cz, avg_tongue])
+tmp_min = np.min([avg_c3, avg_c4, avg_cz, avg_tongue])
+avg_c3 = (avg_c3 - tmp_min)/(tmp_max - tmp_min) * 2 - 1
+avg_c4 = (avg_c4 - tmp_min)/(tmp_max - tmp_min) * 2 - 1
+avg_cz = (avg_cz - tmp_min)/(tmp_max - tmp_min) * 2 - 1
+avg_tongue = (avg_tongue - tmp_min)/(tmp_max - tmp_min) * 2 - 1
+
 plt.figure(figsize = (15,10))
 t = np.linspace(0, 4, T)
 
@@ -499,18 +587,68 @@ plt.plot(t, avg_tongue, linestyle = 'dotted' ,
 plt.legend()
 plt.xlabel("Time [s]", fontweight='bold')
 plt.ylabel(r'Amplitude [$\mathbf{\mu V}$]', fontweight='bold')
+plt.ylabel(r'Normalized Amplitude', fontweight='bold')
 plt.xlim([0, 4])
 plt.rcParams.update({'font.size': 22})
 plt.tight_layout()
 plt.grid(True)
 
-file_type = 'png'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'png'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
 
-file_type = 'eps'
-filename = "{}.{}".format(name, file_type)
-plt.savefig(filename, format=file_type)
+# file_type = 'eps'
+# filename = "{}.{}".format(name, file_type)
+# plt.savefig(filename, format=file_type)
+
+#%% Compute Reconstruction loss per subject
+
+tmp_dataset_list = dataset_list_train
+device = 'cpu'
+version = 122
+epoch_file = 'END'
+
+path = 'artifacts/vEEGNet_trained-v{}/model_{}.pth'.format(version, epoch_file)
+state_dict = torch.load(path)
+
+hidden_space_dimension = int(state_dict['vae.decoder.decoder.fc_decoder.bias'].shape[0] / 4)
+
+model = VAE_EEGNet.EEGFramework(C, T, hidden_space_dimension,
+                                use_reparametrization_for_classification = False,
+                                print_var = False, tracking_input_dimension = False)
+
+
+model.load_state_dict(state_dict)
+model.to(device)
+
+loss_train = []
+loss_test = []
+std_train = []
+std_test = []
+
+recon_loss_function = torch.nn.MSELoss(reduction='none')
+i = 0
+for dataset_train, dataset_test in zip(dataset_list_train, dataset_list_test):
+    print(i)
+    i += 1
+    # TRAIN
+    x_r_mean, x_r_std, mu, log_var, _ = model(dataset_train[:][0].to(device))
+    x   = dataset_train[:][0].cpu()
+    x_r = x_r_mean.cpu()
+    loss_per_trial = recon_loss_function(x, x_r).mean(dim = (1,2,3))
+    loss_train.append(float(loss_per_trial.mean()))
+    std_train.append(float(loss_per_trial.std()))
+    torch.cuda.empty_cache()
+    
+    # TEST
+    x_r_mean, x_r_std, mu, log_var, _ = model(dataset_test[:][0].to(device))
+    x   = dataset_test[:][0].cpu()
+    x_r = x_r_mean.cpu()
+    loss_per_trial = recon_loss_function(x, x_r).mean(dim = (1,2,3))
+    loss_test.append(float(loss_per_trial.mean()))
+    std_test.append(float(loss_per_trial.std()))
+    torch.cuda.empty_cache()
+    
 
 #%% END
 

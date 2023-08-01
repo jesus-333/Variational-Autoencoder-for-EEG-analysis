@@ -111,7 +111,7 @@ def test_model_wandb(model, test_loader_list, config, wandb_config):
         for i in range(len(test_loader_list)):
             loader = test_loader_list[i]
 
-            metrics_END[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+            metrics_END[i, :] = np.asarray(compute_metrics(model, loader, config['device'])[0:5])
             
         # Compute metrics when the model reach the best loss
         for i in range(len(test_loader_list)):
@@ -119,11 +119,11 @@ def test_model_wandb(model, test_loader_list, config, wandb_config):
             
             # Best total loss
             model.load_state_dict(torch.load("TMP_File/model_BEST_TOTAL.pth"))
-            metrics_BEST_TOT[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+            metrics_BEST_TOT[i, :] = np.asarray(compute_metrics(model, loader, config['device'])[0:5])
 
             # Best classifier loss
             model.load_state_dict(torch.load("TMP_File/model_BEST_CLF.pth"))
-            metrics_BEST_CLF[i, :] = np.asarray(compute_metrics(model, loader, config['device']))
+            metrics_BEST_CLF[i, :] = np.asarray(compute_metrics(model, loader, config['device'])[0:5])
         
         # Save the matrix in pandas dataframe
         columns_names = ["accuracy", "cohen_kappa", "sensitivity", "specificity", "f1"]
@@ -225,7 +225,7 @@ def advance_epoch(model, optimizer, loader, train_config, is_train):
     """
     Function to advance a single epoch of the model
     """
-    
+        
     if is_train: model.train()
     else: model.eval()
     
