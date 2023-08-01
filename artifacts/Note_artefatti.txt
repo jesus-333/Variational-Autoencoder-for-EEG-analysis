@@ -1,0 +1,13 @@
+codice ICT4AWE
+
+Per gli artefatti da 97 a 135 sono ottenuti con vEEGNet con 3 encoder.
+Quindi sulle classe EEGFramework va commentate la linea 
+        self.vae = EEGNetVAE(C = C, T = T, hidden_space_dimension = hidden_space_dimension, print_var = print_var, tracking_input_dimension = tracking_input_dimension)
+E tenuta la linea
+        self.vae = vEEGNet.VAE(config, config)
+Inoltre bisogna decommentare nel decoder le parti di codice relatative ai layer che creano media e std all'uscite del decoder. Cioè quelle parti di codice CI DEVONO ESSERE.
+Il classificatore inoltre è quello SLIM (vedi commento sul codice dentro la classe CLF_V1)
+Sono stati addestrati con dati normalizzati
+
+Arteffati 21-23
+Addestrati con dati NON NORMALIZZATI
