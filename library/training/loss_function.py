@@ -31,6 +31,22 @@ def recon_loss_function(x, x_r):
 def recon_loss_frequency_function(x, x_r):
     pass
 
+def compute_dtw_loss_along_channels(x, x_r, dtw_loss_function, average_channels = False):
+    recon_loss = 0
+    for i in range(x.shape[2]): # Iterate through EEG Channels
+        x_ch = x[:, :, i, :].swapaxes(1,2)
+        x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
+        # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+        # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+        
+        tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
+        
+        recon_loss += tmp_recon_loss.mean()
+
+    if average_channels: recon_loss /= x.shape[2]
+
+    return recon_loss
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Kullback loss
 
@@ -172,16 +188,17 @@ class hvEEGNet_loss():
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
         elif self.recon_loss_type == 1: # SDTW
-            recon_loss = 0
-            for i in range(x.shape[2]): # Iterate through EEG Channels
-                x_ch = x[:, :, i, :].swapaxes(1,2)
-                x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
-                # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
-                # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
-                
-                tmp_recon_loss = self.recon_loss_function(x_ch, x_r_ch)
-                
-                recon_loss += tmp_recon_loss.mean()
+            recon_loss = self.compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
+            # recon_loss = 0
+            # for i in range(x.shape[2]): # Iterate through EEG Channels
+            #     x_ch = x[:, :, i, :].swapaxes(1,2)
+            #     x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
+            #     # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+            #     # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+            #     
+            #     tmp_recon_loss = self.recon_loss_function(x_ch, x_r_ch)
+            #     
+            #     recon_loss += tmp_recon_loss.mean()
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
             

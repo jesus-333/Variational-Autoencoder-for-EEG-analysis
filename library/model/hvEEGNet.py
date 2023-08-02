@@ -62,8 +62,8 @@ class hvEEGNet_shallow(nn.Module):
             output = self.forward(x)
         return output[0]
 
-    def encode(self, x):
-        z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = True, return_shape = False)
+    def encode(self, x, return_distribution = True):
+        z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
         return z, mu, log_var
 
     def build_cell_list(self, config : dict):

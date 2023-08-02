@@ -13,7 +13,8 @@ def compute_latent_space_dataset(model, dataset, config : dict):
         dataloader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, shuffle = False)
 
         # Tensor to save the results
-        hidden_space_embedding = torch.zeros(len(dataset), model.h_vae.hidden_space_size_flatten)
+        print(model.h_vae.hidden_space_size_flatten)
+        hidden_space_embedding = torch.zeros(len(dataset), int(model.h_vae.hidden_space_size_flatten))
         labels = torch.zeros(len(dataset))
 
         if config['compute_recon_error']: recon_error = torch.zeros(len(dataset))
@@ -42,7 +43,7 @@ def compute_latent_space_dataset(model, dataset, config : dict):
 
             i += 1
 
-        z_reduced = reduce_dimension_lanten_space(z, config)
+        z_reduced = reduce_dimension_lanten_space(hidden_space_embedding, config)
 
         if config['compute_recon_error']:
             return z_reduced, recon_error
@@ -54,8 +55,11 @@ def reduce_dimension_lanten_space(z : torch.Tensor, config : dict):
         n_components = 2,
         perplexity = config['perplexity'] if 'perplexity' in config else 30,
         n_iter = config['n_iter'] if 'n_iter' in config else 1000,
+        verbose = 1
     )
-
+    
+    print(z.shape)
+    print(tsne.perplexity)
     z_tsne = tsne.fit_transform(z)
 
     return z_tsne

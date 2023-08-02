@@ -25,7 +25,7 @@ class hVAE(nn.Module):
         _, _, encoder_outputs_shape = self.encoder.encode(torch.rand(1, 1, config['encoder_config']['C'], config['encoder_config']['T']), return_distribution = False, return_shape = True)
         config['encoder_outputs_shape'] = encoder_outputs_shape
         self.hidden_space_shape = list(config['encoder_outputs_shape'][-1])
-        self.hidden_space_size_flatten = torch.zeros(config['encoder_outputs_shape'][-1]).flatten()
+        self.hidden_space_size_flatten = len(torch.zeros(config['encoder_outputs_shape'][-1]).flatten())
 
         # Create decoder
         self.decoder = hVAE_decoder(decoder_cell_list, config)

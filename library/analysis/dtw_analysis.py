@@ -4,6 +4,7 @@ import torch
 from dtw import dtw
 
 from ..training.soft_dtw_cuda import SoftDTW
+from ..training.loss_function import compute_dtw_loss_along_channels 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%%
@@ -13,14 +14,17 @@ def compute_dtw_fastdtw(x1, x2, distance_function = lambda a, b: abs(a - b), rad
     return distance
 
 def compute_dtw_softDTWCuda(x1, x2, device = 'cpu'):
-
-    x1 = torch.asarray(x1).unsqueeze(0).unsqueeze(0)
-    x2 = torch.asarray(x2).unsqueeze(0).unsqueeze(0)
-
     use_cuda = True if device == 'cuda' else False
     recon_loss_function = SoftDTW(use_cuda = use_cuda, normalize = False)
 
-    distance = float(recon_loss_function(x1, x2).cpu())
+    if len(x1.shape) == 4: # Batch input
+        distance = compute_dtw_loss_along_channels(x1, x2, recon_loss_function)
+    else:
+
+        x1 = torch.asarray(x1).unsqueeze(0).unsqueeze(0)
+        x2 = torch.asarray(x2).unsqueeze(0).unsqueeze(0)
+
+        distance = float(recon_loss_function(x1, x2).cpu())
 
     return distance
 
