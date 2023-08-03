@@ -6,7 +6,7 @@ from . import dtw_analysis
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def compute_latent_space_dataset(model, dataset, config : dict):
+def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
     with torch.no_grad():
         # Convert dataset into PyTorch dataloader
         batch_size = config['batch_size'] if 'batch_size' in config else 32
@@ -18,6 +18,8 @@ def compute_latent_space_dataset(model, dataset, config : dict):
         labels = torch.zeros(len(dataset))
 
         if config['compute_recon_error']: recon_error = torch.zeros(len(dataset))
+        
+        model.to(device)
 
         i = 0
         for batch in dataloader:
@@ -26,7 +28,7 @@ def compute_latent_space_dataset(model, dataset, config : dict):
             labels[i * batch_size : (i +1) * batch_size] = batch[1]
             
             # Encode the input
-            z, mu, log_var = model.encode(x, return_distribution = True)
+            z, mu, log_var = model.encode(x.to(device), return_distribution = True)
             # Note that the z return from the methods is obtained witht the reparametrization trick
             # So It is like sampling from the distribution
             
@@ -37,7 +39,7 @@ def compute_latent_space_dataset(model, dataset, config : dict):
                hidden_space_embedding[i * batch_size : (i + 1) * batch_size] = mu.flatten(1)
 
             if config['compute_recon_error']:
-                x_r = model.reconstruct(x)
+                x_r = model.reconstruct(x.to(device))
                 device = 'cuda' if torch.cuda.is_available() else 'cpu'
                 recon_error[i * batch_size : (i + 1) * batch_size] = dtw_analysis.compute_dtw_softDTWCuda(x, x_r, device)
 

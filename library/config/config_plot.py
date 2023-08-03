@@ -68,8 +68,8 @@ def get_config_latent_plot_representation():
         fontsize = 12,
         show_fig = True,
         save_plot = False,
-        colormap = 'viridis',
-        markersize = 20,
+        colormap = 'Reds',
+        markersize = 40,
     )
 
     return config

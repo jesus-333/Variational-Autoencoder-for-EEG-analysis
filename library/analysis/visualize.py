@@ -70,11 +70,12 @@ def plot_latent_space_embedding(z, config : dict, color = None):
     plt.rcParams.update({'font.size': config['fontsize']})
     
     # Plot the embedding
-    ax.scatter(x = z[:, 0], y = z[:, 1], s = markersize,
+    im = ax.scatter(x = z[:, 0], y = z[:, 1], s = markersize,
                c = color, cmap = colormap
                 )
     
     # Extra stuff
+    fig.colorbar(im, ax=ax)
     ax.grid(True)
     fig.tight_layout()
     fig.show()
