@@ -64,7 +64,7 @@ def main_EEGNet_classifier():
     
     return model
 
-def main_vEEGNet(subj_list):
+def get_config_dict_for_vEEGNet(subj_list : list):
     dataset_config = cd.get_moabb_dataset_config(subj_list)
     
     train_config = ct.get_config_vEEGNet_training()
@@ -82,6 +82,21 @@ def main_vEEGNet(subj_list):
     
     train_config['measure_metrics_during_training'] = model_config['use_classifier']
     train_config['use_classifier'] = model_config['use_classifier']
+
+    return dataset_config, train_config, model_config
+
+def main_vEEGNet_default(subj_list: list):
+    """
+    Train vEEGNet with the value specified inside the config files
+    """
+    dataset_config, train_config, model_config = get_config_dict_for_vEEGNet(subj_list)
+    return main_vEEGNet(dataset_config, train_config, model_config)
+
+def main_vEEGNet(dataset_config : dict, train_config : dict, model_config):
+    """
+    Pass the config and train the model with wandb.
+    (This method is also used in colab for training instead of main_vEEGNet_default because in colab it is not possible to modify other files)
+    """
 
     model = train_wandb('vEEGNet', dataset_config, train_config, model_config)
     
