@@ -190,7 +190,7 @@ class vEEGNet_loss():
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
         elif self.recon_loss_type == 1: # SDTW
-            recon_loss = self.compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
+            recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
 

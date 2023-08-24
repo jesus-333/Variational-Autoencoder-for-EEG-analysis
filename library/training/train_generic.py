@@ -221,7 +221,7 @@ def get_loss_function(model_name, config = None):
     if model_name == 'EEGNet' or model_name == 'MBEEGNet':
         return torch.nn.NLLLoss()
     elif model_name == 'vEEGNet':
-        return loss_function.vEEGNet_loss 
+        return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss(config)
     else:

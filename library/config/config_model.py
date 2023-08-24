@@ -99,6 +99,7 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         type_decoder = type_decoder, # N.b. specify if use upsample or transposed convolution in the encoder
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
+        use_classifier = True,
     )
 
     return config
