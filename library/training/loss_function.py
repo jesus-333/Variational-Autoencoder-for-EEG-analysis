@@ -141,10 +141,12 @@ def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_li
 
         return final_loss, recon_loss, kl_loss, kl_loss_list
 
-
-class hvEEGNet_loss():
-    
+class vEEGNet_loss():
     def __init__(self, config : dict):
+        """
+        Class that compute the loss function for the Variational autoencoder
+        """
+
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
             self.recon_loss_function = recon_loss_function
@@ -158,7 +160,7 @@ class hvEEGNet_loss():
         if self.edge_samples_ignored < 0: self.edge_samples_ignored = 0
             
         # Kullback
-        self.kl_loss_function = hierarchical_KL
+        self.kl_loss_function = kl_loss_normal_function 
         
         # Classifier loss
         self.clf_loss_function = classifier_loss
@@ -167,6 +169,44 @@ class hvEEGNet_loss():
         self.alpha = config['alpha'] if 'alpha' in config else 1 # Recon
         self.beta = config['beta'] if 'beta' in config else 1    # KL
         self.gamma = config['gamma'] if 'gamma' in config else 1 # Clf
+        
+    def compute_loss(self, x, x_r, mu, log_var, predicted_label = None, true_label = None):
+        recon_loss = self.compute_recon_loss(x, x_r)
+        kl_loss  = self.kl_loss_function(mu, log_var) 
+        
+        if predicted_label is not None and true_label is not None: # Compute alos classifier loss
+            clf_loss = classifier_loss(predicted_label, true_label)
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
+            return final_loss, recon_loss, kl_loss, clf_loss
+        else: # Not compute classifier loss
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss 
+            return final_loss, recon_loss, kl_loss 
+        
+    def compute_recon_loss(self, x, x_r):
+        # (OPTIONAL) Remove sample from border (could contain artifacts due to padding)
+        x = x[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        x_r = x_r[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        
+        if self.recon_loss_type == 0: # Mean Squere Error (L2)
+            recon_loss = self.recon_loss_function(x, x_r)
+        elif self.recon_loss_type == 1: # SDTW
+            recon_loss = self.compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
+        else:
+            raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
+
+        return recon_loss
+            
+        
+class hvEEGNet_loss(vEEGNet_loss):
+    
+    def __init__(self, config : dict):
+        """
+        Class that compute the loss function for the Hierarchical Variational autoencoder
+        """
+        super().__init__(config)
+            
+        # Kullback
+        self.kl_loss_function = hierarchical_KL
         
     def compute_loss(self, x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, predicted_label = None, true_label = None):
         recon_loss = self.compute_recon_loss(x, x_r)
@@ -179,27 +219,3 @@ class hvEEGNet_loss():
         else:
             final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
             return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
-        
-    def compute_recon_loss(self, x, x_r):
-        # (OPTIONAL) Remove sample from border (could contain artifacts due to padding)
-        x = x[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
-        x_r = x_r[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
-        
-        if self.recon_loss_type == 0: # Mean Squere Error (L2)
-            recon_loss = self.recon_loss_function(x, x_r)
-        elif self.recon_loss_type == 1: # SDTW
-            recon_loss = self.compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
-            # recon_loss = 0
-            # for i in range(x.shape[2]): # Iterate through EEG Channels
-            #     x_ch = x[:, :, i, :].swapaxes(1,2)
-            #     x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
-            #     # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
-            #     # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
-            #     
-            #     tmp_recon_loss = self.recon_loss_function(x_ch, x_r_ch)
-            #     
-            #     recon_loss += tmp_recon_loss.mean()
-        else:
-            raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
-            
-        return recon_loss

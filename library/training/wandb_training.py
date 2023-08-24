@@ -64,6 +64,29 @@ def main_EEGNet_classifier():
     
     return model
 
+def main_vEEGNet(subj_list):
+    dataset_config = cd.get_moabb_dataset_config(subj_list)
+    
+    train_config = ct.get_config_vEEGNet_training()
+    train_config['wandb_training'] = True
+    train_config['model_artifact_name'] = 'vEEGNet'
+
+    C = 22
+    if dataset_config['resample_data']: sf = dataset_config['resample_freq']
+    else: sf = 250
+    T = int((dataset_config['trial_end'] - dataset_config['trial_start']) * sf )
+    hidden_space_dimension = 64
+    type_encoder = 0
+    type_decoder = 0
+    model_config = cm.get_config_vEEGNet(C, T, hidden_space_dimension, type_encoder, type_decoder)
+    
+    train_config['measure_metrics_during_training'] = model_config['use_classifier']
+    train_config['use_classifier'] = model_config['use_classifier']
+
+    model = train_wandb('vEEGNet', dataset_config, train_config, model_config)
+    
+    return model
+
 def main_hvEEGNet_shallow(subj_list):
     dataset_config = cd.get_moabb_dataset_config(subj_list)
     
@@ -86,7 +109,6 @@ def main_hvEEGNet_shallow(subj_list):
     
     # train_config['wandb_training'] = False
     # model = train_generic.train_and_test_model('hvEEGNet_shallow', dataset_config, train_config, model_config, None)
-        
     
     return model
 

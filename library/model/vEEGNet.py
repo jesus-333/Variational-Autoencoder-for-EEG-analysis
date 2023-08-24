@@ -98,7 +98,6 @@ class vEEGNet(nn.Module):
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-
         return x_r, z_mean, z_log_var, predicted_label
 
     def reparametrize(self, mu, log_var):
