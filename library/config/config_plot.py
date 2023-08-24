@@ -1,3 +1,5 @@
+from . import config_model as cm
+from . import config_dataset as cd
 
 def get_config_plot_preprocess_random_trial():
     config = dict(
@@ -90,3 +92,12 @@ def get_config_set_of_trials():
     )
     
     return config
+
+
+def get_config_visualizer():
+    config = dict(
+        model_name = 'vEEGNet',
+        model_config = cm.cm.get_config_vEEGNet(),
+    )
+
+    return
