@@ -55,12 +55,7 @@ class hvEEGNet_shallow(nn.Module):
         return self.h_vae.generate(z)
     
     def reconstruct(self, x, no_grad = True):
-        if no_grad:
-            with torch.no_grad():
-                output = self.forward(x)
-        else:
-            output = self.forward(x)
-        return output[0]
+        return self.h_vae.reconstruct(x, no_grad)
 
     def encode(self, x, return_distribution = True):
         z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)

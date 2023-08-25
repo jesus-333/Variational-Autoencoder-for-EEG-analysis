@@ -1,5 +1,6 @@
 import torch
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
 from . import dtw_analysis 
@@ -53,15 +54,40 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
             return z_reduced
 
 def reduce_dimension_lanten_space(z : torch.Tensor, config : dict):
-    tsne = TSNE(
-        n_components = 2,
-        perplexity = config['perplexity'] if 'perplexity' in config else 30,
-        n_iter = config['n_iter'] if 'n_iter' in config else 1000,
-        verbose = 1
-    )
-    
-    print(z.shape)
-    print(tsne.perplexity)
-    z_tsne = tsne.fit_transform(z)
+    if config['reduction_methods'] == 'tsne':
+        tsne = TSNE(
+            n_components = 2,
+            perplexity = config['perplexity'] if 'perplexity' in config else 30,
+            n_iter = config['n_iter'] if 'n_iter' in config else 1000,
+            verbose = 1
+        )
+        
+        z_reduced = tsne.fit_transform(z)
+    elif config['reduction_methods'] == 'pca':
+        pca = PCA(n_components=2)   
+        z_reduced = pca.fit_transform(z)
+    elif config['reduction_methods'] == 'umap':
+        print("Umap not yet implemented")
+    else:
+        raise ValueError("reduction_methods value not valid. The possible values are: tsne, pca, umap")
 
-    return z_tsne
+    return z_reduced 
+
+
+def plot_latent_space(z_reduced_list : list, plot_config : dict, color = None):
+    fig, axs = plt.subplots(1, len(z_reduced_list), figsize = plot_config['figsize'])
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+
+    for i in range(len(z_reduced_list)):
+        z_reduced = z_reduced_list[i]
+        ax = axs[i]
+
+        ax.scatter(z_reduced[:, 0], z_reduced[:, 1],
+                   s = plot_config['markersize'], c = color,
+                   cmap = plot_config['colormap'], alpha = plot_config['alpha'])
+        
+        ax.set_title(plot_config['reduction_method_name_list'][i])
+
+    fig.tight_layout()
+    if plot_con['show_fig']: fig.show()
+

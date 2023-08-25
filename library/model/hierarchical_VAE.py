@@ -53,6 +53,42 @@ class hVAE(nn.Module):
 
         return x
 
+    def reconstruct(self, x, no_grad = True):
+        """
+        Reconstruct the input signal
+        x = (Tensor) input 
+        no_grad = (bool) indicate if keep tracking of the gradient
+        """
+        if no_grad:
+            with torch.no_grad():
+                output = self.forward(x)
+        else:
+            output = self.forward(x)
+        return output[0]
+
+    def reconstruct_ignoring_latent_spaces(self, x, laten_space_to_ignore: list):
+        """
+        Reconstruct the input x but ignore the sample from some of the latent space
+        x = (Tensor) input to reconstruct
+        laten_space_to_ignore = (list of bool) list with a bool for each cell of the decoder. If True ignore the corresponding latent space
+        """
+
+        with torch.no_grad():
+            # Encoder 
+            z, _, _, encoder_cell_outputs = self.encoder(x)
+            
+            # Set to 0 the output of the various layer
+            # If a an encoder_cell_output is compose by all 0 it is ignored inside the encoder
+            for i in range(len(laten_space_to_ignore)):
+                if laten_space_to_ignore[i] == True:
+                    encoder_cell_outputs[i] *= 0
+            
+            # Decoder
+            decoder_output = self.decoder(z, None, encoder_cell_outputs)
+            x_r, _, _, _, _ = decoder_output
+
+            return x_r
+
 class hvae_encoder(nn.Module):
 
     def __init__(self, encoder_cell_list : list, config : dict):
@@ -161,12 +197,16 @@ class hVAE_decoder(nn.Module):
                 log_var_list.append(log_var)
                 
                 # This section is used only during the training
-                if encoder_cell_output is not None:
+                if encoder_cell_output is not None and torch.sum(encoder_cell_output[-2 - i]) != 0:
                     _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-2 - i]))
                     # Note that the encoder_cell_output has ALL the output of the decoder, including the last (deepest) layer that is also the input of the decoder
                     # Due to the way the loop is structured I don't want the element corresponding to -1-i but the element corresponding to -2-i
                     # E.g if i = 0 I don't want - 1 - i = - 1 = last element of encoder_cell_output (Because encoder_cell_output[-1] is the input of the encoder but x is already pass through a decoder cell)
                     # For i = 0 what I want is element -2. So the correct indexing is -2-i
+
+                    # The check if all the the tensor is 0 is done to avoid to use the encoder_output that are all compose by 0
+                    # So if an encoder output has only value 0 is ignored during the deconding
+                    # This is done to study the contribute of the various latent space during the reconstruction
 
                     # "Correct" the normal distribution (section 3.2 NVAE paper)
                     z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var, return_as_tensor = True)

@@ -56,17 +56,23 @@ def get_config_plot_preprocess_average_stft():
     return config
 
 
-def get_config_latent_plot_representation():
+def get_config_latent_space_computation():
     config = dict(
         sample_from_distribution = False,
         compute_recon_error = True,
         # - - - - - - - - - - 
-        # tsne config
+        # tsne config (preconfigured parameter for tsne)
         perplexity = 30,
         n_iter = 1000,
         # - - - - - - - - - - 
+    )
+
+    return config
+
+def get_config_latent_space_representation():
+    config = dict(
         # Figure config
-        figsize = (15, 10),
+        figsize = (25, 10),
         fontsize = 12,
         show_fig = True,
         save_plot = False,
