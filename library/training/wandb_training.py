@@ -44,9 +44,13 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
         model_artifact = wandb.Artifact(model_artifact_name, type = "model",
                                         description = "Trained {} model".format(train_config['model_artifact_name']),
                                         metadata = metadata)
-
+        
+        # Train the model
         model = train_generic.train_and_test_model(model_name, dataset_config, train_config, model_config, model_artifact)
         
+        # Log the model artifact
+        run.log_artifact(model_artifact)
+
         return model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

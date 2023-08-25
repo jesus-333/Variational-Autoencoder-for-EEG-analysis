@@ -18,7 +18,7 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         filter_1 = 8,
         filter_2 = 16,
         #Pooling kernel
-        p_kernel_1 = (1, 4),
+        p_kernel_1 = (1, 5),
         p_kernel_2 = (1, 8),
         # Other parameters
         C = C, # Number of EEG Channels
