@@ -145,8 +145,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # (OPTIONAL) Optional steps during the training
 
-        # (OPTIONAL) Measure the various metrics
-        if train_config['measure_metrics_during_training']:
+        # (OPTIONAL) Measure the various metrics related to classification (accuracy, precision etc)
+        if train_config['measure_metrics_during_training'] and train_config['use_classifier']:
             # Compute the various metrics
             train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])    
             validation_metrics_dict = metrics.compute_metrics(model, validation_loader, train_config['device'])

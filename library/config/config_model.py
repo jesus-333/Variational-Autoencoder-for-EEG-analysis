@@ -99,7 +99,7 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         type_decoder = type_decoder, # N.b. specify if use upsample or transposed convolution in the encoder
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
-        use_classifier = True,
+        use_classifier = False,
         parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
         use_activation_in_sampling = True,
         sampling_activation = 'elu',
@@ -128,7 +128,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         convert_logvar_to_var = False,
         hidden_space_dimension_list = [32, 128, 512], # Important only if parameters_map_type = 1
         parameters_map_type = parameters_map_type,
-        use_classifier = True,
+        use_classifier = False,
     )
 
     config['encoder_config']['print_var'] = False
