@@ -218,4 +218,4 @@ class hvEEGNet_loss(vEEGNet_loss):
             return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
         else:
             final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
-            return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
+            return final_loss, recon_loss, kl_loss, kl_loss_list
