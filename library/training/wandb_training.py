@@ -68,6 +68,8 @@ def main_EEGNet_classifier():
     
     return model
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 def get_config_dict_for_vEEGNet(subj_list : list):
     dataset_config = cd.get_moabb_dataset_config(subj_list)
     
@@ -106,7 +108,9 @@ def main_vEEGNet(dataset_config : dict, train_config : dict, model_config):
     
     return model
 
-def main_hvEEGNet_shallow(subj_list):
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_dict_for_hvEEGNet_shallow(subj_list : list):
     dataset_config = cd.get_moabb_dataset_config(subj_list)
     
     train_config = ct.get_config_vEEGNet_training()
@@ -124,10 +128,11 @@ def main_hvEEGNet_shallow(subj_list):
     train_config['measure_metrics_during_training'] = model_config['use_classifier']
     train_config['use_classifier'] = model_config['use_classifier']
 
+    return dataset_config, train_config, model_config
+
+def main_hvEEGNet_shallow(dataset_config, train_config, model_config):
+
     model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
-    
-    # train_config['wandb_training'] = False
-    # model = train_generic.train_and_test_model('hvEEGNet_shallow', dataset_config, train_config, model_config, None)
     
     return model
 

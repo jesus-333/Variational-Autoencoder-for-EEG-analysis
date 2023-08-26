@@ -115,7 +115,7 @@ class sample_layer(nn.Module):
         """
 
         self.parameters_map_type = config['parameters_map_type']
-        self.input_shape = list( input_shape)
+        self.input_shape = list(input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
             self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],

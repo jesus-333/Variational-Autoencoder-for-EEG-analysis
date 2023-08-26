@@ -11,7 +11,7 @@ Implementation of vEEGNet model using PyTorch
 import torch
 from torch import nn
 
-from . import EEGNet, MBEEGNet, Decoder_EEGNet 
+from . import EEGNet, MBEEGNet, Decoder_EEGNet, support_function
 
 """
 %load_ext autoreload
@@ -43,9 +43,11 @@ class vEEGNet(nn.Module):
         # Get hidden space dimension
         self.hidden_space = config['hidden_space']
 
-        # Feed-Forward section
-        self.ff_encoder_mean = nn.Linear(n_input_neurons, self.hidden_space)
-        self.ff_encoder_std = nn.Linear(n_input_neurons, self.hidden_space)
+        # Layer to "sample" from the latent space
+        # self.ff_encoder_mean = nn.Linear(n_input_neurons, self.hidden_space)
+        # self.ff_encoder_std = nn.Linear(n_input_neurons, self.hidden_space)
+
+        self.sample_layer = support_function.sample_layer(decoder_ouput_shape, config, config['hidden_space'])
 
         self.classifier = nn.Sequential(
             nn.Linear(self.hidden_space * 2, config['n_classes']),
@@ -77,13 +79,11 @@ class vEEGNet(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                 
         # Encoder section
         x = self.cnn_encoder(x)
-        z_mean = self.ff_encoder_mean(x)
-        z_log_var = self.ff_encoder_std(x)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        # Reparametrization
-
-        z = self.reparametrize(z_mean, z_log_var)
+        # Reparametrization and sampling
+        # Note that the reparametrization trick is done by inside the sample_layer
+        z, z_mean, z_log_var = self.sample_layer(x)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Decoder
@@ -99,19 +99,6 @@ class vEEGNet(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
         return x_r, z_mean, z_log_var, predicted_label
-
-    def reparametrize(self, mu, log_var):
-        """
-        Reparametrization Trick to allow gradients to backpropagate from the stochastic part of the model
-        mu = Mean of the laten gaussian
-        log_var = logartim of the variance of the latent guassian
-        """
-        
-        sigma = torch.exp(0.5 * log_var)
-        eps = torch.randn_like(sigma)
-        eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
-        
-        return mu + (sigma * eps)
 
     def generate(self):
         # Sample laten space (normal distribution)

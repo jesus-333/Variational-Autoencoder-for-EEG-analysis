@@ -100,6 +100,7 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
         use_classifier = True,
+        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer). This parameter specify if use a convolution to create the mean and variance variables of the latent space
     )
 
     return config
@@ -117,7 +118,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
         type_encoder = 0,
         encoder_config = encoder_config, # Used also for the decoder
         type_decoder = type_decoder, # N.b. specified the architecture of decoder 
-        type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
+        type_vae = 0, # 0 = normal VAE, 1 = conditional VAE (not implemented)
         n_classes = 4,
         use_h_in_decoder = False,
         use_activation_in_sampling = True,
