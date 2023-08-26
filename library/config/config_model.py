@@ -84,23 +84,25 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
     # Get the config for the encoder (used also for the decoder)
     if type_encoder == 0: # EEGNet
         encoder_config = get_config_EEGNet(C, T)
-        encoder_config['flatten_output'] = True
+        encoder_config['flatten_output'] = False # Set to False to use the custom sample_layer 
     elif type_encoder == 1: #MBEEGnet
         encoder_config = get_config_MBEEGNet(C, T)
-        encoder_config['eegnet_config']['flatten_output'] = True
+        encoder_config['eegnet_config']['flatten_output'] = False
     else:
         raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
     
     # Config specific for vEEGNet
     config = dict(
-        hidden_space = hidden_space, 
+        hidden_space = hidden_space, # Not used if parameters_map_type == 0
         type_encoder = type_encoder,
         encoder_config = encoder_config,
         type_decoder = type_decoder, # N.b. specify if use upsample or transposed convolution in the encoder
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
         use_classifier = True,
-        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer). This parameter specify if use a convolution to create the mean and variance variables of the latent space
+        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
+        use_activation_in_sampling = True,
+        sampling_activation = 'elu',
     )
 
     return config

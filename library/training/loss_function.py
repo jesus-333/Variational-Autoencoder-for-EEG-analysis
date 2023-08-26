@@ -174,7 +174,7 @@ class vEEGNet_loss():
         recon_loss = self.compute_recon_loss(x, x_r)
         kl_loss  = self.kl_loss_function(mu, log_var) 
         
-        if predicted_label is not None and true_label is not None: # Compute alos classifier loss
+        if predicted_label is not None and true_label is not None: # Compute classifier loss
             clf_loss = classifier_loss(predicted_label, true_label)
             final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
             return final_loss, recon_loss, kl_loss, clf_loss

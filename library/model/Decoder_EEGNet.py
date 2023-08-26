@@ -28,21 +28,25 @@ class EEGNet_Decoder_Upsample(nn.Module):
         activation = support_function.get_activation(config['activation'])
         dropout = support_function.get_dropout(config['prob_dropout'], config['use_dropout_2d'])
         self.hidden_space = config['hidden_space']
+        self.parameters_map_type = config['parameters_map_type']
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Feed-Forward section of the decoder
+        # Used only if parameters_map_type == 1 (i.e. if the map to the latent space is done through a feed-forward layer)
 
-        # After the convolution layer reshape the array to this dimension
         self.dimension_reshape = config['dimension_reshape']
 
-        # Compute the number of neurons needed to obtain the shape defined by dimension_reshape
-        n_ouput_neurons = np.abs(np.prod(self.dimension_reshape))
-        
-        # Defined feed-forward encoder
-        self.ff_decoder = nn.Sequential(
-            nn.Linear(self.hidden_space, n_ouput_neurons),
-            activation,
-        )
+        if self.parameters_map_type == 1:
+            # After the convolution layer reshape the array to this dimension
+
+            # Compute the number of neurons needed to obtain the shape defined by dimension_reshape
+            n_ouput_neurons = np.abs(np.prod(self.dimension_reshape))
+            
+            # Defined feed-forward encoder
+            self.ff_decoder = nn.Sequential(
+                nn.Linear(self.hidden_space, n_ouput_neurons),
+                activation,
+            )
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Convolutional section of the decoder
@@ -80,12 +84,15 @@ class EEGNet_Decoder_Upsample(nn.Module):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Feed-Forward section
         
-        # Feed-Forward decoder
-        x = self.ff_decoder(z)
+        if self.parameters_map_type == 1:
+            # Feed-Forward decoder
+            x = self.ff_decoder(z)
 
-        # Reshape the output for the convolutional section
-        x = torch.reshape(x, self.dimension_reshape)
-        
+            # Reshape the output for the convolutional section
+            x = torch.reshape(x, self.dimension_reshape)
+        else:
+            x = z
+            
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # Convolutional section
         x = self.separable_convolution_transpose(x)
@@ -101,15 +108,19 @@ class EEGNet_Decoder_Upsample(nn.Module):
         """
 
         print("Shape tracking across EEGNet based Decoder")
+        
+        if self.parameters_map_type == 1:
+            x = torch.randn(1, self.hidden_space)
+            print("\tInput shape :\t\t\t\t" , x.shape)
 
-        x = torch.randn(1, self.hidden_space)
-        print("\tInput shape :\t\t\t\t" , x.shape)
+            x = self.ff_decoder(x)
+            print("\tFF Decoder :\t\t\t\t" , x.shape)
 
-        x = self.ff_decoder(x)
-        print("\tFF Decoder :\t\t\t\t" , x.shape)
-
-        x = torch.reshape(x, self.dimension_reshape)
-        print("\tAfter reshape :\t\t\t\t", x.shape)
+            x = torch.reshape(x, self.dimension_reshape)
+            print("\tAfter reshape :\t\t\t\t", x.shape)
+        else:
+            x = torch.randn(1, self.dimension_reshape[1], self.dimension_reshape[2], self.dimension_reshape[3])
+            print("\tInput shape :\t\t\t\t" , x.shape)
 
         x = self.separable_convolution_transpose[1](x)
         print("\tSeparable convolution (upsample) :\t", x.shape)
