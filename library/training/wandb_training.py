@@ -30,6 +30,7 @@ import sys
 
 def train_wandb(model_name, dataset_config, train_config, model_config):
     notes = train_config['notes']
+    name = train_config['name'] if 'name' in train_config else None
 
     wandb_config = dict(
         dataset = dataset_config,
@@ -37,7 +38,7 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
         model = model_config
     )
 
-    with wandb.init(project = train_config['project_name'], job_type = "train", config = wandb_config, notes = notes) as run:
+    with wandb.init(project = train_config['project_name'], job_type = "train", config = wandb_config, notes = notes, name = name) as run:
         # Setup artifact to save model
         model_artifact_name = train_config['model_artifact_name'] + '_trained'
         metadata = dict(training_config = dict(train_config))
