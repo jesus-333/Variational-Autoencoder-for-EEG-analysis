@@ -83,7 +83,6 @@ class hvEEGNet_shallow(nn.Module):
 
         return encoder_cell_list, decoder_cell_list
 
-
     def classify(self, x, return_as_index = True):
         """
         Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
