@@ -1,6 +1,7 @@
 *.mat
 TMP Test/tmp_data/
 *.pyc
+*.pth
 Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
@@ -74,3 +75,18 @@ New Code/subj_3_stft/model_90.pth
 New Code/subj_3_stft/model_95.pth
 New Code/subj_3_stft/model_BEST.pth
 *.pth
+Saved Model/full_eeg/1/model_20.pth:Zone.Identifier
+Saved Model/full_eeg/1/model_20.pth:shield
+Saved Model/full_eeg/1/model_BEST.pth:Zone.Identifier
+Saved Model/full_eeg/1/model_BEST.pth:shield
+Saved Model/full_eeg/2
+Saved Model/full_eeg/3
+Saved Model/full_eeg/4
+Saved Model/full_eeg/5
+Saved Model/full_eeg/6
+Saved Model/full_eeg/7
+Saved Model/full_eeg/9
+Saved Model/hvEEGNet_shallow_dtw
+Saved Model/hvEEGNet_shallow_mse
+Saved Model/hvae_dwt
+Saved Model
