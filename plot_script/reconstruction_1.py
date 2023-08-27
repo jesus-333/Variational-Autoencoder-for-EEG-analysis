@@ -2,15 +2,21 @@
 Analysis of the reconstruction of the various layer of the hvEEGNet
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+import sys
+import os
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from ..config import config_dataset as cd
-from ..config import config_model as cm
-from ..dataset import preprocess as pp
-from ..training import train_generic
+from library.config import config_dataset as cd
+from library.config import config_model as cm
+from library.dataset import preprocess as pp
+from library.training import train_generic
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
@@ -63,7 +69,7 @@ def crop_signal(x, t_start, t_end, t_min, t_max):
     t      = np.linspace(t_start, t_end, x.shape[-1])
     x_crop = x.squeeze()[idx_ch, np.logical_and(t >= config['t_min'], t <= config['t_max'])]
 
-    return x_crop
+    return x_crop, t
 
 def plot_signal(ax, t, x, t_r, x_r):
     ax.plot(t, x, label = 'Original signal')
@@ -83,7 +89,7 @@ for subj in subj_list:
         else: dataset = train_dataset
         
         # Load model weight
-        path_weight = 'Saved Model/vEEGNet_{}/{}/model_{}.pth'.format(loss, subj, epoch)
+        path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, subj, epoch)
         model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
         
         # Get EEG trial
@@ -92,15 +98,15 @@ for subj in subj_list:
         x_plot, t = crop_signal(x, 2, 6, config['t_min'], config['t_max'])
 
         latent_space_to_ignore = [False, False, False]
-        x_r_1 = model_hv.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
+        x_r_1 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
         x_r_1_plot, t_r_1 = crop_signal(x_r_1, 2, 6, config['t_min'], config['t_max'])
 
         latent_space_to_ignore = [False, False, True]
-        x_r_2 = model_hv.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
+        x_r_2 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
         x_r_2_plot, t_r_2 = crop_signal(x_r_2, 2, 6, config['t_min'], config['t_max'])
 
         latent_space_to_ignore = [False, True, True]
-        x_r_3 = model_hv.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
+        x_r_3 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore)
         x_r_3_plot, t_r_3 = crop_signal(x_r_3, 2, 6, config['t_min'], config['t_max'])
 
         plt.rcParams.update({'font.size': config['fontsize']})
