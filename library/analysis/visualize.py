@@ -51,7 +51,6 @@ def visualize_set_of_trials(data, config : dict, x_r = None):
     # Show plot
     fig.tight_layout()
     fig.show()
-    
 
 def extract_and_flat_trial(data, config):
     x = data[config['idx_start']:config['idx_end']]
@@ -59,23 +58,3 @@ def extract_and_flat_trial(data, config):
     x_plot = x_ch.flatten()
     
     return x_plot
-
-
-def plot_latent_space_embedding(z, config : dict, color = None):
-    colormap = config['colormap'] if 'colormap' in config else 'viridis'
-    markersize = config['markersize'] if 'markersize' in config else 1
-
-    # Create figure
-    fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
-    plt.rcParams.update({'font.size': config['fontsize']})
-    
-    # Plot the embedding
-    im = ax.scatter(x = z[:, 0], y = z[:, 1], s = markersize,
-               c = color, cmap = colormap
-                )
-    
-    # Extra stuff
-    fig.colorbar(im, ax=ax)
-    ax.grid(True)
-    fig.tight_layout()
-    fig.show()

@@ -107,3 +107,15 @@ def get_config_visualizer():
     )
 
     return
+
+
+def get_config_plot_reconstruction(idx_trial : int, idx_ch : int, compute_psd : bool):
+    config = dict(
+        idx_trial = idx_trial,
+        idx_ch = idx_ch,
+        compute_psd = compute_psd,
+        figsize = (15, 10),
+        fontsize = 15,
+    )
+
+    return config
