@@ -7,10 +7,10 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from ..library.config import config_dataset as cd
-from ..library.config import config_model as cm
-from ..library.dataset import preprocess as pp
-from ..library.training import train_generic
+from ..config import config_dataset as cd
+from ..config import config_model as cm
+from ..dataset import preprocess as pp
+from ..training import train_generic
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
@@ -116,4 +116,5 @@ for subj in subj_list:
         ax[2].set_title("Only deep latent space")
 
         fig.tight_layout()
+        fig.show()
 
