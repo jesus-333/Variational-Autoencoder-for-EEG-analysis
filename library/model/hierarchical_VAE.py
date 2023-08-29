@@ -214,7 +214,7 @@ class hVAE_decoder(nn.Module):
                     # Save the parameters
                     delta_mu_list.append(delta_mu)
                     delta_log_var_list.append(delta_log_var)
-        
+
         if encoder_cell_output is None: # During generation
             return x, mu_list, log_var_list
         else: # During training
