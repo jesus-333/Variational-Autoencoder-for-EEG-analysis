@@ -15,6 +15,7 @@ import torch
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+import pickle
 
 from library.config import config_dataset as cd
 from library.config import config_model as cm
@@ -26,7 +27,7 @@ from library.training.soft_dtw_cuda import SoftDTW
 # Parameters
 
 tot_epoch_training = 20
-subj_list = [1]
+subj_list = [7, 8, 9]
 repetition_list = [1,2,3,4,5,6,7,8]
 epoch_list = [5, 10, 15, 20]
 use_test_set = False
@@ -112,3 +113,14 @@ for subj in subj_list:
 for subj in subj_list:
     for epoch in epoch_list:
         recon_loss_results[subj][epoch] /= len(repetition_list)
+        
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
+        os.makedirs(path_save, exist_ok = True)
+        
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.pickle'.format(tot_epoch_training, subj, epoch)
+        pickle_out = open(path_save, "wb") 
+        pickle.dump(recon_loss_results[subj][epoch] , pickle_out) 
+        pickle_out.close() 
+        
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.npy'.format(tot_epoch_training, subj, epoch)
+        np.save(path_save, recon_loss_results[subj][epoch])
