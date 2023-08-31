@@ -27,7 +27,7 @@ from library.training.soft_dtw_cuda import SoftDTW
 # Parameters
 
 tot_epoch_training = 20
-subj_list = [7, 8, 9]
+subj_list = [1,2,3,4,5,6,7,8,9]
 repetition_list = [1,2,3,4,5,6,7,8]
 epoch_list = [5, 10, 15, 20]
 use_test_set = False
@@ -107,9 +107,8 @@ for subj in subj_list:
                 recon_loss_results[subj][epoch] = compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
             else:
                 recon_loss_results[subj][epoch] += compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
-                
 
-# Average accross repetition
+#%% Average accross repetition and save the results
 for subj in subj_list:
     for epoch in epoch_list:
         recon_loss_results[subj][epoch] /= len(repetition_list)
