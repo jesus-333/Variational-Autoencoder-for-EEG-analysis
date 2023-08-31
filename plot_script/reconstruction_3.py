@@ -1,5 +1,5 @@
 """
-Computation of the reconstruction error for each trial
+Computation of the average reconstruction error for each subject for each epoch across repetition
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -25,11 +25,10 @@ from library.training.soft_dtw_cuda import SoftDTW
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
 
-subj_list = [1,2,3,4,5,6,7,8,9]
-loss = 'dtw'
-# epoch_list = [20, 40, 'BEST']
-epoch_list = [40]
-
+tot_epoch_training = 20
+subj_list = [1]
+repetition_list = [1,2,3,4,5,6,7,8]
+epoch_list = [5, 10, 15, 20]
 use_test_set = False
 
 batch_size = 64
@@ -89,15 +88,27 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
 recon_loss_results = dict()
 
 for subj in subj_list:
-    print(subj)
+    print("Subj: ", subj)
     recon_loss_results[subj] = dict()
     train_dataset, validation_dataset, test_dataset , model_hv = get_dataset_and_model([subj])
-    for epoch in epoch_list:
-        if use_test_set: dataset = test_dataset
-        else: dataset = train_dataset
-        
-        # Load model weight
-        path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, subj, epoch)
-        model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+    for repetition in repetition_list:
+        print("\tRep: ", repetition)
+        for epoch in epoch_list:
+    
+            if use_test_set: dataset = test_dataset
+            else: dataset = train_dataset
+            
+            # Load model weight
+            path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+            model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+            
+            if epoch not in recon_loss_results[subj]:    
+                recon_loss_results[subj][epoch] = compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+            else:
+                recon_loss_results[subj][epoch] += compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+                
 
-        recon_loss_results[subj][epoch] = compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+# Average accross repetition
+for subj in subj_list:
+    for epoch in epoch_list:
+        recon_loss_results[subj][epoch] /= len(repetition_list)
