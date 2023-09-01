@@ -27,7 +27,7 @@ from library.training.soft_dtw_cuda import SoftDTW
 # Parameters
 
 tot_epoch_training = 20
-subj_list = [1,2,3,4,5,6,7,8,9]
+subj_list = [2, 9]
 repetition_list = [1,2,3,4,5,6,7,8]
 epoch_list = [5, 10, 15, 20]
 use_test_set = False
@@ -107,6 +107,18 @@ for subj in subj_list:
                 recon_loss_results[subj][epoch] = compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
             else:
                 recon_loss_results[subj][epoch] += compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+              
+            # Save the results for each repetition
+            path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
+            os.makedirs(path_save, exist_ok = True)
+            
+            path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.pickle'.format(tot_epoch_training, subj, epoch, repetition)
+            pickle_out = open(path_save, "wb") 
+            pickle.dump(recon_loss_results[subj][epoch] , pickle_out) 
+            pickle_out.close() 
+            
+            path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+            np.save(path_save, recon_loss_results[subj][epoch])
 
 #%% Average accross repetition and save the results
 for subj in subj_list:
@@ -116,10 +128,10 @@ for subj in subj_list:
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
         
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.pickle'.format(tot_epoch_training, subj, epoch)
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, subj, epoch)
         pickle_out = open(path_save, "wb") 
         pickle.dump(recon_loss_results[subj][epoch] , pickle_out) 
         pickle_out.close() 
         
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.npy'.format(tot_epoch_training, subj, epoch)
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
         np.save(path_save, recon_loss_results[subj][epoch])
