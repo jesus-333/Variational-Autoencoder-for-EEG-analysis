@@ -17,9 +17,9 @@ import wandb
 # Parameters
 
 # Number of total epoch of training for the model of the specific artifact
-tot_epoch = 20
+tot_epoch = 80
 
-version_list = np.arange(30, 101 + 1)
+version_list = np.arange(30, 139 + 1)
 artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
 root_to_save_model = 'Saved Model/repetition_hvEEGNet_{}/'.format(tot_epoch)
 
@@ -41,14 +41,14 @@ for i in range(len(version_list)):
     epoch = int(run_name[6])
     rep   = int(run_name[8])
     
-    path_to_save_model = '{}/subj {}/rep {}/'.format(root_to_save_model, subj, rep)
-    os.makedirs(path_to_save_model, exist_ok = True)
-
     # Take only the 
     if epoch == tot_epoch:
         if rep not in repetition_list: repetition_list[rep] = []
 
         repetition_list[rep].append(subj)
+        
+        path_to_save_model = '{}/subj {}/rep {}/'.format(root_to_save_model, subj, rep)
+        os.makedirs(path_to_save_model, exist_ok = True)
 
         for file in artifact.files():
             old_model_weight_path = "{}/{}".format(artifact_dir, file.name) 

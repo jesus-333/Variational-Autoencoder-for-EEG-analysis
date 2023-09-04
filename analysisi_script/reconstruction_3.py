@@ -28,8 +28,8 @@ from library.training.soft_dtw_cuda import SoftDTW
 
 tot_epoch_training = 20
 subj_list = [2, 9]
-repetition_list = [1,2,3,4,5,6,7,8]
-epoch_list = [5, 10, 15, 20]
+repetition_list = np.arange(19) + 1
+epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 use_test_set = False
 
 batch_size = 64

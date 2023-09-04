@@ -65,12 +65,13 @@ for subj in subj_list:
             mean_recon_error_per_n_training[subj][epoch][n_training] = dict()
             std_recon_error_per_n_training[subj][epoch][n_training] = dict()
             variation_coef_recon_error_per_n_training[subj][epoch][n_training] = dict()
+            
             training_results = np.asanyarray(random.sample(recon_loss_results[subj][epoch], n_training))
             
             mean_recon_error_per_n_training[subj][epoch][n_training] = training_results.mean(0)
             std_recon_error_per_n_training[subj][epoch][n_training] = training_results.std(0)
             variation_coef_recon_error_per_n_training[subj][epoch][n_training] = std_recon_error_per_n_training[subj][epoch][n_training] / mean_recon_error_per_n_training[subj][epoch][n_training]
-            
+            print("Subj {}, Epoch {}, N. training{}".format(subj, epoch, n_training), variation_coef_recon_error_per_n_training[subj][epoch][n_training].mean())           
             stats_mean_recon_error[subj]['min'][j, i] =  mean_recon_error_per_n_training[subj][epoch][n_training].min()
             stats_mean_recon_error[subj]['avg'][j, i] =  mean_recon_error_per_n_training[subj][epoch][n_training].mean()
             stats_mean_recon_error[subj]['max'][j, i] =  mean_recon_error_per_n_training[subj][epoch][n_training].max()
