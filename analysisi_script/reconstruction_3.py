@@ -127,15 +127,18 @@ for subj in subj_list:
 #%% Average accross repetition and save the results
 for subj in subj_list:
     for epoch in epoch_list:
-        recon_loss_results[subj][epoch] /= len(repetition_list)
-        
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
         
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, subj, epoch)
         pickle_out = open(path_save, "wb") 
-        pickle.dump(recon_loss_results[subj][epoch] , pickle_out) 
+        pickle.dump(recon_loss_results[subj][epoch] / len(repetition_list) , pickle_out) 
         pickle_out.close() 
         
+<<<<<<< Updated upstream:analysisi_script/reconstruction_3.py
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
         np.save(path_save, recon_loss_results[subj][epoch])
+=======
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.npy'.format(tot_epoch_training, subj, epoch)
+        np.save(path_save, recon_loss_results[subj][epoch] / len(repetition_list))
+>>>>>>> Stashed changes:plot_script/reconstruction_3.py
