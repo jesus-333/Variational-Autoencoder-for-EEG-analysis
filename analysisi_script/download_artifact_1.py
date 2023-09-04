@@ -17,7 +17,10 @@ import wandb
 # Parameters
 
 # Number of total epoch of training for the model of the specific artifact
-tot_epoch = 80
+if len(sys.argv) > 1:
+    tot_epoch = sys.argv[1]
+else:
+    tot_epoch = 80
 
 version_list = np.arange(30, 139 + 1)
 artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
