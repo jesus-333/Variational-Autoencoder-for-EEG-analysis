@@ -34,11 +34,13 @@ else:
     epoch = 40
 
 use_test_set = False
+repeat_clustering = 10
 
 config_latent_space_computation = dict(
     sample_from_distribution = False,
     compute_recon_error = False,
     reduce_dimension = False,
+    batch_size = 64,
     # - - - - - - - - - - 
     # tsne config (preconfigured parameter for tsne)
     perplexity = 30,
@@ -70,5 +72,24 @@ model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cp
 # Compute latent space representation (deepest latent space)
 z = latent_space.compute_latent_space_dataset(model_hv, dataset, config_latent_space_computation)
 
-# Define k_meanse
-kmeans = KMeans(n_clusters = 4, random_state = 0, n_init = "auto")
+# Matrix to save the number of times samples were in the same cluster
+count_same_cluster = np.zeros((len(dataset), len(dataset)))
+
+for i in range(repeat_clustering):
+    # Define k_meanse
+    kmeans = KMeans(n_clusters = config_cluster_kmeans['n_clusters'], random_state = config_cluster_kmeans['random_state'], 
+                    n_init = config_cluster_kmeans['n_init'], max_iter = config_cluster_kmeans['max_iter'])
+
+    # Compute the id of each sample
+    z_cluster_id = kmeans.fit_predict(z)
+
+    for j in range(z_cluster_id.shape[0]):
+        current_sample_id = z_cluster_id[j]
+        for k in range(z_cluster_id.shape[0]):
+            if j != k: # For different sample
+                if current_sample_id == z_cluster_id[k]: # Check if they are in the same cluster
+                    count_same_cluster[j, k] += 1
+
+
+count_same_cluster /= repeat_clustering
+            
