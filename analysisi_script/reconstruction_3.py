@@ -54,7 +54,6 @@ def get_dataset_and_model(subj_list):
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model_config['use_classifier'] = False
     model_hv = train_generic.get_untrained_model('hvEEGNet_shallow', model_config)
-    model_hv.to(device)
 
     return train_dataset, validation_dataset, test_dataset , model_hv
 
@@ -135,10 +134,5 @@ for subj in subj_list:
         pickle.dump(recon_loss_results[subj][epoch] / len(repetition_list) , pickle_out) 
         pickle_out.close() 
         
-<<<<<<< Updated upstream:analysisi_script/reconstruction_3.py
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
-        np.save(path_save, recon_loss_results[subj][epoch])
-=======
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}.npy'.format(tot_epoch_training, subj, epoch)
         np.save(path_save, recon_loss_results[subj][epoch] / len(repetition_list))
->>>>>>> Stashed changes:plot_script/reconstruction_3.py
