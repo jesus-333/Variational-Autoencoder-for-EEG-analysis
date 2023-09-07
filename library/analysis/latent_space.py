@@ -14,7 +14,7 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
         dataloader = torch.utils.data.DataLoader(dataset, batch_size = batch_size, shuffle = False)
 
         # Tensor to save the results
-        print(model.h_vae.hidden_space_size_flatten)
+        # print(model.h_vae.hidden_space_size_flatten)
         hidden_space_embedding = torch.zeros(len(dataset), int(model.h_vae.hidden_space_size_flatten))
         labels = torch.zeros(len(dataset))
 
