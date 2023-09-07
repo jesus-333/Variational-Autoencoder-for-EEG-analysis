@@ -19,6 +19,7 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
         labels = torch.zeros(len(dataset))
 
         if config['compute_recon_error']: recon_error = torch.zeros(len(dataset))
+        if 'reduce_dimension' not in config: config['reduce_dimension'] = False
         
         model.to(device)
 
@@ -46,7 +47,10 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
 
             i += 1
 
-        z_reduced = reduce_dimension_lanten_space(hidden_space_embedding, config)
+        if config['reduce_dimension']:
+            z_reduced = reduce_dimension_lanten_space(hidden_space_embedding, config)
+        else:
+            z_reduced = z
 
         if config['compute_recon_error']:
             return z_reduced, recon_error
