@@ -50,7 +50,7 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
         if config['reduce_dimension']:
             z_reduced = reduce_dimension_lanten_space(hidden_space_embedding, config)
         else:
-            z_reduced = z
+            z_reduced = hidden_space_embedding
 
         if config['compute_recon_error']:
             return z_reduced, recon_error
