@@ -27,7 +27,7 @@ def compute_latent_space_dataset(model, dataset, config : dict, device = 'cpu'):
         for batch in dataloader:
             # Take the EEG Signal
             x = batch[0]
-            labels[i * batch_size : (i +1) * batch_size] = batch[1]
+            labels[i * batch_size : (i + 1) * batch_size] = batch[1]
             
             # Encode the input
             z, mu, log_var = model.encode(x.to(device), return_distribution = True)
@@ -93,5 +93,47 @@ def plot_latent_space(z_reduced_list : list, plot_config : dict, color = None):
         ax.set_title(plot_config['reduction_method_name_list'][i])
 
     fig.tight_layout()
-    if plot_con['show_fig']: fig.show()
+    if plot_config['show_fig']: fig.show()
 
+def clustering_evaluation(X, centers, labels):
+
+  '''
+  INPUT
+  X       - data matrix for which to compute the proximity matrix
+  centers - cluster centres from the clustering solution applied to X
+  labels  - predicted labels from the clustering solution applied to X
+  '''
+
+  '''
+  OUTPUT
+  PM - proximity matrix computed on X (using euclidean distance metric)
+  d  - average distance between pairs of objects in each cluster
+  D  - inter-cluster distances
+  '''
+
+  from scipy.spatial.distance import pdist as pdist
+  from scipy.spatial.distance import squareform as sf
+
+  METRIC = 'euclidean'
+  PM = pdist(X, metric=METRIC)
+  PM = sf(PM).round(2)
+
+  # [NEW CORRECTED CODE!!] Intra-cluster distances (average over all pairwise distances) -----------------
+  # You could alternatively compute this measure as the average distance of all points from its centroid.
+  d = np.zeros(K)
+  for k in range(K):
+    ind = np.array( np.where(kmeans.labels_ == k ) )
+    for r in range(ind.size):
+      d[k] = d[k] + np.sum( PM[ [ind[0][r]], [ind] ] )
+    d[k] = d[k]/2                                          # not to consider pairs of pair-wise distance between objects twice (the PM is symmetric)
+    d[k] = d[k]/( (ind.size*(ind.size-1)) / 2 )            # to compute the average among N*(N-1)/2 possible unique pairs
+  print("The intra-cluster distance of the three clusters are: ", d.round(2))
+  # ------------------ CORRECTED CODE FOR INTER-CLUSTER DISTANCE --------------------------------
+
+  # Inter-cluster distance
+  D = pdist(centers, metric=METRIC)
+  D = sf(D).round(2)
+
+  print("The inter-cluster distances are:\n |dist(C_0,C_1)| = %.2f \n |dist(C_0,C_2)| = %.2f \n |dist(C_1,C_2)| = %.2f " % (D[0,1].round(2), D[0,2].round(2), D[1,2].round(2)))
+
+  return PM, d, D
