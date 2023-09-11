@@ -15,6 +15,7 @@ sys.path.insert(0, parent_directory)
 import numpy as np
 import torch
 from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import rand_score
 
 from library.analysis import support
 from library.analysis import latent_space
@@ -77,13 +78,15 @@ print("Model and dataset created")
 if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
 
-
 # Compute latent space representation (deepest latent space)
 z = latent_space.compute_latent_space_dataset(model_hv, dataset, config_latent_space_computation)
 print("Latent space representation computed")
 
 # Matrix to save the number of times samples were in the same cluster
 count_same_cluster = np.zeros((len(dataset), len(dataset)))
+inter_cluster_distance = 0
+average_distance = 0
+rand_score = 0
 
 idx_step = 0
 step_print = [0.2, 0.4, 0.6, 0.8, 1, 1.01]
@@ -104,7 +107,8 @@ for i in range(repeat_clustering):
 
     # Compute the id of each sample
     z_cluster_id = kmeans.fit_predict(z)
-
+    
+    # Check if samples are in the same cluster
     for j in range(z_cluster_id.shape[0]):
         current_sample_id = z_cluster_id[j]
         for k in range(z_cluster_id.shape[0]):
@@ -113,10 +117,23 @@ for i in range(repeat_clustering):
                     count_same_cluster[j, k] += 1
 
 
+    PM, d, D = latent_space.clustering_evaluation(z, kmeans.cluster_centers_, kmeans.labels_)
+
+    rand_score += rand_score(dataset.labels, kmeans.labels_)
+
+    inter_cluster_distance += D
+    average_distance += d
+
 count_same_cluster /= repeat_clustering
+inter_cluster_distance /= repeat_clustering
+average_distance /= repeat_clustering
+rand_score /= repeat_clustering
 
 print("0-20%   : ", round(count_percentage_matrix(count_same_cluster, 0, 0.2) * 100, 2))
 print("20-40%  : ", round(count_percentage_matrix(count_same_cluster, 0.2, 0.4) * 100, 2))
 print("40-60%  : ", round(count_percentage_matrix(count_same_cluster, 0.4, 0.6) * 100, 2))
 print("60-80%  : ", round(count_percentage_matrix(count_same_cluster, 0.6, 0.8) * 100, 2))
 print("80-100% : ", round(count_percentage_matrix(count_same_cluster, 0.8, 1.01) * 100, 2))
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
