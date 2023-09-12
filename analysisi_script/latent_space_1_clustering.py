@@ -34,7 +34,7 @@ else:
 
 if tot_epoch_training == 20:
     max_repetition_training = 8
-elif max_repetition_training == 80:
+elif tot_epoch_training == 80:
     max_repetition_training = 19
 
 use_test_set = False

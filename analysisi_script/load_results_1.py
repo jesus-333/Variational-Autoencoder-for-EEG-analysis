@@ -4,16 +4,16 @@ Created on Fri Sep  1 10:03:59 2023
 @author: Alberto Zancanaro (jesus)
 @organization: University of Padua
 
-Load the data obtained with reconstruction_3.py and compute 
+Load the data obtained with reconstruction_3.py and compute the average reconstruction error, std and variation coefficient
 """
 
-#%%
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import numpy as np
 import pickle
 import random
 
-#%%
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
 subj_list = [2, 9]
@@ -30,7 +30,7 @@ for subj in subj_list:
             path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
             recon_loss_results[subj][epoch].append(np.load(path_load))
             
-#%%
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 n_training_to_average = [3, 5, 8, 14, 19]
 
