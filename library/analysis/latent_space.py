@@ -129,13 +129,13 @@ def clustering_evaluation(X, centers, labels):
             d[k] = d[k] + np.sum( PM[ [ind[0][r]], [ind] ] )
     d[k] = d[k]/2                                          # not to consider pairs of pair-wise distance between objects twice (the PM is symmetric)
     d[k] = d[k]/( (ind.size*(ind.size-1)) / 2 )            # to compute the average among N*(N-1)/2 possible unique pairs
-    print("The intra-cluster distance of the three clusters are: ", d.round(2))
+    # print("The intra-cluster distance of the three clusters are: ", d.round(2))
     # ------------------ CORRECTED CODE FOR INTER-CLUSTER DISTANCE --------------------------------
 
     # Inter-cluster distance
     D = pdist(centers, metric=METRIC)
     D = sf(D).round(2)
 
-    print("The inter-cluster distances are:\n |dist(C_0,C_1)| = %.2f \n |dist(C_0,C_2)| = %.2f \n |dist(C_1,C_2)| = %.2f " % (D[0,1].round(2), D[0,2].round(2), D[1,2].round(2)))
+    # print("The inter-cluster distances are:\n |dist(C_0,C_1)| = %.2f \n |dist(C_0,C_2)| = %.2f \n |dist(C_1,C_2)| = %.2f " % (D[0,1].round(2), D[0,2].round(2), D[1,2].round(2)))
 
     return PM, d, D

@@ -15,7 +15,7 @@ sys.path.insert(0, parent_directory)
 import numpy as np
 import torch
 from sklearn.cluster import KMeans
-from sklearn.metrics.cluster import rand_score
+import sklearn.metrics.cluster
 
 from library.analysis import support
 from library.analysis import latent_space
@@ -29,7 +29,7 @@ if len(sys.argv) > 1:
     epoch = sys.argv[4]
 else:
     tot_epoch_training = 20
-    subj = 2
+    subj = 9
     epoch = 20
 
 if tot_epoch_training == 20:
@@ -38,7 +38,7 @@ elif max_repetition_training == 80:
     max_repetition_training = 19
 
 use_test_set = False
-repeat_clustering = 1000
+repeat_clustering = 3
 
 config_latent_space_computation = dict(
     sample_from_distribution = False,
@@ -54,7 +54,7 @@ config_latent_space_computation = dict(
 
 config_cluster_kmeans = dict(
     n_clusters = 4,
-    init = 'random', # Options are random or k-means++
+    init = 'k-means++', # Options are random or k-means++
     n_init = 'auto',
     max_iter = 300,
 )
@@ -78,10 +78,6 @@ print("Model and dataset created")
 if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
 
-# Compute latent space representation (deepest latent space)
-z = latent_space.compute_latent_space_dataset(model_hv, dataset, config_latent_space_computation)
-print("Latent space representation computed")
-
 # Matrix to save the number of times samples were in the same cluster
 count_same_cluster = np.zeros((len(dataset), len(dataset)))
 inter_cluster_distance = 0
@@ -101,6 +97,10 @@ for i in range(repeat_clustering):
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     
+    # Compute latent space representation (deepest latent space)
+    z = latent_space.compute_latent_space_dataset(model_hv, dataset, config_latent_space_computation)
+    print("Latent space representation computed")
+    
     # Define k_meanse
     kmeans = KMeans(n_clusters = config_cluster_kmeans['n_clusters'], 
                     n_init = config_cluster_kmeans['n_init'], max_iter = config_cluster_kmeans['max_iter'])
@@ -119,7 +119,7 @@ for i in range(repeat_clustering):
 
     PM, d, D = latent_space.clustering_evaluation(z, kmeans.cluster_centers_, kmeans.labels_)
 
-    rand_score += rand_score(dataset.labels, kmeans.labels_)
+    rand_score += sklearn.metrics.cluster.rand_score(dataset.labels, kmeans.labels_)
 
     inter_cluster_distance += D
     average_distance += d
@@ -134,6 +134,10 @@ print("20-40%  : ", round(count_percentage_matrix(count_same_cluster, 0.2, 0.4) 
 print("40-60%  : ", round(count_percentage_matrix(count_same_cluster, 0.4, 0.6) * 100, 2))
 print("60-80%  : ", round(count_percentage_matrix(count_same_cluster, 0.6, 0.8) * 100, 2))
 print("80-100% : ", round(count_percentage_matrix(count_same_cluster, 0.8, 1.01) * 100, 2))
+print("\n Rand Score: ", rand_score)
+
+for i in range(config_cluster_kmeans['n_clusters']):
+    print("N.Elements per cluster {}:\t{}".format(i, np.sum(kmeans.labels_ == i)))
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
