@@ -1,5 +1,6 @@
 """
 Analysis of the reconstruction of the various layer of the hvEEGNet
+(i.e. reconstruct using only the deepest latent space, the deepest and the middle or all three)
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import sys
@@ -22,7 +23,7 @@ from library.training import train_generic
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
 
-subj_list = [5]
+subj_list = [2]
 loss = 'dtw'
 epoch_list = [20, 40, 'BEST']
 epoch_list = [40]
@@ -94,7 +95,8 @@ for subj in subj_list:
         else: dataset = train_dataset
         
         # Load model weight
-        path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, 3, epoch)
+        # path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, 3, epoch)
+        path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(80, subj, 2, epoch)
         model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
         
         # Get EEG trial
