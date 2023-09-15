@@ -4,6 +4,7 @@
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
+import scipy.fft as fft
 
 from ..config import config_dataset as cd
 from ..config import config_model as cm
@@ -89,4 +90,12 @@ def compute_latent_space_different_resolution(model, x):
     latent_space_to_ignore = [True, True, False]
     x_r_3 = model.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore).squeeze()
     
-    return x_r_1, x_r_2, x_r_3
+    return x_r_1.squeeze(), x_r_2.squeeze(), x_r_3.squeeze()
+
+def compute_spectra_magnitude_and_phase(x, fs):
+    spectra = fft.fft(x)
+    magnitude = np.abs(spectra)
+    phase = np.angle(spectra)
+    f = fft.fftfreq(len(x), 1 / fs)
+
+    return magnitude, phase, f
