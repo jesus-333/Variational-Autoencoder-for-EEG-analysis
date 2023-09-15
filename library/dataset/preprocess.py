@@ -121,6 +121,10 @@ def get_dataset_d2a(config : dict):
     data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
     data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
     config['channels_list'] = ch_list
+
+    if config['train_trials_to_keep'] is not None:
+        data_train = data_train[config['train_trials_to_keep']]
+        labels_train = labels_train[config['train_trials_to_keep']]
     
     # Transform with stft (if you want time-frequency representation)
     if config['use_stft_representation']: 

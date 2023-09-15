@@ -33,6 +33,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         subjects_list = subjects_list,
         channels_list = ['C3', 'Cz', 'C4'], # Used only for the STFT
         normalize = 0, # Used in the dataset class
+        train_trials_to_keep = None, # Boolean list with the same length of the training set, BEFORE THE DIVISION with training and validation, that indicate with trial kept for the training.
         # normalization_type = 1, # 0 = no normalization, 1 = ERS normalization (NOT IMPLEMENTED)
     )
     
