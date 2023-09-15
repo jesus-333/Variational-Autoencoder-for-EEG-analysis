@@ -30,7 +30,7 @@ fs = 250
 
 nperseg = 500
 
-plot_to_create = 1
+plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 10
@@ -38,7 +38,7 @@ n_trial = 0
 channel = 'C3'
     
 first_epoch = 10
-second_epoch = 60
+second_epoch = 25
 
 plot_config = dict(
     figsize = (30, 14),
@@ -77,6 +77,7 @@ if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
 
 for n_plot in range(plot_to_create):
+    print("Plot craeted {}/{}".format(n_plot + 1, plot_to_create))
 
     np.random.seed(None)
     if rand_trial_sample: 
@@ -136,7 +137,7 @@ for n_plot in range(plot_to_create):
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
                                     )
     
-    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    title_list = ["Time domain - Epoch {}".format(second_epoch), "Module - Epoch {}".format(second_epoch), "Phase - Epoch {}".format(second_epoch)]
     plot_original_and_reconstructed(axs[1], 
                                     [x, x_magnitude, x_phase], [t, f, f], [x_r_second_1, x_r_second_1_magnitude, x_r_second_1_phase],
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
@@ -147,7 +148,7 @@ for n_plot in range(plot_to_create):
     fig.show()
     
     if plot_config['save_fig']:
-        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_1/".format(tot_epoch_training, subj, n_trial, channel, )
         os.makedirs(path_save, exist_ok = True)
         path_save += "type_1_ALL_LANTENT_SPACE_rep_{}".format(repetition)
         fig.savefig(path_save)
@@ -163,7 +164,7 @@ for n_plot in range(plot_to_create):
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
                                     )
     
-    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    title_list = ["Time domain - Epoch {}".format(second_epoch), "Module - Epoch {}".format(second_epoch), "Phase - Epoch {}".format(second_epoch)]
     plot_original_and_reconstructed(axs[1], 
                                     [x, x_magnitude, x_phase], [t, f, f], [x_r_second_2, x_r_second_2_magnitude, x_r_second_2_phase],
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
@@ -174,7 +175,7 @@ for n_plot in range(plot_to_create):
     fig.show()
     
     if plot_config['save_fig']:
-        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_1/".format(tot_epoch_training, subj, n_trial, channel, )
         os.makedirs(path_save, exist_ok = True)
         path_save += "type_1_DEEP_AND_MIDDLE_LANTENT_SPACE_rep_{}".format(repetition)
         fig.savefig(path_save)
@@ -190,7 +191,7 @@ for n_plot in range(plot_to_create):
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
                                     )
     
-    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    title_list = ["Time domain - Epoch {}".format(second_epoch), "Module - Epoch {}".format(second_epoch), "Phase - Epoch {}".format(second_epoch)]
     plot_original_and_reconstructed(axs[1], 
                                     [x, x_magnitude, x_phase], [t, f, f], [x_r_second_3, x_r_second_3_magnitude, x_r_second_3_phase],
                                     ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
@@ -201,10 +202,92 @@ for n_plot in range(plot_to_create):
     fig.show()
         
     if plot_config['save_fig']:
-        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_1/".format(tot_epoch_training, subj, n_trial, channel, )
         os.makedirs(path_save, exist_ok = True)
         path_save += "type_1_ONLY_DEEP_LANTENT_SPACE_rep_{}".format(repetition)
         fig.savefig(path_save)
     
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # PLOTs OF TYPE 2: FOR THE SAME VISUALIZATION (E.G. EEG IN TIME DOMAIN) COMPARE THE THE RECONSTRUCTION ACCROSS THE DIFFERENT LATENT SPACE AT TWO DIFFERENT EPOCH
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # TIME DOMAIN
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["All - Epoch {}".format(first_epoch), "Deep and middle - Epoch {}".format(first_epoch), "Only deep - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x, x, x], [t, t, t], [x_r_first_1, x_r_first_2, x_r_first_3],
+                                    ["Time [s]", "Time [s]", "Time [s]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["All - Epoch {}".format(second_epoch), "Deep and middle - Epoch {}".format(second_epoch), "Only deep - Epoch {}".format(second_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x, x, x], [t, t, t], [x_r_second_1, x_r_second_2, x_r_second_3],
+                                    ["Time [s]", "Time [s]", "Time [s]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("TIME DOMAIN - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+    
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_2/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_2_TIME_DOMAIN_rep_{}".format(repetition)
+        fig.savefig(path_save)
+        
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # MAGNITUDE
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["All - Epoch {}".format(first_epoch), "Deep and middle - Epoch {}".format(first_epoch), "Only deep - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x_magnitude, x_magnitude, x_magnitude], [f, f, f], [x_r_first_1_magnitude, x_r_first_2_magnitude, x_r_first_3_magnitude],
+                                    ["Frequency [Hz]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["All - Epoch {}".format(second_epoch), "Deep and middle - Epoch {}".format(second_epoch), "Only deep - Epoch {}".format(second_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x_magnitude, x_magnitude, x_magnitude], [f, f, f], [x_r_second_1_magnitude, x_r_second_2_magnitude, x_r_second_3_magnitude],
+                                    ["Frequency [Hz]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("MAGNITUDE - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+    
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_2/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_2_MAGNITUDE_rep_{}".format(repetition)
+        fig.savefig(path_save)
+        
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # PHASE
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["All - Epoch {}".format(first_epoch), "Deep and middle - Epoch {}".format(first_epoch), "Only deep - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x_phase, x_phase, x_phase], [f, f, f], [x_r_first_1_phase, x_r_first_2_phase, x_r_first_3_phase],
+                                    ["Frequency [Hz]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["All - Epoch {}".format(second_epoch), "Deep and middle - Epoch {}".format(second_epoch), "Only deep - Epoch {}".format(second_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x_phase, x_phase, x_phase], [f, f, f], [x_r_second_1_phase, x_r_second_2_phase, x_r_second_3_phase],
+                                    ["Frequency [Hz]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("PHASE - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+    
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/type_2/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_2_PHASE_rep_{}".format(repetition)
+        fig.savefig(path_save)
+    
