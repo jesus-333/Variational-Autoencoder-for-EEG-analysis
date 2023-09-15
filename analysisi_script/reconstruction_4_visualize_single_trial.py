@@ -16,11 +16,6 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config import config_dataset as cd
-from library.config import config_model as cm
-from library.dataset import preprocess as pp
-from library.training import train_generic
-from library.training.soft_dtw_cuda import SoftDTW
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
