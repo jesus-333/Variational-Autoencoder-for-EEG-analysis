@@ -12,11 +12,14 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
+from library.config import config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 subj = 2
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model([subj])
+dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config['percentage_split_train_validation'] = -1
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
