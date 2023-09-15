@@ -144,9 +144,13 @@ def get_dataset_d2a(config : dict):
         
     
     # Split data in train and validation set
-    idx_train, idx_validation =  sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
-    data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
-    data_train, labels_train = data_train[idx_train], labels_train[idx_train]
+    if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
+        idx_train, idx_validation =  sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
+        data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
+        data_train, labels_train = data_train[idx_train], labels_train[idx_train]
+    else:
+        data_train, labels_train = data_train, labels_train
+        data_validation, labels_validation = None, None
     
     # Create PyTorch dataset
     if config['use_stft_representation']:
@@ -155,11 +159,17 @@ def get_dataset_d2a(config : dict):
 
         train_dataset       = ds_stft.EEG_Dataset_stft(data_train, labels_train, config)
         test_dataset        = ds_stft.EEG_Dataset_stft(data_test, labels_test, config)
-        validation_dataset  = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, config)
+        if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
+            validation_dataset = ds_stft.EEG_Dataset_stft(data_validation, labels_validation, config)
+        else:
+            validation_dataset = None
     else:
         train_dataset       = ds_time.EEG_Dataset(data_train, labels_train, ch_list, config['normalize'])
         test_dataset        = ds_time.EEG_Dataset(data_test, labels_test, ch_list, config['normalize'])
-        validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])  
+        if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
+            validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])  
+        else:
+            validation_dataset = None
 
     return train_dataset, validation_dataset, test_dataset
         
