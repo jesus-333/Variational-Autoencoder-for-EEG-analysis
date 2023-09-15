@@ -92,10 +92,14 @@ def compute_latent_space_different_resolution(model, x):
     
     return x_r_1.squeeze(), x_r_2.squeeze(), x_r_3.squeeze()
 
-def compute_spectra_magnitude_and_phase(x, fs):
-    spectra = fft.fft(x)
+def compute_spectra_magnitude_and_phase(x, fs, keep_only_positive_frequency = True):
+    spectra = fft.fftshift(fft.fft(x))
     magnitude = np.abs(spectra)
     phase = np.angle(spectra)
-    f = fft.fftfreq(len(x), 1 / fs)
-
-    return magnitude, phase, f
+    f = fft.fftshift(fft.fftfreq(len(x), 1 / fs))
+    
+    if keep_only_positive_frequency:
+        idx_f = f >= 0
+        return magnitude[idx_f], phase[idx_f], f[idx_f]
+    else:
+        return magnitude, phase, f

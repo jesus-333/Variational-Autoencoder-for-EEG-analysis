@@ -20,17 +20,17 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj = 9
+subj = 2
 rand_trial_sample = True
 use_test_set = True
 
 t_min = 2
-t_max = 6
+t_max = 4
 fs = 250
 
 nperseg = 500
 
-plot_to_create = 80
+plot_to_create = 1
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 10
@@ -41,13 +41,30 @@ first_epoch = 10
 second_epoch = 60
 
 plot_config = dict(
-    figsize = (18, 12),
+    figsize = (30, 14),
     fontsize = 12,
     save_fig = True,
 )
 
 batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def plot_original_and_reconstructed(ax_list, 
+                                    x_original_list, x_axis_values_list, x_r_list,
+                                    x_label_list, y_label_list, title_list,
+                                    ):
+    for i in range(len(ax_list)):
+        ax_list[i].plot(x_axis_values_list[i], x_original_list[i], label = 'Original signal')
+        ax_list[i].plot(x_axis_values_list[i], x_r_list[i], label = 'Reconstructed signal')
+        
+        ax_list[i].legend()
+        ax_list[i].grid(True)
+        
+        ax_list[i].set_xlabel(x_label_list[i])
+        ax_list[i].set_ylabel(y_label_list[i])
+        ax_list[i].set_title(title_list[i])
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -87,15 +104,15 @@ for n_plot in range(plot_to_create):
     x_r_second_1, x_r_second_2, x_r_second_3 = support.compute_latent_space_different_resolution(model_hv, x.unsqueeze(0))
     
     # Select channel and time samples
-    x = support.crop(x, idx_ch, 2, 6, t_min, t_max)
-    x_r_first_1 = support.crop(x_r_first_1, idx_ch, 2, 6, t_min, t_max)
-    x_r_first_2 = support.crop(x_r_first_2, idx_ch, 2, 6, t_min, t_max)
-    x_r_first_3 = support.crop(x_r_first_3, idx_ch, 2, 6, t_min, t_max)
-    x_r_second_1 = support.crop(x_r_second_1, idx_ch, 2, 6, t_min, t_max)
-    x_r_second_2 = support.crop(x_r_second_2, idx_ch, 2, 6, t_min, t_max)
-    x_r_second_3 = support.crop(x_r_second_3, idx_ch, 2, 6, t_min, t_max)
+    x, t = support.crop_signal(x.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_first_1, t = support.crop_signal(x_r_first_1.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_first_2, t = support.crop_signal(x_r_first_2.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_first_3, t = support.crop_signal(x_r_first_3.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_second_1, t = support.crop_signal(x_r_second_1.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_second_2, t = support.crop_signal(x_r_second_2.numpy(), idx_ch, 2, 6, t_min, t_max)
+    x_r_second_3, t = support.crop_signal(x_r_second_3.numpy(), idx_ch, 2, 6, t_min, t_max)
 
-    # Compute PSD
+    # Compute magnitude and phase in frequency domain
     x_magnitude, x_phase, f = support.compute_spectra_magnitude_and_phase(x, fs)
     x_r_first_1_magnitude, x_r_first_1_phase, f = support.compute_spectra_magnitude_and_phase(x_r_first_1, fs)
     x_r_first_2_magnitude, x_r_first_2_phase, f = support.compute_spectra_magnitude_and_phase(x_r_first_2, fs)
@@ -103,3 +120,91 @@ for n_plot in range(plot_to_create):
     x_r_second_1_magnitude, x_r_second_1_phase, f = support.compute_spectra_magnitude_and_phase(x_r_second_1, fs)
     x_r_second_2_magnitude, x_r_second_2_phase, f = support.compute_spectra_magnitude_and_phase(x_r_second_2, fs)
     x_r_second_3_magnitude, x_r_second_3_phase, f = support.compute_spectra_magnitude_and_phase(x_r_second_3, fs)
+    
+    
+    #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # PLOTs OF TYPE 1: FOR THE SAME LATENTE SPACE COMPARE TIME, FREQUENCY MAGNITUDE AND FREQUENCY PHASE AT TWO DIFFERENT EPOCH
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # ALL 3 LATENT SPACE
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_first_1, x_r_first_1_magnitude, x_r_first_1_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_second_1, x_r_second_1_magnitude, x_r_second_1_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("ALL LATENT SPACE - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+    
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_1_ALL_LANTENT_SPACE_rep_{}".format(repetition)
+        fig.savefig(path_save)
+    
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # DEEPER AND MIDDLE LATENT SPACE
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_first_2, x_r_first_2_magnitude, x_r_first_2_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_second_2, x_r_second_2_magnitude, x_r_second_2_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("DEEP AND MIDDLE LATENT SPACE - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+    
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_1_DEEP_AND_MIDDLE_LANTENT_SPACE_rep_{}".format(repetition)
+        fig.savefig(path_save)
+        
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # ONLY DEEPER LATENT SPACE
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+    fig, axs = plt.subplots(2, 3, figsize = plot_config['figsize'])
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[0], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_first_3, x_r_first_3_magnitude, x_r_first_3_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    title_list = ["Time domain - Epoch {}".format(first_epoch), "Module - Epoch {}".format(first_epoch), "Phase - Epoch {}".format(first_epoch)]
+    plot_original_and_reconstructed(axs[1], 
+                                    [x, x_magnitude, x_phase], [t, f, f], [x_r_second_3, x_r_second_3_magnitude, x_r_second_3_phase],
+                                    ["Time [s]", "Frequency [Hz]", "Frequency [Hz]"], ["", "", ""], title_list,
+                                    )
+    
+    fig.suptitle("ONLY DEEP LATENT SPACE - Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
+    fig.tight_layout()
+    fig.show()
+        
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/trial_{}_channel_{}/".format(tot_epoch_training, subj, n_trial, channel, )
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "type_1_ONLY_DEEP_LANTENT_SPACE_rep_{}".format(repetition)
+        fig.savefig(path_save)
+    
+    #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # PLOTs OF TYPE 2: FOR THE SAME VISUALIZATION (E.G. EEG IN TIME DOMAIN) COMPARE THE THE RECONSTRUCTION ACCROSS THE DIFFERENT LATENT SPACE AT TWO DIFFERENT EPOCH
