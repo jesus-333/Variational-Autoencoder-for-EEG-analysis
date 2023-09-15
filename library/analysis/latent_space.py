@@ -99,6 +99,7 @@ def plot_latent_space(z_reduced_list : list, plot_config : dict, color = None):
     fig.tight_layout()
     if plot_config['show_fig']: fig.show()
 
+
 def clustering_evaluation(X, centers, labels):
     '''
     INPUT
@@ -139,3 +140,4 @@ def clustering_evaluation(X, centers, labels):
     # print("The inter-cluster distances are:\n |dist(C_0,C_1)| = %.2f \n |dist(C_0,C_2)| = %.2f \n |dist(C_1,C_2)| = %.2f " % (D[0,1].round(2), D[0,2].round(2), D[1,2].round(2)))
 
     return PM, d, D
+

@@ -59,3 +59,34 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
             i += 1
 
     return recon_loss_matrix
+
+def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
+    """
+    Select a single channel according to idx_ch and crop it according to t_min and t_max provided in config
+    t_start, t_end = Initial and final second of the x signal
+    t_min, t_max = min and max to keep of the original signal
+    """
+    t      = np.linspace(t_start, t_end, x.shape[-1])
+    x_crop = x.squeeze()[idx_ch, np.logical_and(t >= t_min, t <= t_max)]
+    t_plot = t[np.logical_and(t >= t_min, t <= t_max)]
+
+    return x_crop, t_plot
+
+
+def compute_latent_space_different_resolution(model, x):
+    """
+    Reconstruct the EEG signal x using the contribution from different latent space
+    model   = hvEEGNet to use
+    x       = eeg signal of shape B x 1 x C x T
+    """
+
+    latent_space_to_ignore = [False, False, False]
+    x_r_1 = model.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore).squeeze()
+
+    latent_space_to_ignore = [True, False, False]
+    x_r_2 = model.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore).squeeze()
+
+    latent_space_to_ignore = [True, True, False]
+    x_r_3 = model.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore).squeeze()
+    
+    return x_r_1, x_r_2, x_r_3

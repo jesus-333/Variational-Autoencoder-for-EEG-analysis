@@ -66,13 +66,13 @@ def get_dataset_and_model(subj_list):
 
 def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
     """
-    Crop a signal according to t_min and t_max provided in config
+    Select a single channel according to idx_ch and crop it according to t_min and t_max provided in config
     t_start, t_end = Initial and final second of the x signal
     t_min, t_max = min and max to keep of the original signal
     """
     t      = np.linspace(t_start, t_end, x.shape[-1])
-    x_crop = x.squeeze()[idx_ch, np.logical_and(t >= config['t_min'], t <= config['t_max'])]
-    t_plot = t[np.logical_and(t >= config['t_min'], t <= config['t_max'])]
+    x_crop = x.squeeze()[idx_ch, np.logical_and(t >= t_min, t <= t_max)]
+    t_plot = t[np.logical_and(t >= t_min, t <= t_max)]
 
     return x_crop, t_plot
 
