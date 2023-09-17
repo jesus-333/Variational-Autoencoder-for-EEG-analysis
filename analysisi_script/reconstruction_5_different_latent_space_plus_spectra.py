@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
+from library.config import config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -70,7 +71,8 @@ def plot_original_and_reconstructed(ax_list,
 
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model([subj])
+dataset_config = cd.get_moabb_dataset_config([subj])
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
 # Decide if use the train or the test dataset
 if use_test_set: dataset = test_dataset

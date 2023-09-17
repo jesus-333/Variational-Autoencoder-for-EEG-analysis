@@ -13,9 +13,7 @@ from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_dataset_and_model(subj_list):
-    dataset_config = cd.get_moabb_dataset_config(subj_list)
-
+def get_dataset_and_model(dataset_config):
     C = 22
     if dataset_config['resample_data']: sf = dataset_config['resample_freq']
     else: sf = 250

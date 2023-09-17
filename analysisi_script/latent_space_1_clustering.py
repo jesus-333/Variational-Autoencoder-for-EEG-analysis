@@ -19,6 +19,7 @@ import sklearn.metrics.cluster
 
 from library.analysis import support
 from library.analysis import latent_space
+from library.config import config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Config 
@@ -71,7 +72,8 @@ def count_percentage_matrix(matrix, low_value, high_value):
 device = "cuda" if torch.cuda.is_available() else "cpu",  # device (i.e. cpu/gpu) used to train the network. 
 
 # Get datasets and model (untrained)
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model([subj])
+dataset_config = cd.get_moabb_dataset_config([subj])
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 print("Model and dataset created")
 
 # Decide if use the train or the test dataset
