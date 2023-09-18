@@ -49,21 +49,14 @@ if normalize_recon_error:
 else:
     norm_string = "NOT_NORMALIZED"
 
-       
 for neighborhood_order in neighborhood_order_list:
     for epoch in epoch_list:
         plt.rcParams.update({'font.size': plot_config['fontsize']})
         fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
         print("\nN. outliers - neighborhood order = {} - epoch = {} ({})".format(neighborhood_order, epoch, norm_string))
         for subj in subj_list:
-            path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
-            # Load data
-
-            # dataset_config = cd.get_moabb_dataset_config([subj])
-            # dataset_config['percentage_split_train_validation'] = -1
-            # train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
-
             # Load the reconstruction error
+            path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
             recon_error = np.load(path_recon_error)
 
             # Apply the scaling to data
@@ -72,7 +65,7 @@ for neighborhood_order in neighborhood_order_list:
                 recon_error = scaler.fit_transform(recon_error)
 
             #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            # Outlier identifications (NOT NORMALIZED)
+            # Outlier identifications (NORMALIZED)
 
             # Compute the KNN
             neighborhood_set   = knn(n_neighbors = neighborhood_order, algorithm = knn_algorithm).fit(recon_error)
@@ -94,18 +87,21 @@ for neighborhood_order in neighborhood_order_list:
             print("\tsubj {} (S = {}): {}".format(subj, s_knee, n_outliers))
 
             ax.plot(dk_sorted, 'o-', label = 'Subject {} (N. outliers {})'.format(subj, n_outliers))
-            ax.set_xlabel('EEG Trials', fontsize = plot_config['fontsize'])
-            ax.set_ylabel('Distances (sorted)', fontsize = plot_config['fontsize'])
             ax.axvline(x = knee_x, color = 'k', linestyle = '--')
             ax.axhline(y = knee_y, color = 'k', linestyle = '--')
             ax.plot((knee_x), (knee_y), 'o', color = 'r')
-            ax.set_title("Knee plot - epoch {} - n_neighbors {} - {}".format(epoch, neighborhood_order, norm_string))
-            ax.grid(True)
-            ax.legend()
+        
+        # Additional plot information
+        ax.set_xlabel('EEG Trials', fontsize = plot_config['fontsize'])
+        ax.set_ylabel('Distances (sorted)', fontsize = plot_config['fontsize'])
+        ax.set_title("Knee plot - epoch {} - n_neighbors {} - {}".format(epoch, neighborhood_order, norm_string))
+        ax.grid(True)
+        ax.legend()
 
-            fig.tight_layout()
-            fig.show()
-
+        fig.tight_layout()
+        fig.show()
+        
+        # (OPTIONAL) Save plot 
         if plot_config['save_fig']:
             path_save = "Saved Results/repetition_hvEEGNet_{}/recon_error_outliers/".format(tot_epoch_training)
             os.makedirs(path_save, exist_ok = True)
