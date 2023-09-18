@@ -9,6 +9,7 @@ sys.path.insert(0, parent_directory)
 import numpy as np 
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors as knn
+from sklearn.preprocessing import RobustScaler
 
 from library.analysis import support
 from library.config import config_dataset as cd 
@@ -18,15 +19,17 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [2, 9]
-epoch = 80
+epoch = 10
 
-neighborhood_order = 5
+normalize_recon_error = True
+neighborhood_order = 15
 knn_algorithm = 'auto'
 s_knee = 1
 
 plot_config = dict(
     figsize = (12, 8),
     fontsize = 12,
+    save_fig = True,
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -45,8 +48,16 @@ for subj in subj_list:
     # Load the reconstruction error
     recon_error = np.load(path_recon_error)
 
+    # Apply the scaling to data
+    if normalize_recon_error:
+        scaler = RobustScaler()
+        recon_error = scaler.fit_transform(recon_error)
+        norm_string = "NORMALIZED"
+    else:
+        norm_string = "NOT_NORMALIZED"
+
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Outlier identifications
+    # Outlier identifications (NOT NORMALIZED)
 
     # Compute the KNN
     neighborhood_set   = knn(n_neighbors = neighborhood_order, algorithm = knn_algorithm).fit(recon_error)
@@ -66,7 +77,7 @@ for subj in subj_list:
         knee_x = knee.knee
         knee_y = knee.knee_y    # OR: distances[knee.knee]
 
-        print("Number of outliers for subj {} (S = {}): {}".format(subj, s_knee, recon_error.shape[0] - knee_x))
+        print("Number of outliers for subj {} (S = {})({}): {}".format(subj, s_knee, norm_string, recon_error.shape[0] - knee_x))
 
         ax.plot(dk_sorted, 'o-', label = 'Subject {}'.format(subj))
         ax.set_xlabel('EEG Trials', fontsize = plot_config['fontsize'])
@@ -74,13 +85,18 @@ for subj in subj_list:
         ax.axvline(x = knee_x, color = 'k', linestyle = '--')
         ax.axhline(y = knee_y, color = 'k', linestyle = '--')
         ax.plot((knee_x), (knee_y), 'o', color = 'r')
-        ax.set_title("Knee plot at epoch {}".format(epoch))
-        ax.grid()
+        ax.set_title("Knee plot - epoch {} - n_neighbors {} - {}".format(epoch, neighborhood_order, norm_string))
+        ax.grid(True)
         ax.legend()
 
         fig.tight_layout()
         fig.show()
 
+        if plot_config['save_fig']:
+            path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
+            os.makedirs(path_save, exist_ok = True)
+            path_save += "cluster_recon_error_{}_epoch_{}_neighborhood_order_{}".format(norm_string, epoch, neighborhood_order)
+            fig.savefig(path_save)
     except ImportError as e:
         print("Error -> ", e)
         print("If you want the knee plot install the kneed package (pip install kneed)")
