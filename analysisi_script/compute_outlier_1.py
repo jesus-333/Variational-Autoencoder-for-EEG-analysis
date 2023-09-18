@@ -1,3 +1,7 @@
+"""
+Compute the outliers trials based on the reconstruction error matrix and create a knee plot
+"""
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import sys
 import os
@@ -19,7 +23,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [2, 9]
-epoch = 10
+epoch = 80
 
 normalize_recon_error = True
 neighborhood_order = 15
@@ -76,10 +80,11 @@ for subj in subj_list:
         knee = KneeLocator(i, dk_sorted, S = s_knee, curve = 'convex', direction = 'increasing', interp_method = 'interp1d', online = True)
         knee_x = knee.knee
         knee_y = knee.knee_y    # OR: distances[knee.knee]
+        
+        n_outliers = recon_error.shape[0] - knee_x
+        print("Number of outliers for subj {} (S = {})({}): {}".format(subj, s_knee, norm_string, n_outliers))
 
-        print("Number of outliers for subj {} (S = {})({}): {}".format(subj, s_knee, norm_string, recon_error.shape[0] - knee_x))
-
-        ax.plot(dk_sorted, 'o-', label = 'Subject {}'.format(subj))
+        ax.plot(dk_sorted, 'o-', label = 'Subject {} (N. outliers {})'.format(subj, n_outliers))
         ax.set_xlabel('EEG Trials', fontsize = plot_config['fontsize'])
         ax.set_ylabel('Distances (sorted)', fontsize = plot_config['fontsize'])
         ax.axvline(x = knee_x, color = 'k', linestyle = '--')
@@ -97,6 +102,7 @@ for subj in subj_list:
             os.makedirs(path_save, exist_ok = True)
             path_save += "cluster_recon_error_{}_epoch_{}_neighborhood_order_{}".format(norm_string, epoch, neighborhood_order)
             fig.savefig(path_save)
+
     except ImportError as e:
         print("Error -> ", e)
         print("If you want the knee plot install the kneed package (pip install kneed)")
