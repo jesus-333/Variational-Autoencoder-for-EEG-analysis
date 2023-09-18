@@ -1,0 +1,39 @@
+N. outliers - neighborhood order = 5 - epoch = 10 (NORMALIZED)
+        subj 2 (S = 1): 24
+        subj 9 (S = 1): 18
+
+N. outliers - neighborhood order = 5 - epoch = 20 (NORMALIZED)
+        subj 2 (S = 1): 34
+        subj 9 (S = 1): 18
+
+N. outliers - neighborhood order = 5 - epoch = 40 (NORMALIZED)
+        subj 2 (S = 1): 15
+        subj 9 (S = 1): 22
+
+N. outliers - neighborhood order = 5 - epoch = 60 (NORMALIZED)
+        subj 2 (S = 1): 29
+        subj 9 (S = 1): 20
+
+N. outliers - neighborhood order = 5 - epoch = 80 (NORMALIZED)
+        subj 2 (S = 1): 16
+        subj 9 (S = 1): 19
+
+N. outliers - neighborhood order = 15 - epoch = 10 (NORMALIZED)
+        subj 2 (S = 1): 22
+        subj 9 (S = 1): 18
+
+N. outliers - neighborhood order = 15 - epoch = 20 (NORMALIZED)
+        subj 2 (S = 1): 33
+        subj 9 (S = 1): 18
+
+N. outliers - neighborhood order = 15 - epoch = 40 (NORMALIZED)
+        subj 2 (S = 1): 15
+        subj 9 (S = 1): 18
+
+N. outliers - neighborhood order = 15 - epoch = 60 (NORMALIZED)
+        subj 2 (S = 1): 17
+        subj 9 (S = 1): 20
+
+N. outliers - neighborhood order = 15 - epoch = 80 (NORMALIZED)
+        subj 2 (S = 1): 18
+        subj 9 (S = 1): 19
