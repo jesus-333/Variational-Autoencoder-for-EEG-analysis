@@ -10,7 +10,6 @@ Load the data obtained with reconstruction_3.py and compute the average reconstr
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import numpy as np
-import pickle
 import random
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

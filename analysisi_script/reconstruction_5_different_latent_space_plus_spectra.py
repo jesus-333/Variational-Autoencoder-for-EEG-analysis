@@ -13,7 +13,6 @@ sys.path.insert(0, parent_directory)
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import scipy.signal as signal
 
 from library.analysis import support
 from library.config import config_dataset as cd 
