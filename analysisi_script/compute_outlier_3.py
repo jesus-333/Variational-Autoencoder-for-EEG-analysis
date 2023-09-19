@@ -1,5 +1,5 @@
 """
-Compute the outliers trials based on the reconstruction error matrix and create a plot that show the number of outliers across epochs
+Similar to compute_outliers_2.py but show the average error of the outliers accross the epochs
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -31,6 +31,8 @@ tot_epoch_training = 80
 subj_list = [2, 9]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
+use_test_set = False
+
 normalize_recon_error = True
 neighborhood_order_list = [5, 15] 
 knn_algorithm = 'auto'
@@ -53,7 +55,8 @@ for neighborhood_order in neighborhood_order_list:
     plt.rcParams.update({'font.size': plot_config['fontsize']})
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
     for subj in subj_list:
-        n_outliers_list = []
+        idx_outliers_list = []
+        average_error_list = []
         for epoch in epoch_list:
             # Load the reconstruction error
             path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
@@ -79,19 +82,23 @@ for neighborhood_order in neighborhood_order_list:
             knee_x = knee.knee
             knee_y = knee.knee_y    # OR: distances[knee.knee]
             
+            # Get outliers
             n_outliers = recon_error.shape[0] - knee_x
-            n_outliers_list.append(n_outliers)
+            idx_outliers = dk_sorted_ind[-(n_outliers + 1) : -1]
+            idx_outliers_list.append(idx_outliers)
+            
+            # Get average error outliers
+            average_error = recon_error[idx_outliers].mean()
+            average_error_list.append(average_error)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         #%% Plot n. outliers vs epoch
-
-        ax.plot(epoch_list, n_outliers_list, label = "Subject {}".format(subj))
+        ax.plot(epoch_list, average_error_list, label = "Subject {}".format(subj))
     
     ax.set_xlabel("Epoch")
     ax.set_ylabel("N. outliers")
-    ax.set_title("Outliers vs n.epochs - neighborhood order {}".format(neighborhood_order))
+    ax.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
     ax.grid(True)
-    ax.legend()
 
     fig.tight_layout()
     fig.show()
@@ -99,6 +106,6 @@ for neighborhood_order in neighborhood_order_list:
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/recon_error_outliers/".format(tot_epoch_training)
         os.makedirs(path_save, exist_ok = True)
-        path_save += "outliers_vs_epoch_{}_neighborhood_order_{}".format(norm_string, neighborhood_order)
+        path_save += "average_error_outliers_{}_neighborhood_order_{}".format(norm_string, neighborhood_order)
         fig.savefig(path_save)
 
