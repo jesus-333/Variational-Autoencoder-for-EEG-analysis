@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
 else:
     tot_epoch = 80
 
-version_list = np.arange(30, 139 + 1)
+version_list = np.arange(30, 227 + 1)
 artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
 root_to_save_model = 'Saved Model/repetition_hvEEGNet_{}/'.format(tot_epoch)
 
