@@ -2,7 +2,7 @@
 Similar to compute_outliers_2.py but show the average error of the outliers accross the epochs
 """
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys
 import os
 
@@ -10,7 +10,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent_directory = os.path.dirname(current)
 sys.path.insert(0, parent_directory)
 
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors as knn
 from sklearn.preprocessing import RobustScaler
@@ -22,9 +22,9 @@ except ImportError as e:
     raise ImportError("To run this script you need the kneed package")
 
 from library.analysis import support
-from library.config import config_dataset as cd 
+from library.config import config_dataset as cd
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
 tot_epoch_training = 80
@@ -35,7 +35,7 @@ use_test_set = False
 save_outliers = True
 
 normalize_recon_error = True
-neighborhood_order_list = [5, 15] 
+neighborhood_order_list = [5, 15]
 knn_algorithm = 'auto'
 s_knee = 1
 
@@ -45,7 +45,7 @@ plot_config = dict(
     save_fig = True,
 )
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if normalize_recon_error:
     norm_string = "NORMALIZED"
@@ -59,7 +59,7 @@ for neighborhood_order in neighborhood_order_list:
         print(subj)
         idx_outliers_list = []
         average_error_list = []
-            
+
         for epoch in epoch_list:
             # Load the reconstruction error
             path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
@@ -70,7 +70,7 @@ for neighborhood_order in neighborhood_order_list:
                 scaler = RobustScaler()
                 recon_error = scaler.fit_transform(recon_error)
 
-            #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+            #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Outlier identifications (NORMALIZED)
 
             # Compute the KNN
@@ -80,24 +80,24 @@ for neighborhood_order in neighborhood_order_list:
             # compute distances from nth nearest neighbors (given by neighborhood_order) and sort them
             dk_sorted     = np.sort(distances[:,-1])
             dk_sorted_ind = np.argsort(distances[:,-1])
-            
+
             knee = KneeLocator(np.arange(len(distances)), dk_sorted, S = s_knee, curve = 'convex', direction = 'increasing', interp_method = 'interp1d', online = True)
             knee_x = knee.knee
             knee_y = knee.knee_y    # OR: distances[knee.knee]
-            
+
             # Get outliers
             n_outliers = recon_error.shape[0] - knee_x
             idx_outliers = dk_sorted_ind[-(n_outliers + 1) : -1]
             idx_outliers_list.append(idx_outliers)
-            
+
             # Get average error outliers
             average_error = recon_error[idx_outliers].mean()
             average_error_list.append(average_error)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #%% Plot n. outliers vs epoch
         ax.plot(epoch_list, average_error_list, label = "Subject {}".format(subj))
-    
+
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Average Error")
     ax.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
@@ -112,4 +112,3 @@ for neighborhood_order in neighborhood_order_list:
         os.makedirs(path_save, exist_ok = True)
         path_save += "average_error_outliers_{}_neighborhood_order_{}".format(norm_string, neighborhood_order)
         fig.savefig(path_save)
-
