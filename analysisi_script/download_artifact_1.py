@@ -19,10 +19,12 @@ import wandb
 # Number of total epoch of training for the model of the specific artifact
 if len(sys.argv) > 1:
     tot_epoch = sys.argv[1]
+    subj_to_download = sys.argv[2]
 else:
     tot_epoch = 80
+    subj_to_download = 6
 
-version_list = np.arange(30, 139 + 1)
+version_list = np.arange(140, 238 + 1)
 artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
 root_to_save_model = 'Saved Model/repetition_hvEEGNet_{}/'.format(tot_epoch)
 
@@ -32,31 +34,37 @@ repetition_list = dict()
 
 for i in range(len(version_list)):
     version = version_list[i]
-    artifact = run.use_artifact('{}:v{}'.format(artifact_name, version), type='model')
-    artifact_dir = artifact.download()
-    
-    # Get the name of the run and split it by the char _
-    # Note that the name of the run are something in the form hvEEGNet_shallow_DTW_subj_x_epoch_y_rep_z
-    # With the split I obtained a list ['hvEEGNet', 'shallow', 'DTW', 'subj', 'x', 'epoch', 'y', 'rep', 'z']
-    run_name = artifact.logged_by().name.split("_")
-
-    subj  = int(run_name[4])
-    epoch = int(run_name[6])
-    rep   = int(run_name[8])
-    
-    # Take only the 
-    if epoch == tot_epoch:
-        if rep not in repetition_list: repetition_list[rep] = []
-
-        repetition_list[rep].append(subj)
+    print(version)
+    try:
         
-        path_to_save_model = '{}/subj {}/rep {}/'.format(root_to_save_model, subj, rep)
-        os.makedirs(path_to_save_model, exist_ok = True)
-
-        for file in artifact.files():
-            old_model_weight_path = "{}/{}".format(artifact_dir, file.name) 
-            new_model_weight_path = "{}/{}".format(path_to_save_model, file.name) 
-            os.rename(old_model_weight_path, new_model_weight_path)
+        artifact = run.use_artifact('{}:v{}'.format(artifact_name, version), type='model')
+        
+        # Get the name of the run and split it by the char _
+        # Note that the name of the run are something in the form hvEEGNet_shallow_DTW_subj_x_epoch_y_rep_z
+        # With the split I obtained a list ['hvEEGNet', 'shallow', 'DTW', 'subj', 'x', 'epoch', 'y', 'rep', 'z']
+        run_name = artifact.logged_by().name.split("_")
+    
+        subj  = int(run_name[4])
+        epoch = int(run_name[6])
+        rep   = int(run_name[8])
+        
+        # Take only the 
+        if epoch == tot_epoch and subj == subj_to_download:
+            artifact_dir = artifact.download()
+            if rep not in repetition_list: repetition_list[rep] = []
+    
+            repetition_list[rep].append(subj)
+            
+            path_to_save_model = '{}/subj {}/rep {}/'.format(root_to_save_model, subj, rep)
+            os.makedirs(path_to_save_model, exist_ok = True)
+    
+            for file in artifact.files():
+                old_model_weight_path = "{}/{}".format(artifact_dir, file.name) 
+                new_model_weight_path = "{}/{}".format(path_to_save_model, file.name) 
+                os.rename(old_model_weight_path, new_model_weight_path)
+                
+    except:
+        print("Version {} has no artifact".format(version))
 
 
 # Remove the log file of the run

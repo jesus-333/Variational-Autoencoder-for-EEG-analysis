@@ -28,10 +28,11 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj_list = [2, 9]
+subj_list = [1, 2, 3, 4, 6, 9]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 use_test_set = False
+save_outliers = True
 
 normalize_recon_error = True
 neighborhood_order_list = [5, 15] 
@@ -55,8 +56,10 @@ for neighborhood_order in neighborhood_order_list:
     plt.rcParams.update({'font.size': plot_config['fontsize']})
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
     for subj in subj_list:
+        print(subj)
         idx_outliers_list = []
         average_error_list = []
+            
         for epoch in epoch_list:
             # Load the reconstruction error
             path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
@@ -96,9 +99,10 @@ for neighborhood_order in neighborhood_order_list:
         ax.plot(epoch_list, average_error_list, label = "Subject {}".format(subj))
     
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("N. outliers")
+    ax.set_ylabel("Average Error")
     ax.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
     ax.grid(True)
+    ax.legend()
 
     fig.tight_layout()
     fig.show()

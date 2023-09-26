@@ -25,9 +25,10 @@ if len(sys.argv) > 1:
     subj_list = sys.argv[2]
 else:
     tot_epoch_training = 80
-    subj_list = [2]
-    repetition_list = np.arange(19) + 1
-    epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+    subj_list = [4]
+    repetition_list = np.arange(20) + 1
+    # epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+    epoch_list = [5, 10, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
     use_test_set = False
 
 batch_size = 144
@@ -37,6 +38,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 recon_loss_results = dict()
+valid_repetition = 0
 
 for subj in subj_list:
     print("Subj: ", subj)
@@ -55,10 +57,20 @@ for subj in subj_list:
             else: dataset = train_dataset
             
             # Load model weight
-            path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
-            model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+            try:
+                path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+                model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+                
+                tmp_recon_loss = support.compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+            except:
+                print("Fail to load weight subj {} epoch {} rep {}".format(subj, epoch, repetition))
+                continue
             
-            tmp_recon_loss = support.compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
+            if np.sum(np.isnan(tmp_recon_loss)) > 0:
+                print("Trovato il nan per subj {} epoch {} rep {}".format(subj, epoch, repetition))
+                continue
+            else:
+                valid_repetition += 1
             
             if epoch not in recon_loss_results[subj]:    
                 recon_loss_results[subj][epoch] = tmp_recon_loss
@@ -85,8 +97,8 @@ for subj in subj_list:
         
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, subj, epoch)
         pickle_out = open(path_save, "wb") 
-        pickle.dump(recon_loss_results[subj][epoch] / len(repetition_list) , pickle_out) 
+        pickle.dump(recon_loss_results[subj][epoch] / valid_repetition , pickle_out) 
         pickle_out.close() 
         
         path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
-        np.save(path_save, recon_loss_results[subj][epoch] / len(repetition_list))
+        np.save(path_save, recon_loss_results[subj][epoch] / valid_repetition)

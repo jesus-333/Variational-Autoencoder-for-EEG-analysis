@@ -5,6 +5,7 @@ Created on Tue Jul 18 09:06:56 2023
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 """
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%%
 
 import numpy as np
@@ -12,6 +13,67 @@ import torch
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%%
+
+def plot_single_eeg_channel(x_eeg, t, config):
+    if 'plot_psd' in config: 
+        if config['plot_psd']:
+            if 'nperseg' not in config: config['nperseg'] = 256
+            if 'fs' not in config: config['fs'] = 1
+            t, x_eeg = signal.welch(x_eeg, fs = config['fs'], nperseg =  config['nperseg'])
+    else:
+        config['plot_psd'] = False
+    
+    if 'fontsize' in config: plt.rcParams.update({'font.size': config['fontsize']})
+    fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
+    
+    ax.plot(t, x_eeg)
+    
+    ax.set_xlim([t[0], t[-1]])
+    if config['plot_psd']: 
+        ax.set_xlabel("Frequency [Hz]")
+        ax.set_ylabel("PSD")
+    else:
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel("EEG Amplitude")
+    if 'title' in config: ax.set_title(config['title'])
+    ax.grid(True)
+    
+    fig.tight_layout()
+    fig.show()
+    
+    return fig, ax
+
+
+def plot_single_eeg_channel_both_time_and_frequency(x_eeg, t, config):
+
+    if 'nperseg' not in config: config['nperseg'] = 256
+    if 'fs' not in config: config['fs'] = 1
+    f, x_eeg_psd = signal.welch(x_eeg, fs = config['fs'], nperseg =  config['nperseg'])
+    
+    if 'fontsize' in config: plt.rcParams.update({'font.size': config['fontsize']})
+    fig, ax = plt.subplots(1, 2, figsize = config['figsize'])
+    
+    ax[0].plot(t, x_eeg)
+    ax[1].plot(f, x_eeg_psd)
+    
+    ax[0].set_xlim([t[0], t[-1]])
+    ax[0].set_xlabel("Time [s]")
+    ax[0].set_ylabel("EEG Amplitude")
+    
+    ax[1].set_xlim([f[0], f[-1]])
+    ax[1].set_xlabel("Frequency [Hz]")
+    ax[1].set_ylabel("PSD")
+
+    if 'title' in config: fig.suptitle(config['title'])
+    ax[0].grid(True)
+    ax[1].grid(True)
+    
+    fig.tight_layout()
+    fig.show()
+    
+    return fig, ax
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%%
