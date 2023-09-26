@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 6, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 9]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
@@ -45,6 +45,8 @@ for subj in subj_list:
         recon_loss_results_std[subj][epoch] = 0
         # Compute the mean and std of the error for each epoch across channels
         for repetition in repetition_list:
+            if subj == 5 and repetition == 19: continue
+            
             try:
                 path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
                 tmp_recon_error = np.load(path_load)

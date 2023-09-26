@@ -28,7 +28,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 6, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 9]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 use_test_set = False
