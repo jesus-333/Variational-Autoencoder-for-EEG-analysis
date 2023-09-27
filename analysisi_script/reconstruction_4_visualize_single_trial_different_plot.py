@@ -1,5 +1,5 @@
 """
-Visualize (in time of frequency domain) the reconstruction of a single channel of a single eeg trial in the same plot
+Visualize (in time of frequency domain) the reconstruction of a single channel of a single eeg trial in different plot
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -23,7 +23,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj = 9
-rand_trial_sample = True
+rand_trial_sample = False
 use_test_set = True
 
 t_min = 2
@@ -31,7 +31,7 @@ t_max = 6
 
 nperseg = 500
 
-plot_to_create = 80
+plot_to_create = 0
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 10
@@ -42,17 +42,18 @@ first_epoch = 10
 second_epoch = 60
 
 plot_config = dict(
-    figsize = (18, 12),
-    fontsize = 12,
+    figsize = (12, 8),
+    fontsize = 14,
     save_fig = True,
 )
 
 batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+if rand_trial_sample is False: plot_to_create = 1
 
 dataset_config = cd.get_moabb_dataset_config([subj])
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
@@ -81,65 +82,51 @@ for n_plot in range(plot_to_create):
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, first_epoch)
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
-    x_r_first = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
-    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, second_epoch)
-    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
-    x_r_second = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
+    x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
     # Select channel and time samples
     x = x.squeeze()[idx_ch, idx_t]
-    x_r_first = x_r_first[idx_ch, idx_t]
-    x_r_second = x_r_second[idx_ch, idx_t]
+    x_r = x_r[idx_ch, idx_t]
     
     # Compute PSD
     f, x_psd = signal.welch(x, fs = 250, nperseg = nperseg)
-    f, x_r_first_psd = signal.welch(x_r_first, fs = 250, nperseg = nperseg)
-    f, x_r_second_psd = signal.welch(x_r_second, fs = 250, nperseg = nperseg)
+    f, x_r_psd = signal.welch(x_r, fs = 250, nperseg = nperseg)
     
-    plt.rcParams.update({'font.size': plot_config['fontsize']})
-    fig, ax = plt.subplots(2, 2, figsize = plot_config['figsize'])
+    fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize'])
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # Plot in time domain
+
+    ax_time.plot(t, x, label = 'Original Signal', color = 'grey')
+    ax_time.plot(t, x_r, label = 'Reconstruct Signal', color = 'black')
+    ax_time.set_xlabel("Time [s]")
+    ax_time.set_ylabel(r"Amplitude [$\mu$V]")
+    ax_time.legend()
+    ax_time.grid(True)
     
-    ax[0, 0].plot(t, x, label = 'Original Signal')
-    ax[0, 0].plot(t, x_r_first, label = 'Reconstruct Signal')
-    ax[0, 1].plot(f, x_psd, label = 'Original Signal')
-    ax[0, 1].plot(f, x_r_first_psd, label = 'Reconstruct Signal')
-    
-    ax[1, 0].plot(t, x, label = 'Original Signal')
-    ax[1, 0].plot(t, x_r_second, label = 'Reconstruct Signal')
-    ax[1, 1].plot(f, x_psd, label = 'Original Signal')
-    ax[1, 1].plot(f, x_r_second_psd, label = 'Reconstruct Signal')
-    
-    psd_max = max(x_psd.max(), x_r_first_psd.max(), x_r_second_psd.max())
-    
-    for i in range(2):
-        for j in range(2):
-            ax[i, j].legend()
-            ax[i, j].grid(True)
-            
-            if j == 0: # Time domain
-                ax[i, j].set_xlabel("Time [s]")
-                ax[i, j].set_xlim([t[0], t[-1]])
-                # ax[i, j].set_ylim([x.min()*1.1, x.max()*1.1])
-                ax[i, j].set_ylim([-35, 35])
-            elif j == 1:# Frequency domain
-                ax[i, j].set_xlabel("Frequency [Hz]")
-                ax[i, j].set_xlim([f[0], 80])
-                # ax[i, j].set_ylim([0, psd_max*1.1])
-                ax[i, j].set_ylim([0, 35])
-        
-            if i == 0: # First epoch selected
-                ax[i, j].set_title("EPOCH {}".format(first_epoch))
-            elif i == 1: # Second epoch selected
-                ax[i, j].set_title("EPOCH {}".format(second_epoch))
-    
-    # ax.title()
-    fig.suptitle("Trial {} - Ch {} - Label {}".format(n_trial, channel, label_dict[int(label)]), fontsize = plot_config['fontsize'] + 2)
-    fig.tight_layout()
-    fig.show()
-    
+    fig_time.tight_layout()
+    fig_time.show()
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # Plot in frequency domain
+
+    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    ax_freq.plot(f, x_psd, label = 'Original Signal', color = 'grey')
+    ax_freq.plot(f, x_r_psd, label = 'Reconstruct Signal', color = 'black')
+    ax_freq.set_xlabel("Frequency [Hz]")
+    ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
+    ax_freq.legend()
+    ax_freq.grid(True) 
+
+    fig_freq.tight_layout()
+    fig_freq.show()
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
         path_save += "trial_{}_ch_{}_rep_{}".format(n_trial, channel, repetition)
-        fig.savefig(path_save)
-    
+        fig_time.savefig(path_save + "_time.png", format = 'png')
+        fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
+        fig_freq.savefig(path_save + "_freq.png", format = 'png')
+        fig_freq.savefig(path_save + "_freq", format = 'pdf')
