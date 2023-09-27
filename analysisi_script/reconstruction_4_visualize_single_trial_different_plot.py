@@ -78,6 +78,7 @@ for n_plot in range(plot_to_create):
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
     idx_ch = dataset.ch_list == channel
+    label_name = label_dict[int(label)]
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
@@ -127,7 +128,7 @@ for n_plot in range(plot_to_create):
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
-        path_save += "trial_{}_ch_{}_rep_{}_epoch_{}".format(n_trial, channel, repetition, epoch)
+        path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
         fig_time.savefig(path_save + "_time.png", format = 'png')
         fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
         fig_freq.savefig(path_save + "_freq.png", format = 'png')
