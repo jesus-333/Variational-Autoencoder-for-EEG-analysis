@@ -27,7 +27,7 @@ rand_trial_sample = False
 use_test_set = True
 
 t_min = 2
-t_max = 6
+t_max = 4
 
 nperseg = 500
 
@@ -42,7 +42,7 @@ first_epoch = 10
 
 plot_config = dict(
     figsize = (12, 8),
-    fontsize = 14,
+    fontsize = 16,
     save_fig = True,
 )
 
@@ -97,10 +97,11 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in time domain
 
-    ax_time.plot(t, x, label = 'Original Signal', color = 'grey')
-    ax_time.plot(t, x_r, label = 'Reconstruct Signal', color = 'black')
+    ax_time.plot(t, x, label = 'original signal', color = 'grey')
+    ax_time.plot(t, x_r, label = 'reconstructed signal', color = 'black')
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
+    ax_time.set_xlim([t_min, t_max])
     ax_time.legend()
     ax_time.grid(True)
     
@@ -111,10 +112,11 @@ for n_plot in range(plot_to_create):
     # Plot in frequency domain
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
-    ax_freq.plot(f, x_psd, label = 'Original Signal', color = 'grey')
-    ax_freq.plot(f, x_r_psd, label = 'Reconstruct Signal', color = 'black')
+    ax_freq.plot(f, x_psd, label = 'original signal', color = 'grey')
+    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', color = 'black')
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
+    ax_freq.set_xlim([0, 80])
     ax_freq.legend()
     ax_freq.grid(True) 
 
@@ -129,4 +131,4 @@ for n_plot in range(plot_to_create):
         fig_time.savefig(path_save + "_time.png", format = 'png')
         fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
         fig_freq.savefig(path_save + "_freq.png", format = 'png')
-        fig_freq.savefig(path_save + "_freq", format = 'pdf')
+        fig_freq.savefig(path_save + "_freq.pdf", format = 'pdf')

@@ -24,15 +24,16 @@ from library.config import config_plot as cp
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 5, 6, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 9]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 plot_config = dict(
     figsize = (12, 8),
-    fontsize = 14, 
+    fontsize = 16, 
     capsize = 3,
     use_log_scale = False,
+    save_fig = True
 )
 
 line_config_per_subject = cp.get_style_per_subject_error_plus_std()
@@ -98,3 +99,10 @@ if plot_config['use_log_scale']: ax.set_yscale('log')
 
 fig.tight_layout()
 fig.show()
+
+if plot_config['save_fig']:
+    path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
+    os.makedirs(path_save, exist_ok = True)
+    path_save += "average_recon_error_plus_std"
+    fig.savefig(path_save + ".png", format = 'png')
+    fig.savefig(path_save + ".pdf", format = 'pdf')

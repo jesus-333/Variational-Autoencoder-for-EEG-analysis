@@ -24,8 +24,8 @@ import library.analysis.visualize as visualize
 
 #%% Load data
 
-subj = [3]
-subj = [1,2,3,4,5,6,7,8,9]
+subj = [2]
+# subj = [1,2,3,4,5,6,7,8,9]
 
 dataset_config = cd.get_moabb_dataset_config(subj)
 device = 'cpu'
@@ -37,6 +37,7 @@ T = int((dataset_config['trial_end'] - dataset_config['trial_start']) * sf )
 type_decoder = 0
 parameters_map_type = 0
 
+dataset_config['percentage_split_train_validation'] = -1
 train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
 
 # Create model (hvEEGNet)
@@ -70,6 +71,8 @@ epoch = 'BEST'
 path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_3_not_normalized/model_BEST.pth'
 path_weight = 'TMP_Folder/Perfect_recon_dwt_subj_5_not_normalized/model_BEST.pth'
 
+path_hv_weight = 'Saved Model/repetition_hvEEGNet_80/subj 2/rep 3/model_60.pth'
+
 
 # model_hv.load_state_dict(torch.load('Saved Model/full_eeg/{}/model_BEST.pth'.format(subj[0]), map_location=torch.device('cpu')))
 # model_v.load_state_dict(torch.load('Saved Model/vEEGNet_dtw/{}/model_BEST.pth'.format(subj[0]), map_location=torch.device('cpu')))
@@ -82,12 +85,15 @@ model_hv.load_state_dict(torch.load(path_hv_weight, map_location=torch.device('c
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 label_to_ch = {'left' : 7, 'right' : 11, 'foot' : 9, 'tongue' : -1 }
 
+ch_list = train_dataset.ch_list
+idx_ch = ch_list == 'C1'
+
 # trial 47 subj 3 ch C3
 
 with torch.no_grad():
     for i in range(1):
-        idx_trial = 47
-        idx_ch = 7
+        idx_trial = 31
+        idx_ch = ch_list == 'C1'
         # idx_trial = 214
         # idx_ch = 0
         # idx_trial = int(np.random.randint(0, len(tmp_dataset), 1))
@@ -162,13 +168,17 @@ with torch.no_grad():
 subj_list = [3, 5, 8]
 loss_list = ['mse','dtw']
 model_epoch_list = [20, 40, 'BEST']
-plot_psd = True
+plot_psd = False
+
+subj_list = [3, 5, 8]
+loss_list = ['dtw']
+model_epoch_list = [20, 40,'BEST']
 
 idx_trial = 47
 idx_ch = 7
 
-t_min = 2
-t_max = 4
+t_min = 2.25
+t_max = 2.75
 
 
 def plot_figure(model, model_name, path_weight, dataset, subj, loss, model_epoch, plot_psd):

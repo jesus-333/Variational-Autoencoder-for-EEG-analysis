@@ -144,7 +144,7 @@ def get_style_per_subject_error_plus_std():
             linestyle = 'solid'
         ),
         subj_5 = dict(
-            color = 'darkorange',
+            color = 'grey',
             marker = '*',
             linestyle = 'dotted'
         ),
@@ -154,7 +154,7 @@ def get_style_per_subject_error_plus_std():
             linestyle = 'dashed'
         ),
         subj_7 = dict(
-            color = 'blue',
+            color = 'violet',
             marker = '^',
             linestyle = 'solid'
         ),
@@ -164,7 +164,7 @@ def get_style_per_subject_error_plus_std():
             linestyle = 'dotted'
         ),
         subj_9 = dict(
-            color = 'green',
+            color = 'black',
             marker = '^',
             linestyle = 'dashed'
         ),

@@ -41,7 +41,7 @@ s_knee = 1
 
 plot_config = dict(
     figsize = (12, 8),
-    fontsize = 12,
+    fontsize = 16,
     save_fig = True,
 )
 
