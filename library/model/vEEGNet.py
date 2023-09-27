@@ -108,6 +108,15 @@ class vEEGNet(nn.Module):
             return x_r, z_mean, z_log_var, predicted_label
         else:
             return x_r, z_mean, z_log_var
+        
+    def reconstruct(self, x, no_grad = True):
+        if no_grad:
+            with torch.no_grad():
+                output = self.forward(x)
+        else:
+            output = self.forward(x)
+                
+        return output[0]
 
     def generate(self):
         # Sample laten space (normal distribution)
