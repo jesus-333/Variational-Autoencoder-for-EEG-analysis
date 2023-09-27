@@ -45,6 +45,7 @@ for subj in subj_list:
         recon_loss_results_std[subj][epoch] = 0
         # Compute the mean and std of the error for each epoch across channels
         for repetition in repetition_list:
+            if subj == 4 and (repetition == 4 or repetition == 6): continue
             if subj == 5 and repetition == 19: continue
             
             try:
