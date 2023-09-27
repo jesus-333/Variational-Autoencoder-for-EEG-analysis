@@ -40,7 +40,7 @@ repetition = 10
 n_trial = 0
 channel = 'C3'
     
-first_epoch = 10
+epoch = 20
 
 plot_config = dict(
     figsize = (12, 8),
@@ -87,9 +87,9 @@ t = tmp_t[idx_t]
 idx_ch = dataset.ch_list == channel
 
 # Load weight and reconstruction
-path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, first_epoch)
-model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
-x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
+path_weight = 'Saved Model/vEEGNet_dtw/{}/model_{}.pth'.format(subj, epoch)
+model.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+x_r = model.reconstruct(x.unsqueeze(0)).squeeze()
 
 # Select channel and time samples
 x = x.squeeze()[idx_ch, idx_t]
@@ -130,9 +130,9 @@ fig_freq.show()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 if plot_config['save_fig']:
-    path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
+    path_save = "Saved Results/vEEGNet/subj {}/Plot/".format(tot_epoch_training, subj)
     os.makedirs(path_save, exist_ok = True)
-    path_save += "trial_{}_ch_{}_rep_{}".format(n_trial, channel, repetition)
+    path_save += "trial_{}_ch_{}_rep_{}_epoch_{}".format(n_trial, channel, repetition, epoch)
     fig_time.savefig(path_save + "_time.png", format = 'png')
     fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
     fig_freq.savefig(path_save + "_freq.png", format = 'png')
