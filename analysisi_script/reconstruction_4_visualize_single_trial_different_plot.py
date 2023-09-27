@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 9
+subj = 3
 rand_trial_sample = False
 use_test_set = True
 
@@ -39,7 +39,6 @@ n_trial = 0
 channel = 'C3'
     
 first_epoch = 10
-second_epoch = 60
 
 plot_config = dict(
     figsize = (12, 8),
@@ -51,6 +50,7 @@ batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 if rand_trial_sample is False: plot_to_create = 1
