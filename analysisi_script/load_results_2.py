@@ -9,8 +9,17 @@ Load the data obtained with reconstruction_3.py and compute the average reconstr
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+import sys
+import os
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+from library.config import config_plot as cp
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -22,10 +31,12 @@ epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 plot_config = dict(
     figsize = (12, 8),
     fontsize = 14, 
-    marker = "o",
     capsize = 3,
     use_log_scale = False,
 )
+
+line_config_per_subject = cp.get_style_per_subject_error_plus_std()
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load the data
 
@@ -69,8 +80,12 @@ fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
 for subj in subj_list:
+    subj_key = "subj_{}".format(subj)
+    line_config = line_config_per_subject[subj_key]
     ax.errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
-                label = "Subject {}".format(subj), marker = plot_config['marker'], capsize = plot_config['capsize'])
+                label = "Subject {}".format(subj), capsize = plot_config['capsize'],
+                marker = line_config['marker'], color = line_config['color'], linestyle = line_config['linestyle']
+                )
 
 ax.grid(True)
 ax.legend()

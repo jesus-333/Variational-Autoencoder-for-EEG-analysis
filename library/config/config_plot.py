@@ -106,7 +106,7 @@ def get_config_visualizer():
         model_config = cm.cm.get_config_vEEGNet(),
     )
 
-    return
+    return config
 
 
 def get_config_plot_reconstruction(idx_trial : int, idx_ch : int, compute_psd : bool):
@@ -116,6 +116,58 @@ def get_config_plot_reconstruction(idx_trial : int, idx_ch : int, compute_psd : 
         compute_psd = compute_psd,
         figsize = (15, 10),
         fontsize = 15,
+    )
+
+    return config
+
+
+def get_style_per_subject_error_plus_std():
+    config = dict(
+        subj_1 = dict(
+            color = 'blue',
+            marker = 'o',
+            linestyle = 'solid'
+        ),
+        subj_2 = dict(
+            color = 'red',
+            marker = 'o',
+            linestyle = 'dotted'
+        ),
+        subj_3 = dict(
+            color = 'green',
+            marker = 'o',
+            linestyle = 'dashed'
+        ),
+        subj_4 = dict(
+            color = 'orange',
+            marker = '*',
+            linestyle = 'solid'
+        ),
+        subj_5 = dict(
+            color = 'darkorange',
+            marker = '*',
+            linestyle = 'dotted'
+        ),
+        subj_6 = dict(
+            color = 'cyan',
+            marker = '*',
+            linestyle = 'dashed'
+        ),
+        subj_7 = dict(
+            color = 'blue',
+            marker = '^',
+            linestyle = 'solid'
+        ),
+        subj_8 = dict(
+            color = 'red',
+            marker = '^',
+            linestyle = 'dotted'
+        ),
+        subj_9 = dict(
+            color = 'green',
+            marker = '^',
+            linestyle = 'dashed'
+        ),
     )
 
     return config
