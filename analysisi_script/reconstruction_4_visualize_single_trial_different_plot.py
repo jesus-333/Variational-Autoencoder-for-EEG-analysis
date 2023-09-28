@@ -34,11 +34,11 @@ nperseg = 500
 plot_to_create = 0
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 10
-n_trial = 0
-channel = 'C3'
+repetition = 1
+n_trial = 57
+channel = 'Cz'
     
-epoch = 10
+epoch = 20
 
 plot_config = dict(
     figsize = (12, 8),

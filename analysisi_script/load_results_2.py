@@ -24,7 +24,7 @@ from library.config import config_plot as cp
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 5, 6, 7, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
@@ -52,9 +52,13 @@ for subj in subj_list:
     recon_loss_results_std[subj] = dict()
     recon_loss_to_plot_mean[subj] = list()
     recon_loss_to_plot_std[subj] = list()
+    
     for epoch in epoch_list:
         recon_loss_results_mean[subj][epoch] = 0
         recon_loss_results_std[subj][epoch] = 0
+        
+        valid_repetition = 0
+        
         # Compute the mean and std of the error for each epoch across channels
         for repetition in repetition_list:
             if subj == 4 and (repetition == 4 or repetition == 6): continue
@@ -65,11 +69,13 @@ for subj in subj_list:
                 tmp_recon_error = np.load(path_load)
                 recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
                 recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
+                
+                valid_repetition += 1
             except:
                 print("File not found for subj {} - epoch {} - repetition {}".format(subj, epoch, repetition))
 
-        recon_loss_results_mean[subj][epoch] /= len(repetition_list)
-        recon_loss_results_std[subj][epoch] /= len(repetition_list)
+        recon_loss_results_mean[subj][epoch] /= valid_repetition
+        recon_loss_results_std[subj][epoch] /= valid_repetition
         # Note that inside recon_loss_results_std[subj][epoch] there are vector of size n_trials
 
         recon_loss_to_plot_mean[subj].append(recon_loss_results_mean[subj][epoch].mean())

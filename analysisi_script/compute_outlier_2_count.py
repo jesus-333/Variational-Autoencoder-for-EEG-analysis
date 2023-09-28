@@ -28,7 +28,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 5, 6, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 normalize_recon_error = True
@@ -88,7 +88,7 @@ for neighborhood_order in neighborhood_order_list:
         ax.plot(epoch_list, n_outliers_list, label = "Subject {}".format(subj))
     
     ax.set_xlabel("Epoch")
-    ax.set_ylabel("N. outliers")
+    ax.set_ylabel("N. of outliers")
     ax.set_title("Outliers vs n.epochs - neighborhood order {}".format(neighborhood_order))
     ax.grid(True)
     ax.legend()

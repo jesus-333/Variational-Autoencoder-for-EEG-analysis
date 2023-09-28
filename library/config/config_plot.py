@@ -159,7 +159,7 @@ def get_style_per_subject_error_plus_std():
             linestyle = 'solid'
         ),
         subj_8 = dict(
-            color = 'red',
+            color = 'darkred',
             marker = '^',
             linestyle = 'dotted'
         ),

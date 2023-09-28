@@ -33,8 +33,8 @@ t_max = 4
 
 nperseg = 500
 
-n_trial = 57
-channel = 'Cz'
+n_trial = 0
+channel = 'C3'
     
 epoch = 20
 
@@ -114,6 +114,7 @@ ax_time.plot(t, x, label = 'Original Signal', color = 'grey')
 ax_time.plot(t_r, x_r, label = 'Reconstruct Signal', color = 'black')
 ax_time.set_xlabel("Time [s]")
 ax_time.set_ylabel(r"Amplitude [$\mu$V]")
+ax_time.set_xlim([t_min, t_max])
 ax_time.legend()
 ax_time.grid(True)
 

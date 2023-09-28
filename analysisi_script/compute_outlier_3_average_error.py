@@ -28,7 +28,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj_list = [1, 2, 3, 4, 5, 6, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 use_test_set = False
@@ -57,6 +57,7 @@ for neighborhood_order in neighborhood_order_list:
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
     for subj in subj_list:
         print(subj)
+                
         idx_outliers_list = []
         average_error_list = []
 
@@ -94,16 +95,15 @@ for neighborhood_order in neighborhood_order_list:
             average_error = recon_error[idx_outliers].mean()
             average_error_list.append(average_error)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #%% Plot n. outliers vs epoch
+        #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # Plot n. outliers vs epoch
         ax.plot(epoch_list, average_error_list, label = "Subject {}".format(subj))
-
+            
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Average Error")
     ax.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
     ax.grid(True)
     ax.legend()
-
     fig.tight_layout()
     fig.show()
 
