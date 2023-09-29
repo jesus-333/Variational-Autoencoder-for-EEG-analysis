@@ -30,13 +30,13 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [2, 5]
+subj_list = [2, 5]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 use_test_set = False
 save_outliers = True
 
-normalize_recon_error = True
+normalize_recon_error = False
 neighborhood_order_list = [5, 15]
 knn_algorithm = 'auto'
 s_knee = 1
@@ -46,7 +46,8 @@ plot_config = dict(
     fontsize = 16,
     save_fig = True,
     color_1 = 'darkcyan',
-    color_2 = 'red'
+    color_2 = 'skyblue',
+    color_3 = 'red'
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,8 +67,11 @@ for neighborhood_order in neighborhood_order_list:
         ax_n_outliers = ax_error_outliers.twinx()
         
         idx_outliers_list = []
-        average_error_list = []
+        average_error_outliers_list = []
         n_outliers_list = []
+        
+        average_error_subject_list = []
+        std_error_subject_list = []
 
         for epoch in epoch_list:
             # Load the reconstruction error
@@ -101,21 +105,31 @@ for neighborhood_order in neighborhood_order_list:
             n_outliers_list.append(n_outliers)
 
             # Get average error outliers
-            average_error = recon_error[idx_outliers].mean()
-            average_error_list.append(average_error)
+            average_error_outliers = recon_error[idx_outliers].mean()
+            average_error_outliers_list.append(average_error_outliers)
+            
+            # Get the average error per subject
+            average_error_subject = recon_error.mean()
+            average_error_subject_list.append(average_error_subject)
+            std_error_subject = recon_error.std(1).mean()
+            std_error_subject_list.append(std_error_subject)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #%% Plot n. outliers vs epoch
-        line_1 = ax_error_outliers.plot(epoch_list, average_error_list, label = "reconstruction error", 
+        line_1 = ax_error_outliers.plot(epoch_list, average_error_outliers_list, label = "reconstruction error outliers", 
                                         color = plot_config['color_1'], linestyle = 'dashed', marker = 'o')
+        
+        line_2 = ax_error_outliers.errorbar(epoch_list, average_error_subject_list, yerr = std_error_subject_list, 
+                    label = "reconstruction error subject",
+                    color = plot_config['color_2'], linestyle = 'dashed', marker = 'X')
     
         ax_error_outliers.set_xlabel("Epoch")
         ax_error_outliers.set_ylabel("Reconstruction error", color = plot_config['color_1'])
         # ax_error_outliers.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
  
-        line_2 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "n. of outliers", 
-                                    color = plot_config['color_2'], linestyle = 'solid', marker = '^')
-        ax_n_outliers.set_ylabel("N. of outliers", color = plot_config['color_2'])
+        line_3 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "n. of outliers", 
+                                    color = plot_config['color_3'], linestyle = 'solid', marker = '^')
+        ax_n_outliers.set_ylabel("N. of outliers", color = plot_config['color_3'])
         ax_n_outliers.set_xlabel("Epoch")
         
         # Grid
@@ -123,7 +137,7 @@ for neighborhood_order in neighborhood_order_list:
         ax_error_outliers.grid(True, which = 'both', axis = 'both', linestyle = 'dashed')
         
         # Add legend
-        lns = line_1 + line_2
+        lns = [line_1[0], line_2, line_3[0]]
         labs = [l.get_label() for l in lns]
         ax_error_outliers.legend(lns, labs, loc=0)
     

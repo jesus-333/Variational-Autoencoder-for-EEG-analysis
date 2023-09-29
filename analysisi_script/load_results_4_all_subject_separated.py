@@ -4,7 +4,7 @@ Created on Fri Sep  1 10:03:59 2023
 @author: Alberto Zancanaro (jesus)
 @organization: University of Padua
 
-Like load_results_2.py but create 9 different plot
+Load the data obtained with reconstruction_3.py and compute the average reconstruction error, std and variation coefficient
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -80,8 +80,6 @@ def compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetiti
                 recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch].std())
             elif method_std_computation == 3:
                 recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch])
-            
-    return recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -109,7 +107,7 @@ recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-fig, ax = plt.subplots(3, 3, figsize = plot_config['figsize'])
+fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
 for subj in subj_list:
