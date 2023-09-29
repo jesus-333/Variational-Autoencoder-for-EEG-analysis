@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
     subj_to_download = sys.argv[2]
 else:
     tot_epoch = 80
-    subj_to_download = 8
+    subj_to_download = 4
 
 version_list = np.arange(140, 278 + 1)
 artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
@@ -36,7 +36,6 @@ for i in range(len(version_list)):
     version = version_list[i]
     print(version)
     try:
-
         artifact = run.use_artifact('{}:v{}'.format(artifact_name, version), type='model')
 
         # Get the name of the run and split it by the char _

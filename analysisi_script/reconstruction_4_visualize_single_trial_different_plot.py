@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 9
+subj = 4
 rand_trial_sample = False
 use_test_set = False
 
@@ -34,9 +34,9 @@ nperseg = 500
 plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 8
-n_trial = 204
-channel = 'C6'
+repetition = 3
+n_trial = 23
+channel = 'P1'
     
 epoch = 80
 

@@ -52,12 +52,14 @@ def compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetiti
             for repetition in repetition_list:
                 if subj == 4 and (repetition == 4 or repetition == 6): continue
                 if subj == 5 and repetition == 19: continue
+                if subj == 8 and repetition == 12: continue
                 
                 try:
                     path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
                     tmp_recon_error = np.load(path_load)
                     
                     recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
+
                     if method_std_computation == 1:             
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
                     elif method_std_computation == 2:
@@ -81,6 +83,8 @@ def compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetiti
             elif method_std_computation == 3:
                 recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch])
 
+    return recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
@@ -89,50 +93,61 @@ repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 plot_config = dict(
-    figsize = (12, 8),
+    figsize = (20, 20),
     fontsize = 16, 
     capsize = 3,
     use_log_scale = False,
-    save_fig = True
+    save_fig = False
 )
-
-line_config_per_subject = cp.get_style_per_subject_error_plus_std()
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load the data and compute average and std recon error
 
-output = compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetition_list)
 
-recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
-
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+fig, ax = plt.subplots(3, 3, figsize = plot_config['figsize'])
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
-for subj in subj_list:
-    subj_key = "subj_{}".format(subj)
-    line_config = line_config_per_subject[subj_key]
-    ax.errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
-                label = "Subject {}".format(subj), capsize = plot_config['capsize'],
-                marker = line_config['marker'], color = line_config['color'], linestyle = line_config['linestyle']
-                )
+idx_subj = 0
+for i in range(3):
+    for j in range(3):
+        subj = subj_list[idx_subj]
+        idx_subj += 1
+        subj_key = "subj_{}".format(subj)
 
-ax.grid(True)
-ax.legend()
-ax.set_ylabel("Reconstruction Error")
-ax.set_xlabel("Epoch")
+        # output = compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetition_list, method_std_computation = 1)
+        # recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
+        # ax[i, j].errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
+        #             label = "Method 1", capsize = plot_config['capsize'],
+                    # )
 
-if plot_config['use_log_scale']: ax.set_yscale('log')
 
-# ax.set_ylim([0, 250])
+        # output = compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetition_list, method_std_computation = 2)
+        # recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
+        # ax[i, j].errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
+        #             label = "Method 2", capsize = plot_config['capsize'],
+        #             )
+
+        output = compute_average_and_std_reconstruction_error(subj_list, epoch_list, repetition_list, method_std_computation = 3)
+        recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
+        ax[i, j].errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
+                    label = "Method 3", capsize = plot_config['capsize'],
+                    )
+
+        ax[i, j].grid(True)
+        ax[i, j].legend()
+        ax[i, j].set_ylabel("Reconstruction Error")
+        ax[i, j].set_xlabel("Epoch")
+
+        if plot_config['use_log_scale']: ax[i, j].set_yscale('log')
+
+# ax[i, j].set_ylim([0, 250])
 
 fig.tight_layout()
 fig.show()
 
-if plot_config['save_fig']:
-    path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
-    os.makedirs(path_save, exist_ok = True)
-    path_save += "average_recon_error_plus_std"
-    fig.savefig(path_save + ".png", format = 'png')
-    fig.savefig(path_save + ".pdf", format = 'pdf')
+# if plot_config['save_fig']:
+#     path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
+#     os.makedirs(path_save, exist_ok = True)
+#     path_save += "average_recon_error_plus_std"
+#     fig.savefig(path_save + ".png", format = 'png')
+#     fig.savefig(path_save + ".pdf", format = 'pdf')

@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 9
+subj = 8
 rand_trial_sample = True
 use_test_set = True
 
@@ -35,8 +35,8 @@ plot_to_create = 80
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 10
-n_trial = 0
-channel = 'C3'
+n_trial = 81
+channel = 'FC4'
     
 first_epoch = 10
 second_epoch = 60
@@ -44,7 +44,7 @@ second_epoch = 60
 plot_config = dict(
     figsize = (18, 12),
     fontsize = 12,
-    save_fig = True,
+    save_fig = False,
 )
 
 batch_size = 64
