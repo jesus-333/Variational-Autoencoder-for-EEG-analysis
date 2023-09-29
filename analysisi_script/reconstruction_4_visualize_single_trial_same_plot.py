@@ -55,6 +55,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 
 dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
 # Decide if use the train or the test dataset

@@ -20,12 +20,12 @@ from library.config import config_dataset as cd
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj = 2
-rand_trial_sample = True
-use_test_set = True
+subj = 4
+rand_trial_sample = False
+use_test_set = False
 
 t_min = 2
-t_max = 4
+t_max = 6
 fs = 250
 
 nperseg = 500
@@ -33,9 +33,9 @@ nperseg = 500
 plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 10
-n_trial = 0
-channel = 'C3'
+repetition = 1
+n_trial = 145
+channel = 'C5'
     
 first_epoch = 10
 second_epoch = 25
@@ -43,10 +43,9 @@ second_epoch = 25
 plot_config = dict(
     figsize = (30, 14),
     fontsize = 12,
-    save_fig = True,
+    save_fig = False,
 )
 
-batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -68,9 +67,12 @@ def plot_original_and_reconstructed(ax_list,
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+if rand_trial_sample is False: plot_to_create = 1
 
 dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
 # Decide if use the train or the test dataset

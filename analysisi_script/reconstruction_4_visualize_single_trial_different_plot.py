@@ -22,23 +22,23 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 3
+subj = 9
 rand_trial_sample = False
-use_test_set = True
+use_test_set = False
 
 t_min = 2
-t_max = 4
+t_max = 6
 
 nperseg = 500
 
-plot_to_create = 0
+plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 1
-n_trial = 57
-channel = 'Cz'
+repetition = 8
+n_trial = 204
+channel = 'C6'
     
-epoch = 20
+epoch = 80
 
 plot_config = dict(
     figsize = (12, 8),
@@ -56,6 +56,7 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 if rand_trial_sample is False: plot_to_create = 1
 
 dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
 # Decide if use the train or the test dataset
@@ -129,6 +130,10 @@ for n_plot in range(plot_to_create):
         path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
         path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
+        
+        if use_test_set: path_save += '_test_set'
+        else: path_save += '_train_set'
+        
         fig_time.savefig(path_save + "_time.png", format = 'png')
         fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
         fig_freq.savefig(path_save + "_freq.png", format = 'png')

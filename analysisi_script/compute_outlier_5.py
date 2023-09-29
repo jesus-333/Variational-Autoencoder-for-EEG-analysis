@@ -62,8 +62,8 @@ for neighborhood_order in neighborhood_order_list:
     for subj in subj_list:
         print(subj)
         
-        fig, ax_n_outliers = plt.subplots(1, 1, figsize = plot_config['figsize'])
-        ax_error_outliers = ax_n_outliers.twinx()
+        fig, ax_error_outliers = plt.subplots(1, 1, figsize = plot_config['figsize'])
+        ax_n_outliers = ax_error_outliers.twinx()
         
         idx_outliers_list = []
         average_error_list = []
