@@ -41,7 +41,7 @@ class EEG_Dataset_stft(Dataset):
         self.labels = torch.from_numpy(labels).long()
         
         self.ch_list = info['channels_list'] 
-        self.t = info['t'] 
+        self.t = info['t'] + 2
         self.f = info['f'] 
         if 'subjects_list' in info: self.subjects_list = info['subjects_list']
 
@@ -53,19 +53,8 @@ class EEG_Dataset_stft(Dataset):
     
     def __len__(self):
         return len(self.labels)
-    
-    def visualize_trial(self, idx_trial, ch, vmin = None, vmax = None):
-        idx_ch = self.ch_list == ch
-        trial = self.data[idx_trial, idx_ch].squeeze()
-        
-        if vmin is None: vmin = float(trial.min())
-        if vmax is None: vmax = float(trial.max())
 
-        plot_config = self.create_plot_config(vmin, vmax, ch)
-        plot_config['title'] = "Trials n. {} - {} - Ch. {}".format(idx_trial, self.labels_dict_int_to_name[int(self.labels[idx_trial])], ch)
-        self.__plot_stft(trial, plot_config)
-
-    def visualize_average_trial(self, ch, label, vmin = None, vmax = None):
+    def get_average_trial(self, ch, label, vmin = None, vmax = None):
         if type(label) == str : label = self.labels_dict_name_to_int[label]
 
         idx_trial = self.labels == label
@@ -80,6 +69,22 @@ class EEG_Dataset_stft(Dataset):
             vmax = float(trial.max())
         else:
             trial[trial > vmax] = vmax
+
+        return trial, vmin, vmax
+
+    def visualize_trial(self, idx_trial, ch, vmin = None, vmax = None):
+        idx_ch = self.ch_list == ch
+        trial = self.data[idx_trial, idx_ch].squeeze()
+        
+        if vmin is None: vmin = float(trial.min())
+        if vmax is None: vmax = float(trial.max())
+
+        plot_config = self.create_plot_config(vmin, vmax, ch)
+        plot_config['title'] = "Trials n. {} - {} - Ch. {}".format(idx_trial, self.labels_dict_int_to_name[int(self.labels[idx_trial])], ch)
+        self.__plot_stft(trial, plot_config)
+
+    def visualize_average_trial(self, ch, label, vmin = None, vmax = None):
+        trial, vmin, vmnax = self.get_average_trial(ch, label, vmin, vmax)
 
         plot_config = self.create_plot_config(vmin, vmax, ch)
         plot_config['title'] = "Average for class {} and Ch. {}".format(self.labels_dict_int_to_name[label], ch)
@@ -99,8 +104,8 @@ class EEG_Dataset_stft(Dataset):
         return plot_config
     
     def __plot_stft(self, stft_data, config):
-        fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
         plt.rcParams.update({'font.size': config['fontsize']})
+        fig, ax = plt.subplots(1, 1, figsize = config['figsize'])
 
         im = ax.pcolormesh(self.t, self.f, stft_data,
                            shading = 'gouraud', cmap = config['cmap'],
@@ -112,7 +117,11 @@ class EEG_Dataset_stft(Dataset):
 
         fig.colorbar(im)
         fig.tight_layout()
-        plt.show()
+        fig.show()
+
+        if config['save_fig']:
+            fig.savefig(config['path_save'] + ".png", format = 'png')
+            fig.savefig(config['path_save'] + ".pdf", format = 'pdf')
         
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Check data

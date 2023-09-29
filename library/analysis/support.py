@@ -37,7 +37,7 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
     
     with torch.no_grad():
         model.to(device)
-        dataloader = DataLoader(dataset, batch_size = batch_size)
+        dataloader = DataLoader(dataset, batch_size = batch_size, shuffle = False)
         i = 0
         for x_batch, _ in dataloader:
             # Get the original signal and reconstruct it

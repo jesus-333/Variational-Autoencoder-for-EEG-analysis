@@ -7,7 +7,7 @@ Contain the config related to dataset download and preprocess
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
+def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9], use_stft_representation = False):
     dataset_config = dict(
         # Frequency filtering settings
         filter_data = False,
@@ -29,7 +29,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9]):
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
         # Other
         n_classes = 4,
-        use_stft_representation = False,
+        use_stft_representation = use_stft_representation,
         subjects_list = subjects_list,
         channels_list = ['C3', 'Cz', 'C4'], # Used only for the STFT
         normalize = 0, # Used in the dataset class
