@@ -18,19 +18,23 @@ import time
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def compute_inference_time(model, x, device, no_grad = True):
+def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
     model.to(device)
     x = x.to(device)
+    tot_time = 0
     if no_grad:
         with torch.no_grad():
+            for i in range(n_average):
+                start = time.time()
+                output = model(x)
+                tot_time += time.time() - start
+    else:
+        for i in range(n_average):
             start = time.time()
             output = model(x)
-            return time.time() - start
-    else:
-        start = time.time()
-        output = model(x)
-        return time.time() - start
-
+            tot_time += time.time() - start
+    
+    return tot_time / n_average
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj = 3
@@ -39,16 +43,16 @@ dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
 x_1   = train_dataset[0][0].unsqueeze(0)
-x_10  = train_dataset[0:10][0].unsqueeze(0)
-x_100 = train_dataset[0:100][0].unsqueeze(0)
-x_all = train_dataset[:][0].unsqueeze(0)
+x_10  = train_dataset[0:10][0]
+x_100 = train_dataset[0:100][0]
+x_all = train_dataset[:][0]
 
 time_1   = compute_inference_time(model_hv, x_1, 'cpu')
 time_10  = compute_inference_time(model_hv, x_10, 'cpu')
 time_100 = compute_inference_time(model_hv, x_100, 'cpu')
 time_all = compute_inference_time(model_hv, x_all, 'cpu')
 
-print("Inference time 1   samples:\t {}s".format(time_1))
+print("Inference time 1   samples:\t {}s (cpu".format(time_1))
 print("Inference time 10  samples:\t {}s".format(time_10))
 print("Inference time 100 samples:\t {}s".format(time_100))
 print("Inference time all samples:\t {}s".format(time_all))
