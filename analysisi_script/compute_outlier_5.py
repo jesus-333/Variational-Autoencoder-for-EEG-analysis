@@ -30,12 +30,14 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2, 5]
+# subj_list = [2, 5]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+repetition_list = np.arange(19) + 1
 
 use_test_set = False
 save_outliers = True
 
+method_std_computation = 2
 normalize_recon_error = False
 neighborhood_order_list = [5, 15]
 knn_algorithm = 'auto'
@@ -57,6 +59,10 @@ if normalize_recon_error:
 else:
     norm_string = "NOT_NORMALIZED"
 
+output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, 
+                                                              method_std_computation = method_std_computation, skip_run = True)
+recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
+
 for neighborhood_order in neighborhood_order_list:
     plt.rcParams.update({'font.size': plot_config['fontsize']})
 
@@ -74,9 +80,11 @@ for neighborhood_order in neighborhood_order_list:
         std_error_subject_list = []
 
         for epoch in epoch_list:
+
             # Load the reconstruction error
-            path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
-            recon_error = np.load(path_recon_error)
+            # path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
+            # recon_error = np.load(path_recon_error)
+            recon_error = recon_loss_results_mean[subj][epoch]
 
             # Apply the scaling to data
             if normalize_recon_error:

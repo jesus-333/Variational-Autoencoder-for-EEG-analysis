@@ -107,6 +107,7 @@ def skip_training_run(subj, repetition):
     List of training run to skip for each subject during the computation of the average reconstruction training loss in the analysis script 
     """
     if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19): return True
+    if subj == 5 and repetition == 19: return True
     if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16): return True
     
     return False
@@ -114,10 +115,19 @@ def skip_training_run(subj, repetition):
 
 def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 1, skip_run = False):
     """
-    method_std_computation = 1: std along channels and average of std
-    method_std_computation = 2: meand along channels and std of averages
-    method_std_computation = 3: std of all the matrix (trials x channels)
+    As the name suggest compute the average and the std of the reconstruction error for each epoch/subject avereged across repetition.
 
+    Important parameters:
+        method_std_computation = 1: std along channels and average of std
+        method_std_computation = 2: meand along channels and std of averages
+        method_std_computation = 3: std of all the matrix (trials x channels)
+        skip_run: if True avoid the use of some training run during the computation. The training run avoided presents some anomalies
+
+    Output of the methods (note that each output is a dictionary with subject as key and for each subject there are dictionary with epoch as key):
+        recon_loss_results_mean : Each element is a matrix of shape "n.trials x n.channels" averaged across the repetition
+        recon_loss_results_std  : Each element is a vector of length n.trials" that represents the std for each trial in that specific epoch
+        recon_loss_to_plot_mean : Each element is a float that represent the average error of the dataset for the specific epoch
+        recon_loss_to_plot_std  : Each element is a float that represent the std of the error of the dataset for the specific epoch
     """
     recon_loss_results_mean = dict() # Save for each subject/repetition/epoch the average reconstruction error across channels
     recon_loss_results_std = dict() # Save for each subject/repetition/epoch the std of the reconstruction error across channels
@@ -147,7 +157,8 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                     path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
                     tmp_recon_error = np.load(path_load)
                     
-                    recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
+                    # recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
+                    recon_loss_results_mean[subj][epoch] += tmp_recon_error
 
                     if method_std_computation == 1:             
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)

@@ -34,7 +34,7 @@ plot_config = dict(
     fontsize = 20, 
     capsize = 3,
     use_log_scale = False,
-    save_fig = False
+    save_fig = True
 )
 
 method_std_computation = 2
@@ -51,7 +51,7 @@ for subj in subj_list:
     recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
     ax.errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
                 label = "All training runs", capsize = plot_config['capsize'],
-                color = 'grey', linewidth = 1,
+                color = 'dimgray', linewidth = 1.4,
                 marker = "o",
                 )
 
@@ -78,6 +78,6 @@ for subj in subj_list:
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
         os.makedirs(path_save, exist_ok = True)
-        path_save += "average_recon_error_plus_std"
+        path_save += "average_recon_error_plus_std_subj_{}".format(subj)
         fig.savefig(path_save + ".png", format = 'png')
         fig.savefig(path_save + ".pdf", format = 'pdf')
