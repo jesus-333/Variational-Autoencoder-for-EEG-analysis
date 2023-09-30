@@ -20,12 +20,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from library.config import config_plot as cp
+from library.analysis import support
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [8]
+subj_list = [4]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
@@ -69,10 +70,9 @@ for subj in subj_list:
         
         # Compute the mean and std of the error for each epoch across channels
         for repetition in repetition_list:
-            if subj == 4 and (repetition == 17 or repetition == 18): continue
-            if subj == 5 and repetition == 19: continue
-            if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16): continue
-            # if subj == 8 and (repetition == 3 or repetition == 12 or repetition == 18): continue
+            if support.skip_training_run(subj, repetition):
+                print("Skip run {} subj {}".format(repetition, subj))
+                continue
             
             try:
                 path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
@@ -90,7 +90,7 @@ for subj in subj_list:
             except:
                 print("File not found for subj {} - epoch {} - repetition {}".format(subj, epoch, repetition))
 
-            # if epoch == 50:
+            # if epoch == 80:
             #     print("Epoch {} - rep {}".format(epoch, repetition))
             #     print("std:", tmp_recon_error.std())
             #     print("- - - - -\n")
@@ -109,8 +109,8 @@ for subj in subj_list:
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 for subj in subj_list:
-    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
     plt.rcParams.update({'font.size': plot_config['fontsize']})
 
     subj_key = "subj_{}".format(subj)
@@ -120,21 +120,20 @@ for subj in subj_list:
                 marker = line_config['marker'], color = line_config['color'], linestyle = line_config['linestyle']
                 )
 
-    ax.grid(True)
-    ax.legend()
-    ax.set_ylabel("Reconstruction Error")
-    ax.set_xlabel("Epoch")
+ax.grid(True)
+ax.legend()
+ax.set_ylabel("Reconstruction Error")
+ax.set_xlabel("Epoch")
 
-    if plot_config['use_log_scale']: ax.set_yscale('log')
-
+if plot_config['use_log_scale']: ax.set_yscale('log')
 # ax.set_ylim([0, 250])
 
-    fig.tight_layout()
-    fig.show()
+fig.tight_layout()
+fig.show()
 
-    if plot_config['save_fig']:
-        path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
-        os.makedirs(path_save, exist_ok = True)
-        path_save += "average_recon_error_plus_std_subj_{}".format(subj)
-        fig.savefig(path_save + ".png", format = 'png')
-        fig.savefig(path_save + ".pdf", format = 'pdf')
+if plot_config['save_fig']:
+    path_save = "Saved Results/repetition_hvEEGNet_{}/".format(tot_epoch_training)
+    os.makedirs(path_save, exist_ok = True)
+    path_save += "average_recon_error_plus_std_subj_{}".format(subj)
+    fig.savefig(path_save + ".png", format = 'png')
+    fig.savefig(path_save + ".pdf", format = 'pdf')

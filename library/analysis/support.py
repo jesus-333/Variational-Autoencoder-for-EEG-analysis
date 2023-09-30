@@ -101,3 +101,75 @@ def compute_spectra_magnitude_and_phase(x, fs, keep_only_positive_frequency = Tr
         return magnitude[idx_f], phase[idx_f], f[idx_f]
     else:
         return magnitude, phase, f
+
+def skip_training_run(subj, repetition):
+    """
+    List of training run to skip for each subject during the computation of the average reconstruction training loss in the analysis script 
+    """
+    if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19): return True
+    if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16): return True
+    
+    return False
+
+
+def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 1, skip_run = False):
+    """
+    method_std_computation = 1: std along channels and average of std
+    method_std_computation = 2: meand along channels and std of averages
+    method_std_computation = 3: std of all the matrix (trials x channels)
+
+    """
+    recon_loss_results_mean = dict() # Save for each subject/repetition/epoch the average reconstruction error across channels
+    recon_loss_results_std = dict() # Save for each subject/repetition/epoch the std of the reconstruction error across channels
+
+    recon_loss_to_plot_mean = dict()
+    recon_loss_to_plot_std = dict()
+
+    for subj in subj_list:
+        recon_loss_results_mean[subj] = dict()
+        recon_loss_results_std[subj] = dict()
+        recon_loss_to_plot_mean[subj] = list()
+        recon_loss_to_plot_std[subj] = list()
+        
+        for epoch in epoch_list:
+            recon_loss_results_mean[subj][epoch] = 0
+            recon_loss_results_std[subj][epoch] = 0
+            
+            valid_repetition = 0
+            
+            # Compute the mean and std of the error for each epoch across channels
+            for repetition in repetition_list:
+                if skip_training_run(subj, repetition) and skip_run:
+                    print("Skip run {} subj {}".format(repetition, subj))
+                    continue
+                
+                try:
+                    path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+                    tmp_recon_error = np.load(path_load)
+                    
+                    recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
+
+                    if method_std_computation == 1:             
+                        recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
+                    elif method_std_computation == 2:
+                        recon_loss_results_std[subj][epoch] += tmp_recon_error.mean(1)
+                    elif method_std_computation == 3:
+                        recon_loss_results_std[subj][epoch] += tmp_recon_error.std()
+                    
+                    valid_repetition += 1
+                except:
+                    print("File not found for subj {} - epoch {} - repetition {}".format(subj, epoch, repetition))
+
+            recon_loss_results_mean[subj][epoch] /= valid_repetition
+            recon_loss_results_std[subj][epoch] /= valid_repetition
+            # Note that inside recon_loss_results_std[subj][epoch] there are vector of size n_trials
+            
+            recon_loss_to_plot_mean[subj].append(recon_loss_results_mean[subj][epoch].mean())
+            if method_std_computation == 1:
+                recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch].mean())
+            elif method_std_computation == 2:
+                recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch].std())
+            elif method_std_computation == 3:
+                recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch])
+
+    return recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std
