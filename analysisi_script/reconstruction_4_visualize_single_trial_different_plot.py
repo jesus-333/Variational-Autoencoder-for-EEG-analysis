@@ -41,8 +41,8 @@ channel = 'P1'
 epoch = 80
 
 plot_config = dict(
-    figsize = (12, 8),
-    fontsize = 16,
+    figsize = (12, 12),
+    fontsize = 20, 
     save_fig = True,
 )
 

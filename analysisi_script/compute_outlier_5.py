@@ -44,8 +44,8 @@ knn_algorithm = 'auto'
 s_knee = 1
 
 plot_config = dict(
-    figsize = (12, 8),
-    fontsize = 16,
+    figsize = (10, 8),
+    fontsize = 24, 
     save_fig = True,
     color_1 = 'darkcyan',
     color_2 = 'skyblue',
