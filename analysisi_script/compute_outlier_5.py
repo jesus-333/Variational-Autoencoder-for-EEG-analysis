@@ -30,7 +30,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [2, 5]
+subj_list = [7]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 repetition_list = np.arange(19) + 1
 
@@ -44,8 +44,8 @@ knn_algorithm = 'auto'
 s_knee = 1
 
 plot_config = dict(
-    figsize = (12, 8),
-    fontsize = 16,
+    figsize = (10, 8),
+    fontsize = 24, 
     save_fig = True,
     color_1 = 'darkcyan',
     color_2 = 'skyblue',
@@ -119,7 +119,7 @@ for neighborhood_order in neighborhood_order_list:
             # Get the average error per subject
             average_error_subject = recon_error.mean()
             average_error_subject_list.append(average_error_subject)
-            std_error_subject = recon_error.std(1).mean()
+            std_error_subject = recon_error.mean(1).std()
             std_error_subject_list.append(std_error_subject)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -128,7 +128,7 @@ for neighborhood_order in neighborhood_order_list:
                                         color = plot_config['color_1'], linestyle = 'dashed', marker = 'o')
         
         line_2 = ax_error_outliers.errorbar(epoch_list, average_error_subject_list, yerr = std_error_subject_list, 
-                    label = "reconstruction error subject",
+                    label = "reconstruction error subject", capsize = 3,
                     color = plot_config['color_2'], linestyle = 'dashed', marker = 'X')
     
         ax_error_outliers.set_xlabel("Epoch")
@@ -145,9 +145,10 @@ for neighborhood_order in neighborhood_order_list:
         ax_error_outliers.grid(True, which = 'both', axis = 'both', linestyle = 'dashed')
         
         # Add legend
-        lns = [line_1[0], line_2, line_3[0]]
-        labs = [l.get_label() for l in lns]
-        ax_error_outliers.legend(lns, labs, loc=0)
+        if subj == 3:
+            lns = [line_1[0], line_2, line_3[0]]
+            labs = [l.get_label() for l in lns]
+            ax_error_outliers.legend(lns, labs, loc = 0, fontsize = plot_config['fontsize'] - 3)
     
         fig.tight_layout()
         fig.show()

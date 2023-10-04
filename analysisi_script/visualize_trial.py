@@ -3,8 +3,6 @@ Created on Fri Sep  1 10:03:59 2023
 
 @author: Alberto Zancanaro (jesus)
 @organization: University of Padua
-
-Load the data obtained with reconstruction_3.py and compute the average reconstruction error, std for a single subject and show as an errorplot
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -18,6 +16,7 @@ sys.path.insert(0, parent_directory)
 
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 
 from library.config import config_dataset as cd
 from library.analysis import support
@@ -28,8 +27,13 @@ subj = 3
 ch = 'C3' 
 n_trial = 0
 
-use_stft_representation = True
+use_stft_representation = False
 movement_type = 'right' # Use only if use_stft_representation == True
+
+t_min = 2
+t_max = 4
+
+nperseg = 500
 
 plot_config = dict(
     figsize = (12, 8),
@@ -48,8 +52,9 @@ dataset_config = cd.get_moabb_dataset_config([subj], use_stft_representation)
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Show the average trial for each class through the stft
 if use_stft_representation:
-
     average_trial, vmin, vmax = train_dataset.get_average_trial(ch, movement_type)
 
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
@@ -73,3 +78,83 @@ if use_stft_representation:
         path_save += 'subj_{}_ch_{}_class_{}'.format(subj, ch, movement_type)
         fig.savefig(path_save + ".png", format = 'png')
         fig.savefig(path_save + ".pdf", format = 'pdf')
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Select randomly 4 trial, 1 for each class and plot them (both in time and frequency domain)
+else:
+    trials_dict = {0 : None, 1 : None, 2 : None, 3 : None}
+    label_dict = {0 : 'left hand', 1 : 'right hand', 2 : 'foot', 3 : 'tongue' }
+    label_to_ch = {0 : 'C4', 1 : 'C3', 2 : 'Fz', 3 : 'Fz' }
+    idx_trials_saved = []
+
+    # Get 4 random trial of different class
+    n_trials = 0
+    idx_trials = np.arange(len(train_dataset))
+    for i in range(len(train_dataset)):
+        trial, label = train_dataset[idx_trials[i]]
+        label = int(label)
+
+        if trials_dict[label] is None:
+            trials_dict[label] = trial
+            n_trial += 1
+            idx_trials_saved.append(idx_trials[i] + 1)
+
+        if n_trial == 4: break
+    
+    fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    for i in range(4):
+        x = trials_dict[i]
+        
+        # Select section of the trial to visualize and create time vector
+        tmp_t = np.linspace(2, 6, x.shape[-1])
+        idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
+        t = tmp_t[idx_t]
+        idx_ch = train_dataset.ch_list == label_to_ch[i]
+        label_name = label_dict[int(label)]
+        
+        # Select channel and time samples
+        x = x.squeeze()[idx_ch, idx_t]
+        
+        # Compute PSD
+        f, x_psd = signal.welch(x, fs = 250, nperseg = nperseg)
+        
+        # Plot in time domain
+
+        ax_time.plot(t, x, label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[i], label_dict[i]))
+        ax_time.set_xlabel("Time [s]")
+        ax_time.set_ylabel(r"Amplitude [$\mu$V]")
+        ax_time.set_xlim([t_min, t_max])
+        ax_time.legend()
+        ax_time.grid(True)
+        
+        fig_time.tight_layout()
+        fig_time.show()
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # Plot in frequency domain
+
+        ax_freq.plot(f, x_psd, label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[i], label_dict[i]))
+        ax_freq.set_xlabel("Frequency [Hz]")
+        ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
+        ax_freq.set_xlim([0, 80])
+        ax_freq.legend()
+        ax_freq.grid(True) 
+
+        fig_freq.tight_layout()
+        fig_freq.show()
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # Save plots
+
+        if plot_config['save_fig']:
+            path_save = 'Saved Results/only_original_trial/'
+            os.makedirs(path_save, exist_ok = True)
+            path_save += 'example_trial_for_paper_time'
+            fig_time.savefig(path_save + ".png", format = 'png')
+            fig_time.savefig(path_save + ".pdf", format = 'pdf')
+
+            path_save = 'Saved Results/only_original_trial/'
+            path_save += 'example_trial_for_paper_freq'
+            fig_freq.savefig(path_save + ".png", format = 'png')
+            fig_freq.savefig(path_save + ".pdf", format = 'pdf')
