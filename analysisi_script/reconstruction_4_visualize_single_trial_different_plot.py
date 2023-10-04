@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config importplot_config_dataset as cd 
+from library.config import plot_config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
