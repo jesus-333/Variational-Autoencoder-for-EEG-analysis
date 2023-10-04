@@ -11,6 +11,7 @@ parent_directory = os.path.dirname(current)
 sys.path.insert(0, parent_directory)
 
 import torch
+import numpy as np
 
 from library.analysis import support
 from library.config import config_dataset as cd 
@@ -22,19 +23,20 @@ def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
     model.to(device)
     x = x.to(device)
     tot_time = 0
+    time_list = []
     if no_grad:
         with torch.no_grad():
             for i in range(n_average):
                 start = time.time()
                 output = model(x)
-                tot_time += time.time() - start
+                time_list.append(time.time() - start)
     else:
         for i in range(n_average):
             start = time.time()
             output = model(x)
-            tot_time += time.time() - start
+            time_list.append(time.time() - start)
     
-    return tot_time / n_average
+    return np.mean(time_list), np.std(time_list)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj = 3
@@ -47,24 +49,24 @@ x_10  = train_dataset[0:10][0]
 x_100 = train_dataset[0:100][0]
 x_all = train_dataset[:][0]
 
-time_1   = compute_inference_time(model_hv, x_1, 'cpu')
-time_10  = compute_inference_time(model_hv, x_10, 'cpu')
-time_100 = compute_inference_time(model_hv, x_100, 'cpu')
-time_all = compute_inference_time(model_hv, x_all, 'cpu')
+time_1,   std_1   = compute_inference_time(model_hv, x_1, 'cpu')
+time_10,  std_10  = compute_inference_time(model_hv, x_10, 'cpu')
+time_100, std_100 = compute_inference_time(model_hv, x_100, 'cpu')
+time_all, std_all = compute_inference_time(model_hv, x_all, 'cpu')
 
-print("Inference time 1   samples:\t {}s (cpu".format(time_1))
-print("Inference time 10  samples:\t {}s".format(time_10))
-print("Inference time 100 samples:\t {}s".format(time_100))
-print("Inference time all samples:\t {}s".format(time_all))
+print("Inference time 1   samples (cpu):\t {}s ± {}s".format(time_1, std_1))
+print("Inference time 10  samples (cpu):\t {}s ± {}s".format(time_10, std_10))
+print("Inference time 100 samples (cpu):\t {}s ± {}s".format(time_100, std_100))
+print("Inference time all samples (cpu):\t {}s ± {}s".format(time_all, std_all))
 
 if torch.cuda.is_available():
 
-    time_1   = compute_inference_time(model_hv, x_1, 'cuda')
-    time_10  = compute_inference_time(model_hv, x_10, 'cuda')
-    time_100 = compute_inference_time(model_hv, x_100, 'cuda')
-    time_all = compute_inference_time(model_hv, x_all, 'cuda')
+    time_1,   std_1   = compute_inference_time(model_hv, x_1, 'cuda')
+    time_10,  std_10  = compute_inference_time(model_hv, x_10, 'cuda')
+    time_100, std_100 = compute_inference_time(model_hv, x_100, 'cuda')
+    time_all, std_all = compute_inference_time(model_hv, x_all, 'cuda')
 
-    print("Inference time 1   samples:\t {}s".format(time_1))
-    print("Inference time 10  samples:\t {}s".format(time_10))
-    print("Inference time 100 samples:\t {}s".format(time_100))
-    print("Inference time all samples:\t {}s".format(time_all))
+    print("Inference time 1   samples (gpu):\t {}s ± {}s".format(time_1, std_1))
+    print("Inference time 10  samples (gpu):\t {}s ± {}s".format(time_10, std_10))
+    print("Inference time 100 samples (gpu):\t {}s ± {}s".format(time_100, std_100))
+    print("Inference time all samples (gpu):\t {}s ± {}s".format(time_all, std_all))
