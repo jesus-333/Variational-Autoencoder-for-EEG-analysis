@@ -55,7 +55,6 @@ for subj in subj_list:
                 marker = "o",
                 )
 
-
     # Compute the average error without SKIPPING the problematic training run
     output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = method_std_computation, skip_run = True)
     recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
