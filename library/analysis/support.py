@@ -113,7 +113,7 @@ def skip_training_run(subj, repetition):
     return False
 
 
-def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 1, skip_run = False):
+def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 2, skip_run = False):
     """
     As the name suggest compute the average and the std of the reconstruction error for each epoch/subject avereged across repetition.
 

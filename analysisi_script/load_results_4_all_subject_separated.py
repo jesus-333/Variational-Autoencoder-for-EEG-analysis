@@ -25,13 +25,13 @@ from library.analysis import support
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [4]
+# subj_list = [4]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 plot_config = dict(
-    figsize = (12, 12),
-    fontsize = 20, 
+    figsize = (10, 8),
+    fontsize = 24, 
     capsize = 3,
     use_log_scale = False,
     save_fig = True

@@ -16,13 +16,13 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config import config_dataset as cd 
+from library.config importplot_config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
 
 tot_epoch_training = 80
-subj = 4
+subj = 3
 rand_trial_sample = False
 use_test_set = False
 
@@ -35,14 +35,16 @@ plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 3
-n_trial = 23
-channel = 'P1'
+n_trial = 249
+channel = 'Fz'
     
 epoch = 80
 
 plot_config = dict(
     figsize = (12, 12),
     fontsize = 20, 
+    linewidth_original = 2,
+    linewidth_reconstructed = 1,
     save_fig = True,
 )
 
@@ -99,8 +101,8 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in time domain
 
-    ax_time.plot(t, x, label = 'original signal', color = 'grey')
-    ax_time.plot(t, x_r, label = 'reconstructed signal', color = 'black')
+    ax_time.plot(t, x, label = 'original signal', color = 'grey', linewidth =plot_config['linewidth_original'])
+    ax_time.plot(t, x_r, label = 'reconstructed signal', color = 'black', linewidth =plot_config['linewidth_reconstructed'])
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
     ax_time.set_xlim([t_min, t_max])
@@ -114,8 +116,8 @@ for n_plot in range(plot_to_create):
     # Plot in frequency domain
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
-    ax_freq.plot(f, x_psd, label = 'original signal', color = 'grey')
-    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', color = 'black')
+    ax_freq.plot(f, x_psd, label = 'original signal', color = 'grey', linewidth =plot_config['linewidth_original'])
+    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', color = 'black', linewidth =plot_config['linewidth_reconstructed'])
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
     ax_freq.set_xlim([0, 80])
