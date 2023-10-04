@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config import plot_config_dataset as cd 
+from library.config import config_dataset as cd 
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
@@ -24,7 +24,7 @@ from library.config import plot_config_dataset as cd
 tot_epoch_training = 80
 subj = 3
 rand_trial_sample = False
-use_test_set = False
+use_test_set = True
 
 t_min = 2
 t_max = 6
@@ -34,9 +34,9 @@ nperseg = 500
 plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 3
-n_trial = 249
-channel = 'Fz'
+repetition = 1
+n_trial = 1
+channel = 'C3'
     
 epoch = 80
 
