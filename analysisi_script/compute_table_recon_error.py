@@ -20,6 +20,8 @@ repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 epoch_list = [80]
 
+use_test_set = False
+
 plot_config = dict(
     figsize = (12, 8),
     fontsize = 16, 
@@ -47,6 +49,9 @@ recon_loss_results_std = dict() # Save for each subject/repetition/epoch the std
 recon_loss_average_mean = dict()
 recon_loss_average_std = dict()
 
+if use_test_set: string_dataset = 'test'
+else: string_dataset = 'train'
+
 for subj in subj_list:
     recon_loss_results_mean[subj] = dict()
     recon_loss_results_std[subj] = dict()
@@ -66,7 +71,7 @@ for subj in subj_list:
                 continue
             
             try:
-                path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+                path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
                 tmp_recon_error = np.load(path_load)
                 
                 recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
@@ -92,3 +97,16 @@ for subj in subj_list:
             recon_loss_average_std[subj].append(recon_loss_results_std[subj][epoch].std())
         elif method_std_computation == 3:
             recon_loss_average_std[subj].append(recon_loss_results_std[subj][epoch])
+
+#%% Create array for the table
+
+mean_vector = np.zeros((len(subj_list), len(epoch_list)))
+std_vector = np.zeros((len(subj_list), len(epoch_list)))
+
+for i in range(len(subj_list)):
+    subj = subj_list[i]
+    for j in range(len(epoch_list)):
+        epoch = epoch_list[j]
+        
+        mean_vector[i, j] = recon_loss_average_mean[subj][j]
+        std_vector[i, j] = recon_loss_average_std[subj][j]

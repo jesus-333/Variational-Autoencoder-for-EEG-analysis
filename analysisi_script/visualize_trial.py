@@ -24,11 +24,13 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj = 3
-ch = 'C3' 
-n_trial = 0
+ch = 'C3' # Use only if use_stft_representation == True
 
 use_stft_representation = False
 movement_type = 'right' # Use only if use_stft_representation == True
+
+select_random_trial = False # Only valid if use_stft_representation == False
+trial_list = [0, 9] # Used only if  select_random_trial == False
 
 t_min = 2
 t_max = 4
@@ -80,31 +82,38 @@ if use_stft_representation:
         fig.savefig(path_save + ".pdf", format = 'pdf')
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Select randomly 4 trial, 1 for each class and plot them (both in time and frequency domain)
+# Plot trial in time domain
 else:
     trials_dict = {0 : None, 1 : None, 2 : None, 3 : None}
     label_dict = {0 : 'left hand', 1 : 'right hand', 2 : 'foot', 3 : 'tongue' }
     label_to_ch = {0 : 'C4', 1 : 'C3', 2 : 'Fz', 3 : 'Fz' }
     idx_trials_saved = []
-
-    # Get 4 random trial of different class
+    
     n_trials = 0
-    idx_trials = np.arange(len(train_dataset))
+    label_trials_saved = []
+    
+    if select_random_trial: # Get 4 random trial of different class  
+        idx_trials = np.arange(len(train_dataset))
+    else: # Save the specified trial
+        idx_trials = trial_list
+        
     for i in range(len(train_dataset)):
         trial, label = train_dataset[idx_trials[i]]
         label = int(label)
 
         if trials_dict[label] is None:
             trials_dict[label] = trial
-            n_trial += 1
+            n_trials += 1
             idx_trials_saved.append(idx_trials[i] + 1)
+            label_trials_saved.append(label)
 
-        if n_trial == 4: break
+        if select_random_trial == True and n_trials == 4: break 
+        if select_random_trial == False and n_trials == len(trial_list): break
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize'])
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
-    for i in range(4):
-        x = trials_dict[i]
+    for i in range(n_trials):
+        x = trials_dict[label_trials_saved[i]]
         
         # Select section of the trial to visualize and create time vector
         tmp_t = np.linspace(2, 6, x.shape[-1])
@@ -121,7 +130,9 @@ else:
         
         # Plot in time domain
 
-        ax_time.plot(t, x, label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[i], label_dict[i]))
+        ax_time.plot(t, x, 
+                     label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[label_trials_saved[i]], label_dict[label_trials_saved[i]])
+                     )
         ax_time.set_xlabel("Time [s]")
         ax_time.set_ylabel(r"Amplitude [$\mu$V]")
         ax_time.set_xlim([t_min, t_max])
@@ -134,10 +145,12 @@ else:
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Plot in frequency domain
 
-        ax_freq.plot(f, x_psd, label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[i], label_dict[i]))
+        ax_freq.plot(f, x_psd, 
+                     label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[label_trials_saved[i]], label_dict[label_trials_saved[i]])
+                     )
         ax_freq.set_xlabel("Frequency [Hz]")
         ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
-        ax_freq.set_xlim([0, 80])
+        ax_freq.set_xlim([0, 50])
         ax_freq.legend()
         ax_freq.grid(True) 
 

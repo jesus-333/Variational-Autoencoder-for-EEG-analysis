@@ -22,12 +22,13 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 3
+subj = 5
 rand_trial_sample = False
 use_test_set = True
 
 t_min = 2
 t_max = 6
+compute_spectra_with_entire_signal = True
 
 nperseg = 500
 
@@ -35,17 +36,18 @@ plot_to_create = 20
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 1
-n_trial = 1
-channel = 'C3'
+n_trial = 47
+channel = 'Cz'
     
 epoch = 80
 
 plot_config = dict(
-    figsize = (12, 12),
+    figsize_time = (12, 8),
+    figsize_freq = (12, 8),
     fontsize = 20, 
     linewidth_original = 2,
     linewidth_reconstructed = 1,
-    save_fig = True,
+    save_fig = False,
 )
 
 batch_size = 64
@@ -89,20 +91,28 @@ for n_plot in range(plot_to_create):
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
     # Select channel and time samples
-    x = x.squeeze()[idx_ch, idx_t]
-    x_r = x_r[idx_ch, idx_t]
+    x_original_to_plot = x[0, idx_ch, idx_t]
+    x_r_to_plot = x_r[idx_ch, idx_t]
+    
+    if compute_spectra_with_entire_signal:
+        x_original_for_psd = x[0, idx_ch, :].squeeze()
+        x_r_for_psd = x_r[idx_ch, :].squeeze()
+    else:
+        x_original_for_psd = x_original_to_plot
+        x_r_for_psd = x_r_to_plot
     
     # Compute PSD
-    f, x_psd = signal.welch(x, fs = 250, nperseg = nperseg)
-    f, x_r_psd = signal.welch(x_r, fs = 250, nperseg = nperseg)
+    f, x_psd = signal.welch(x_original_for_psd, fs = 250, nperseg = nperseg)
+    f, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
     
-    fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize'])
-
+    
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in time domain
-
-    ax_time.plot(t, x, label = 'original signal', color = 'grey', linewidth =plot_config['linewidth_original'])
-    ax_time.plot(t, x_r, label = 'reconstructed signal', color = 'black', linewidth =plot_config['linewidth_reconstructed'])
+    
+    fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
+    
+    ax_time.plot(t, x_original_to_plot, label = 'original signal', color = 'grey', linewidth = plot_config['linewidth_original'])
+    ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal', color = 'black', linewidth = plot_config['linewidth_reconstructed'])
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
     ax_time.set_xlim([t_min, t_max])
@@ -115,7 +125,7 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in frequency domain
 
-    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
     ax_freq.plot(f, x_psd, label = 'original signal', color = 'grey', linewidth =plot_config['linewidth_original'])
     ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', color = 'black', linewidth =plot_config['linewidth_reconstructed'])
     ax_freq.set_xlabel("Frequency [Hz]")

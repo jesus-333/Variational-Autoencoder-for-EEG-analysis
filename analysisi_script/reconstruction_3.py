@@ -25,11 +25,12 @@ if len(sys.argv) > 1:
     subj = sys.argv[2]
 else:
     tot_epoch_training = 80
-    subj = 8
+    subj = 2
 
 repetition_list = np.arange(20) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-use_test_set = False
+epoch_list = [80]
+use_test_set = True
 
 batch_size = 72
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -57,8 +58,12 @@ for repetition in repetition_list:
     if subj == 8 and repetition == 12: continue
     
     for epoch in epoch_list:
-        if use_test_set: dataset = test_dataset
-        else: dataset = train_dataset
+        if use_test_set: 
+            dataset = test_dataset
+            string_dataset = 'test'
+        else: 
+            dataset = train_dataset
+            string_dataset = 'train'
 
         # Load model weight
         try:
@@ -82,27 +87,27 @@ for repetition in repetition_list:
             recon_loss_results[subj][epoch] += tmp_recon_loss
 
         # Save the results for each repetition
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
         os.makedirs(path_save, exist_ok = True)
 
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.pickle'.format(tot_epoch_training, subj, epoch, repetition)
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.pickle'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
         pickle_out = open(path_save, "wb")
         pickle.dump(tmp_recon_loss , pickle_out)
         pickle_out.close()
 
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
         np.save(path_save, tmp_recon_loss)
 
 #%% Average accross repetition and save the results
 
 for epoch in epoch_list:
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/'.format(tot_epoch_training, subj)
+    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
     os.makedirs(path_save, exist_ok = True)
 
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, subj, epoch)
+    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, string_dataset, subj, epoch)
     pickle_out = open(path_save, "wb")
     pickle.dump(recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch] , pickle_out)
     pickle_out.close()
 
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
+    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, string_dataset, subj, epoch)
     np.save(path_save, recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch])

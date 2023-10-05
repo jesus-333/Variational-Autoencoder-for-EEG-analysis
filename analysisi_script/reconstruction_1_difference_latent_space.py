@@ -19,30 +19,34 @@ from library.config import config_dataset as cd
 from library.config import config_model as cm
 from library.dataset import preprocess as pp
 from library.training import train_generic
+from library.analysis import support
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
 
-subj = 4
+subj = 3
 loss = 'dtw'
 epoch_list = [20, 40, 'BEST']
 epoch_list = [40]
-idx_trial = 47
-idx_ch = 11
 
-compute_psd = False 
+tot_epoch_training = 80
+
+idx_trial = 0
+channel = 'C3'
+
+compute_psd = True 
 use_test_set = True
 
 config = dict(
     t_min = 2,
-    t_max = 4,
-    figsize = (20, 8),
-    fontsize = 12,
+    t_max = 3,
 )
 
 plot_config = dict(
     figsize = (12, 8),
-    fontsize = 16,
+    fontsize = 20,
+    linewidth_original = 3,
+    linewidth_reconstructed = 1,
     save_fig = True,
 )
 
@@ -61,11 +65,14 @@ def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
 
     return x_crop, t_plot
 
-def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, compute_psd):
-    ax.plot(horizontal_axis_value, x, label = 'Original signal')
-    ax.plot(horizontal_axis_value_r, x_r, label = 'Reconstructed signal')
+def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, compute_psd, plot_config):
+    ax.plot(horizontal_axis_value, x, label = 'Original signal',
+            color = 'grey', linewidth = plot_config['linewidth_original'])
+    ax.plot(horizontal_axis_value_r, x_r, label = 'Reconstructed signal',
+            color = 'black', linewidth = plot_config['linewidth_reconstructed'])
     if compute_psd: ax.set_xlabel("Frequency [Hz]")
     else: ax.set_xlabel("Time [s]")
+    ax.set_xlim([horizontal_axis_value_r[0], horizontal_axis_value_r[-1]])
     ax.legend()
     ax.grid(True)
 
@@ -82,16 +89,23 @@ train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset
 
 for epoch in epoch_list:
 
-    if use_test_set: dataset = test_dataset
-    else: dataset = train_dataset
+    if use_test_set: 
+        dataset = test_dataset
+        string_dataset = 'test'
+    else: 
+        dataset = train_dataset
+        string_dataset = 'train'
+        
+        
     
     # Load model weight
     # path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, 3, epoch)
-    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(80, subj, 2, epoch)
+    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, 2, epoch)
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     
     # Get EEG trial
     x      = dataset[idx_trial][0]
+    idx_ch = dataset.ch_list == channel
     label  = label_dict[int(dataset[idx_trial][1])]
     x_plot, horizontal_axis_value = crop_signal(x.squeeze(), idx_ch, 2, 6, config['t_min'], config['t_max'])
 
@@ -109,24 +123,51 @@ for epoch in epoch_list:
 
     if compute_psd:
         nperseg = 500
-        horizontal_axis_value, x_plot = signal.welch(x.squeeze()[idx_ch], fs = 250, nperseg = nperseg)
-        horizontal_axis_value_r_1, x_r_1_plot = signal.welch(x_r_1.squeeze()[idx_ch], fs = 250, nperseg = nperseg)
-        horizontal_axis_value_r_2, x_r_2_plot = signal.welch(x_r_2.squeeze()[idx_ch], fs = 250, nperseg = nperseg)
-        horizontal_axis_value_r_3, x_r_3_plot = signal.welch(x_r_3.squeeze()[idx_ch], fs = 250, nperseg = nperseg)
+        horizontal_axis_value, x_plot = signal.welch(x[0, idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
+        horizontal_axis_value_r_1, x_r_1_plot = signal.welch(x_r_1[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+        horizontal_axis_value_r_2, x_r_2_plot = signal.welch(x_r_2[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+        horizontal_axis_value_r_3, x_r_3_plot = signal.welch(x_r_3[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+        string_domain = 'freq'
+    else:
+        string_domain = 'time'
 
-    plt.rcParams.update({'font.size': config['fontsize']})
-    fig, ax = plt.subplots(1, 3, figsize = config['figsize'])
-
-    plot_signal(ax[0], horizontal_axis_value, x_plot, horizontal_axis_value_r_1, x_r_1_plot, compute_psd)
-    ax[0].set_title("All latent space")
-
-    plot_signal(ax[1], horizontal_axis_value, x_plot, horizontal_axis_value_r_2, x_r_2_plot, compute_psd)
-    ax[1].set_title("Deep and middle latent space")
-
-    plot_signal(ax[2], horizontal_axis_value, x_plot, horizontal_axis_value_r_3, x_r_3_plot, compute_psd)
-    ax[2].set_title("Only deep latent space")
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
     
-    fig.suptitle("{} - Subj {} - Trial {} - Label: {} - Ch: {} - Loss : {}".format("hvEEGNet_woclf", subj, idx_trial, label, dataset.ch_list[idx_ch], loss))
+    
+    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    plot_signal(ax, horizontal_axis_value, x_plot, horizontal_axis_value_r_1, x_r_1_plot, compute_psd, plot_config)
+    # ax.set_title("All latent space")
     fig.tight_layout()
     fig.show()
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/{}/subj {}/Plot/".format(tot_epoch_training, string_dataset, subj)
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "reconstruction_all_latent_space_{}".format(string_domain)
+        fig.savefig(path_save + ".png", format = 'png')
+        fig.savefig(path_save + ".pdf", format = 'pdf')
+        
+    
+    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    plot_signal(ax, horizontal_axis_value, x_plot, horizontal_axis_value_r_2, x_r_2_plot, compute_psd, plot_config)
+    # ax.set_title("Deep and middle latent space")
+    fig.tight_layout()
+    fig.show()
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/{}/subj {}/Plot/".format(tot_epoch_training, string_dataset, subj)
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "reconstruction_deep_and_middle_latent_space_{}".format(string_domain)
+        fig.savefig(path_save + ".png", format = 'png')
+        fig.savefig(path_save + ".pdf", format = 'pdf')
+
+    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    plot_signal(ax, horizontal_axis_value, x_plot, horizontal_axis_value_r_3, x_r_3_plot, compute_psd, plot_config)
+    # ax.set_title("Only deep latent space")
+    fig.tight_layout()
+    fig.show()
+    if plot_config['save_fig']:
+        path_save = "Saved Results/repetition_hvEEGNet_{}/{}/subj {}/Plot/".format(tot_epoch_training, string_dataset, subj)
+        os.makedirs(path_save, exist_ok = True)
+        path_save += "reconstruction_only_deep_latent_space_{}".format(string_domain)
+        fig.savefig(path_save + ".png", format = 'png')
+        fig.savefig(path_save + ".pdf", format = 'pdf')
 
