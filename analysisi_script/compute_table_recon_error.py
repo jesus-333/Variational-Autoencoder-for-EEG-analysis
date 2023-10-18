@@ -20,7 +20,7 @@ repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 epoch_list = [80]
 
-use_test_set = False
+use_test_set = True
 
 plot_config = dict(
     figsize = (12, 8),
@@ -110,3 +110,13 @@ for i in range(len(subj_list)):
         
         mean_vector[i, j] = recon_loss_average_mean[subj][j]
         std_vector[i, j] = recon_loss_average_std[subj][j]
+        
+#%% Create list only for the last epoch
+
+list_to_copy = []
+epoch = epoch_list[-1]
+for i in range(len(subj_list)):
+    subj = subj_list[i]
+    
+    tmp_string = "{}±{}".format(round(recon_loss_average_mean[subj][-1], 2), round(recon_loss_average_std[subj][-1], 2))
+    list_to_copy.append(tmp_string)

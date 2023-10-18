@@ -15,23 +15,31 @@ import random
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_list = [2, 9]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+subj_list = [2]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+use_test_set = True
 
 recon_loss_results = dict()
+
+if use_test_set:
+    dataset_string = 'test'
+else:
+    dataset_string = 'train'
 
 for subj in subj_list:
     recon_loss_results[subj] = dict()
     for epoch in epoch_list:
         recon_loss_results[subj][epoch] = []
         for repetition in repetition_list:
-            path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+            path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, dataset_string, subj, epoch, repetition)
             recon_loss_results[subj][epoch].append(np.load(path_load))
             
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 n_training_to_average = [3, 5, 8, 14, 19]
+n_training_to_average = [19]
 
 mean_recon_error_per_n_training = dict()
 std_recon_error_per_n_training = dict()
