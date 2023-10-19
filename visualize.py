@@ -289,16 +289,24 @@ with torch.no_grad():
 subj = 2
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 repetition_list = np.arange(18) + 1
+use_test_set = False
+# repetition_list = [1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19]
+
 a = []
+if use_test_set: dataset_string = 'test'
+else : dataset_string = 'train'
 
 for rep in repetition_list:
     tmp_list = []
     for epoch in epoch_list:        
-            path = "Saved Results/repetition_hvEEGNet_80/test/subj {}/recon_error_{}_rep_{}.npy".format(subj, epoch, rep)
+            path = "Saved Results/repetition_hvEEGNet_80/{}/subj {}/recon_error_{}_rep_{}.npy".format(dataset_string, subj, epoch, rep)
             
             tmp_data = np.load(path)
             tmp_list.append(tmp_data.mean())
             
     a.append(tmp_list)
-    
-b = np.asarray(a)
+
+if use_test_set:
+    c = np.asarray(a)
+else:
+    b = np.asarray(a)
