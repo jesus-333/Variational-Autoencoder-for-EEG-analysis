@@ -286,10 +286,10 @@ with torch.no_grad():
 
 #%%
 
-subj = 2
+subj = 6
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-repetition_list = np.arange(18) + 1
-use_test_set = False
+repetition_list = np.arange(19) + 1
+use_test_set = True
 # repetition_list = [1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19]
 
 a = []
@@ -307,6 +307,6 @@ for rep in repetition_list:
     a.append(tmp_list)
 
 if use_test_set:
-    c = np.asarray(a)
+    c_test = np.asarray(a)
 else:
-    b = np.asarray(a)
+    b_train = np.asarray(a)
