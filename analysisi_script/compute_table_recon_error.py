@@ -18,9 +18,9 @@ tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-epoch_list = [80]
+epoch_list = [60]
 
-use_test_set = True
+use_test_set = False
 
 plot_config = dict(
     figsize = (12, 8),
@@ -31,10 +31,10 @@ plot_config = dict(
 )
 
 method_std_computation = 2
-skip_run = True
+skip_run = False
 """
 method_std_computation = 1: std along channels and average of std
-method_std_computation = 2: meand along channels and std of averages
+method_std_computation = 2: mean along channels and std of averages
 method_std_computation = 3: std of all the matrix (trials x channels)
 """
 
@@ -49,8 +49,11 @@ recon_loss_results_std = dict() # Save for each subject/repetition/epoch the std
 recon_loss_average_mean = dict()
 recon_loss_average_std = dict()
 
-if use_test_set: string_dataset = 'test'
-else: string_dataset = 'train'
+if use_test_set: 
+    string_dataset = 'test'
+    skip_run = False
+else: 
+    string_dataset = 'train'
 
 for subj in subj_list:
     recon_loss_results_mean[subj] = dict()
