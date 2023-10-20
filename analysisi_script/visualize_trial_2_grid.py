@@ -26,12 +26,12 @@ from library.analysis import support
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj = 2
+subj = 6
 ch_list = [['FC3', 'Fz', 'FC4'], ['C5', 'Cz', 'C6'], ['P1', 'POz', 'P2']]
 
 use_test_set = True
 
-n_trial_to_plot = 5
+n_trial_to_plot = 3
  
 t_min = 2
 t_max = 4
@@ -39,10 +39,9 @@ t_max = 4
 nperseg = 500
 
 plot_config = dict(
-    figsize = (12, 8),
+    figsize = (26, 16),
     fontsize = 16, 
     capsize = 3,
-    cmap = 'plasma',
     save_fig = True
 )
 
@@ -87,35 +86,35 @@ for n in range(n_trial_to_plot):
         for j in range(3):
             
             ch_to_plot = ch_list[i][j]
-            idx_ch = train_dataset.ch_list == ch_list
+            idx_ch = train_dataset.ch_list == ch_to_plot
             
             # Select channel and time samples
-            x = x.squeeze()[idx_ch, idx_t]
+            x_time = x.squeeze()[idx_ch, idx_t]
             
             # Compute PSD
-            f, x_psd = signal.welch(x.squeeze()[idx_ch, :], fs = 250, nperseg = nperseg)
+            f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
             
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
             # Plot in time domain
 
-            ax_time.plot(t, x, label = "trial {}".format(idx_sorted[n]))
-            ax_time.set_xlabel("Time [s]")
-            ax_time.set_ylabel(r"Amplitude [$\mu$V]")
-            ax_time.set_xlim([t_min, t_max])
-            ax_time.legend()
-            ax_time.grid(True)
-            ax_time.set_title(ch_to_plot)
+            ax_time[i,j].plot(t, x_time, label = "trial {}".format(idx_sorted[n]))
+            ax_time[i,j].set_xlabel("Time [s]")
+            ax_time[i,j].set_ylabel(r"Amplitude [$\mu$V]")
+            ax_time[i,j].set_xlim([t_min, t_max])
+            ax_time[i,j].legend()
+            ax_time[i,j].grid(True)
+            ax_time[i,j].set_title(ch_to_plot)
     
             # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
             # Plot in frequency domain
 
-            ax_freq.plot(f, x_psd, label = "trial {}".format(idx_sorted[i]))
-            ax_freq.set_xlabel("Frequency [Hz]")
-            ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
-            ax_freq.set_xlim([0, 80])
-            ax_freq.legend()
-            ax_freq.grid(True) 
-            ax_freq.set_title(ch_to_plot)
+            ax_freq[i,j].plot(f, x_psd, label = "trial {}".format(idx_sorted[n]))
+            ax_freq[i,j].set_xlabel("Frequency [Hz]")
+            ax_freq[i,j].set_ylabel(r"PSD [$\mu V^2/Hz$]")
+            ax_freq[i,j].set_xlim([0, 80])
+            ax_freq[i,j].legend()
+            ax_freq[i,j].grid(True) 
+            ax_freq[i,j].set_title(ch_to_plot)
 
     fig_freq.tight_layout()
     fig_freq.show()
@@ -123,17 +122,17 @@ for n in range(n_trial_to_plot):
     fig_time.show()
 
 
-    # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-    # # Save plots
-    #
-    # if plot_config['save_fig']:
-    #     path_save = 'Saved Results/only_original_trial/'
-    #     os.makedirs(path_save, exist_ok = True)
-    #     path_save += 'example_trial_for_paper_time'
-    #     fig_time.savefig(path_save + ".png", format = 'png')
-    #     fig_time.savefig(path_save + ".pdf", format = 'pdf')
-    #
-    #     path_save = 'Saved Results/only_original_trial/'
-    #     path_save += 'example_trial_for_paper_freq'
-    #     fig_freq.savefig(path_save + ".png", format = 'png')
-    #     fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+# Save plots
+
+if plot_config['save_fig']:
+    path_save = 'Saved Results/only_original_trial/'
+    os.makedirs(path_save, exist_ok = True)
+    path_save += 'grid_{}_worst_trial_S{}_{}_time'.format(n_trial_to_plot, subj, dataset_string)
+    fig_time.savefig(path_save + ".png", format = 'png')
+    fig_time.savefig(path_save + ".pdf", format = 'pdf')
+
+    path_save = 'Saved Results/only_original_trial/'
+    path_save += 'grid_{}_worst_trial_S{}_{}_freq'.format(n_trial_to_plot, subj, dataset_string)
+    fig_freq.savefig(path_save + ".png", format = 'png')
+    fig_freq.savefig(path_save + ".pdf", format = 'pdf')
