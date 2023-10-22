@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analysisi_script\\compute_outlier_5.py', 'library\\config\\config_plot.py', 'analysisi_script\\load_results_2.py', 'analysisi_script\\download_artifact_1.py', 'analysisi_script\\load_results_4_all_subject_separated.py', 'analysisi_script\\compute_outlier_2_count.py']
+recent_files = ['library\\config\\config_plot.py', 'analysisi_script\\load_results_2.py', 'analysisi_script\\reconstruction_4_visualize_single_trial_different_plot.py', 'visualize.py', 'analysisi_script\\reconstruction_3.py', 'analysisi_script\\compute_table_recon_error.py']
 
 [main]
 version = 0.2.0
