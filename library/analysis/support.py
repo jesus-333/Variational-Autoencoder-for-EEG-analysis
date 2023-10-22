@@ -13,7 +13,7 @@ from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_dataset_and_model(dataset_config, use_hvEEGNet):
+def get_dataset_and_model(dataset_config, model_name):
     C = 22
     if dataset_config['resample_data']: sf = dataset_config['resample_freq']
     else: sf = 250
@@ -21,18 +21,18 @@ def get_dataset_and_model(dataset_config, use_hvEEGNet):
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
 
     # Create model
-    if use_hvEEGNet:
+    if model_name == 'hvEEGNet_shallow':
         # hierarchical vEEGNet
         model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
-        model_string = 'hvEEGNet_shallow'
-    else:
+    elif model_name == 'vEEGNet':
         # classic vEEGNet
         model_config = cm.get_config_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
-        model_string = 'vEEGNet'
+    else:
+        raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
 
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model_config['use_classifier'] = False
-    model = train_generic.get_untrained_model(model_string, model_config)
+    model = train_generic.get_untrained_model(model_name, model_config)
 
     return train_dataset, validation_dataset, test_dataset, model
 
