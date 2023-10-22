@@ -27,7 +27,7 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [5]
+# subj_list = [5]
 ch_list = ['FC3', 'Fz', 'FC4', 'C5', 'Cz', 'C6', 'P1', 'POz', 'P2']
 ch_list_for_grid = [['FC3', 'Fz', 'FC4'], ['C5', 'Cz', 'C6'], ['P1', 'POz', 'P2']]
 
@@ -70,7 +70,7 @@ for subj in subj_list:
     # Create a variable to saved the average spectra for the various channels
 
     _, tmp_spectra = signal.welch(dataset[0][0].squeeze()[0, :], fs = 250, nperseg = nperseg)
-    average_spectra = np.zeros((len(ch_list), len(tmp_spectra)))
+    computed_spectra = np.zeros((len(ch_list), len(dataset), len(tmp_spectra)))
 
     # Compute the average spectra
     for idx_trial in range(len(dataset)): # Cycle through eeg trials
@@ -83,9 +83,10 @@ for subj in subj_list:
             # Compute PSD
             f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
 
-            average_spectra[i, :] += x_psd
-
-    average_spectra /= len(dataset)
+            computed_spectra[i, idx_trial, :] = x_psd
+    
+    average_spectra = computed_spectra.mean(1)
+    std_spectra = computed_spectra.std(1)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
@@ -99,6 +100,7 @@ for subj in subj_list:
             # Plot in frequency domain
 
             ax_freq[i,j].plot(f, average_spectra[k])
+            ax_freq[i,j].fill_between(f, average_spectra[k] + std_spectra[k], average_spectra[k] - std_spectra[k], alpha = 0.25)
             ax_freq[i,j].set_xlabel("Frequency [Hz]")
             ax_freq[i,j].set_ylabel(r"PSD [$\mu V^2/Hz$]")
             ax_freq[i,j].set_xlim([0, 80])

@@ -32,6 +32,8 @@ epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 # epoch_list = [80]
 use_test_set = True
 
+use_hvEEGNet = True # If false use "classical" vEEGNet
+
 batch_size = 96
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -48,7 +50,7 @@ for epoch in epoch_list: valid_repetition_per_epoch[epoch] = 0
 # Get the datasets
 dataset_config = cd.get_moabb_dataset_config([subj])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, use_hvEEGNet)
 
 for repetition in repetition_list:
     print("\tRep: ", repetition)
