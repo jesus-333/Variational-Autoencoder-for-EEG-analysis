@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 5
+subj = 2
 rand_trial_sample = False
 use_test_set = True
 
@@ -32,14 +32,14 @@ compute_spectra_with_entire_signal = True
 
 nperseg = 500
 
-plot_to_create = 20
+plot_to_create = 80
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 1
-n_trial = 47
-channel = 'Cz'
+repetition = 12
+n_trial = 105
+channel = 'Fz'
     
-epoch = 80
+epoch = 30
 
 plot_config = dict(
     figsize_time = (12, 8),

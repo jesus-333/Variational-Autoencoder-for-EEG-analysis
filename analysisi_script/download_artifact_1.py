@@ -19,14 +19,25 @@ import wandb
 # Number of total epoch of training for the model of the specific artifact
 if len(sys.argv) > 1:
     tot_epoch = sys.argv[1]
-    subj_to_download = sys.argv[2]
+    subj_list_to_download = sys.argv[2]
+    download_hvEEGNet = sys.argv[2]
 else:
     tot_epoch = 80
-    subj_to_download = 4
+    subj_list_to_download = [7, 8] # If the list contains only a -1 the script downloads all the artifacts for all the versions
+    download_hvEEGNet = False
 
-version_list = np.arange(140, 278 + 1)
-artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
-root_to_save_model = 'Saved Model/repetition_hvEEGNet_{}/'.format(tot_epoch)
+if download_hvEEGNet:
+    # hvEEGNet
+    version_list = np.arange(140, 278 + 1)
+    artifact_name = 'jesus_333/ICT4AWE_Extension/hvEEGNet_shallow_trained'
+    root_to_save_model = 'Saved Model/repetition_hvEEGNet_{}/'.format(tot_epoch)
+else:
+    # EEGNet + DTW
+    version_list = np.arange(26, 204 + 1)
+    artifact_name = 'jesus_333/ICT4AWE_Extension/vEEGNet_trained'
+    root_to_save_model = 'Saved Model/repetition_vEEGNet_DTW_{}/'.format(tot_epoch)
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 run = wandb.init()
 
@@ -37,18 +48,24 @@ for i in range(len(version_list)):
     print(version)
     try:
         artifact = run.use_artifact('{}:v{}'.format(artifact_name, version), type='model')
-
+        
         # Get the name of the run and split it by the char _
-        # Note that the name of the run are something in the form hvEEGNet_shallow_DTW_subj_x_epoch_y_rep_z
-        # With the split I obtained a list ['hvEEGNet', 'shallow', 'DTW', 'subj', 'x', 'epoch', 'y', 'rep', 'z']
         run_name = artifact.logged_by().name.split("_")
-
-        subj  = int(run_name[4])
-        epoch = int(run_name[6])
-        rep   = int(run_name[8])
+        
+        if download_hvEEGNet:
+            # Note that the name of the run are something in the form hvEEGNet_shallow_DTW_subj_x_epoch_y_rep_z
+            # With the split I obtained a list ['hvEEGNet', 'shallow', 'DTW', 'subj', 'x', 'epoch', 'y', 'rep', 'z']
+            subj  = int(run_name[4])
+            epoch = int(run_name[6])
+            rep   = int(run_name[8])
+        else:
+            # If I download EEGNet I obtain from the split ['vEEGNet', 'DTW', 'subj', 'x', 'epoch', 'y', 'rep', 'z']
+            subj  = int(run_name[3])
+            epoch = int(run_name[5])
+            rep   = int(run_name[7])
 
         # Take only the
-        if epoch == tot_epoch and subj == subj_to_download:
+        if epoch == tot_epoch and (subj in subj_list_to_download or -1 in subj_list_to_download):
             artifact_dir = artifact.download()
             if rep not in repetition_list: repetition_list[rep] = []
 
@@ -62,8 +79,9 @@ for i in range(len(version_list)):
                 new_model_weight_path = "{}/{}".format(path_to_save_model, file.name)
                 os.rename(old_model_weight_path, new_model_weight_path)
 
-    except:
-        print("Version {} has no artifact".format(version))
+    except Exception as e: 
+        print(e)
+        print("Error with version {} has no artifact".format(version))
 
 
 # Remove the log file of the run

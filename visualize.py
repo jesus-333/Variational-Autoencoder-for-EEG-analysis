@@ -283,3 +283,30 @@ with torch.no_grad():
                 if not os.path.isdir('Plot/hvEEGNet_shallow_{}/{}'.format(loss, subj)): os.makedirs('Plot/hvEEGNet_shallow_{}/{}'.format(loss, subj))
                 plt.savefig(path_save)
                 plt.show()
+
+#%%
+
+subj = 6
+epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+repetition_list = np.arange(19) + 1
+use_test_set = True
+# repetition_list = [1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19]
+
+a = []
+if use_test_set: dataset_string = 'test'
+else : dataset_string = 'train'
+
+for rep in repetition_list:
+    tmp_list = []
+    for epoch in epoch_list:        
+            path = "Saved Results/repetition_hvEEGNet_80/{}/subj {}/recon_error_{}_rep_{}.npy".format(dataset_string, subj, epoch, rep)
+            
+            tmp_data = np.load(path)
+            tmp_list.append(tmp_data.mean())
+            
+    a.append(tmp_list)
+
+if use_test_set:
+    c_test = np.asarray(a)
+else:
+    b_train = np.asarray(a)

@@ -34,7 +34,7 @@ plot_config = dict(
     fontsize = 24, 
     capsize = 3,
     use_log_scale = False,
-    save_fig = True
+    save_fig = False
 )
 
 method_std_computation = 2

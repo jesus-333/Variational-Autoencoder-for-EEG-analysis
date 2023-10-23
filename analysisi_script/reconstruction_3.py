@@ -23,18 +23,19 @@ from library.analysis import support
 if len(sys.argv) > 1:
     tot_epoch_training = sys.argv[1]
     subj = sys.argv[2]
+    model_name = sys.argv[3]
 else:
     tot_epoch_training = 80
-    subj = 2
+    subj = 1
+    # model_name = 'hvEEGNet_shallow'
+    model_name = 'vEEGNet'
 
 repetition_list = np.arange(20) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 epoch_list = [80]
 use_test_set = True
-
-batch_size = 72
+batch_size = 96
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,13 +50,14 @@ for epoch in epoch_list: valid_repetition_per_epoch[epoch] = 0
 # Get the datasets
 dataset_config = cd.get_moabb_dataset_config([subj])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, model_name)
 
 for repetition in repetition_list:
     print("\tRep: ", repetition)
-    if subj == 4 and (repetition == 4 or repetition == 6): continue
-    if subj == 5 and repetition == 19: continue
-    if subj == 8 and repetition == 12: continue
+    if use_test_set == False:
+        if subj == 4 and (repetition == 4 or repetition == 6): continue
+        if subj == 5 and repetition == 19: continue
+        if subj == 8 and repetition == 12: continue
     
     for epoch in epoch_list:
         if use_test_set: 
@@ -67,7 +69,10 @@ for repetition in repetition_list:
 
         # Load model weight
         try:
-            path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+            if model_name == 'hvEEGNet_shallow':
+                path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+            elif model_name == 'vEEGNet':
+                path_weight = 'Saved Model/repetition_vEEGNet_DTW_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
             model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
 
             tmp_recon_loss = support.compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
@@ -87,27 +92,34 @@ for repetition in repetition_list:
             recon_loss_results[subj][epoch] += tmp_recon_loss
 
         # Save the results for each repetition
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
+        if model_name == 'hvEEGNet_shallow':
+            path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
+        elif model_name == 'vEEGNet':
+            path_save = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
         os.makedirs(path_save, exist_ok = True)
 
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.pickle'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
-        pickle_out = open(path_save, "wb")
-        pickle.dump(tmp_recon_loss , pickle_out)
-        pickle_out.close()
+        # path_save_pickle = path_save + 'recon_error_{}_rep_{}.pickle'.format(epoch, repetition)
+        # pickle_out = open(path_save_pickle, "wb")
+        # pickle.dump(tmp_recon_loss , pickle_out)
+        # pickle_out.close()
 
-        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
-        np.save(path_save, tmp_recon_loss)
+        path_save_npy = path_save + 'recon_error_{}_rep_{}.npy'.format(epoch, repetition)
+        np.save(path_save_npy, tmp_recon_loss)
 
-#%% Average accross repetition and save the results
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Average accross repetition and save the results
 
 for epoch in epoch_list:
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
-    os.makedirs(path_save, exist_ok = True)
+    
+    if model_name == 'hvEEGNet_shallow':
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
+    elif model_name == 'vEEGNet':
+        path_save = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
 
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_average.pickle'.format(tot_epoch_training, string_dataset, subj, epoch)
-    pickle_out = open(path_save, "wb")
-    pickle.dump(recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch] , pickle_out)
-    pickle_out.close()
+    # path_save_pickle = path_save + 'recon_error_{}_average.pickle'.format(epoch)
+    # pickle_out = open(path_save, "wb")
+    # pickle.dump(recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch] , pickle_out)
+    # pickle_out.close()
 
-    path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, string_dataset, subj, epoch)
+    path_save_npy = path_save + 'recon_error_{}_average.npy'.format(epoch)
     np.save(path_save, recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch])
