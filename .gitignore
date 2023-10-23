@@ -1,7 +1,6 @@
 *.mat
 TMP Test/tmp_data/
 *.pyc
-*.pth
 Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
