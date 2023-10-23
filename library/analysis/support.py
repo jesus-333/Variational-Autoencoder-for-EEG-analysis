@@ -26,7 +26,12 @@ def get_dataset_and_model(dataset_config, model_name):
         model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
     elif model_name == 'vEEGNet':
         # classic vEEGNet
-        model_config = cm.get_config_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
+        model_config = cm.get_config_vEEGNet(C, T, hidden_space = -1, type_decoder = 0, type_encoder = 0)
+        model_config['encoder_config']['p_kernel_1'] = None
+        model_config['encoder_config']['p_kernel_2'] = (1, 10)
+        model_config['use_classifier'] = False
+        model_config['parameters_map_type'] = 0
+        # Hidden space is set to -1 because with parameter map type = 0 with do the parametrization trick through convolution doubling the number of depth map
     else:
         raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
 
