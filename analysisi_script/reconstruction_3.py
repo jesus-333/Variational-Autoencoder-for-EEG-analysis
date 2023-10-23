@@ -29,7 +29,7 @@ else:
 
 repetition_list = np.arange(20) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-# epoch_list = [80]
+epoch_list = [80]
 use_test_set = True
 
 model_name = 'hvEEGNet_shallow'
@@ -100,22 +100,27 @@ for repetition in repetition_list:
         os.makedirs(path_save, exist_ok = True)
 
         # path_save_pickle = path_save + 'recon_error_{}_rep_{}.pickle'.format(epoch, repetition)
-        # pickle_out = open(path_save, "wb")
+        # pickle_out = open(path_save_pickle, "wb")
         # pickle.dump(tmp_recon_loss , pickle_out)
         # pickle_out.close()
 
         path_save_npy = path_save + 'recon_error_{}_rep_{}.npy'.format(epoch, repetition)
-        np.save(path_save, tmp_recon_loss)
+        np.save(path_save_npy, tmp_recon_loss)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Average accross repetition and save the results
 
 for epoch in epoch_list:
+    
+    if model_name == 'hvEEGNet_shallow':
+        path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
+    elif model_name == 'vEEGNet':
+        path_save = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
 
-    # path_save_pickle = 'recon_error_{}_average.pickle'.format(epoch)
+    # path_save_pickle = path_save + 'recon_error_{}_average.pickle'.format(epoch)
     # pickle_out = open(path_save, "wb")
     # pickle.dump(recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch] , pickle_out)
     # pickle_out.close()
 
-    path_save_npy = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_average.npy'.format(epoch)
+    path_save_npy = path_save + 'recon_error_{}_average.npy'.format(epoch)
     np.save(path_save, recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch])
