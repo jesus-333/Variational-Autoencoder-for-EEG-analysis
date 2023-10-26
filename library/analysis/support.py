@@ -126,7 +126,7 @@ def skip_training_run(subj, repetition):
     return False
 
 
-def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 2, skip_run = False):
+def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = 2, skip_run = False, use_test_set = False):
     """
     As the name suggest compute the average and the std of the reconstruction error for each epoch/subject avereged across repetition.
 
@@ -148,6 +148,9 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
     recon_loss_to_plot_mean = dict()
     recon_loss_to_plot_std = dict()
 
+    if use_test_set: dataset_string = 'test'
+    else: dataset_string = 'train'
+
     for subj in subj_list:
         recon_loss_results_mean[subj] = dict()
         recon_loss_results_std[subj] = dict()
@@ -167,7 +170,7 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                     continue
                 
                 try:
-                    path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+                    path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, dataset_string, subj, epoch, repetition)
                     tmp_recon_error = np.load(path_load)
                     
                     # recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)

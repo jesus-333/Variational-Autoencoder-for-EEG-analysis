@@ -30,7 +30,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [7]
+subj_list = [2]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 repetition_list = np.arange(19) + 1
 
@@ -39,17 +39,17 @@ save_outliers = True
 
 method_std_computation = 2
 normalize_recon_error = False
-neighborhood_order_list = [5, 15]
-knn_algorithm = 'auto'
+neighborhood_order_list = [5]
+knn_algorithm = 'brute'
 s_knee = 1
 
 plot_config = dict(
     figsize = (10, 8),
     fontsize = 24, 
     save_fig = True,
-    color_1 = 'darkcyan',
-    color_2 = 'skyblue',
-    color_3 = 'red'
+    color_1 = 'darkcyan', # Average error outliers
+    color_2 = 'black',    # Average error all dataset 
+    color_3 = 'red'       # N. outliers
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,7 +60,7 @@ else:
     norm_string = "NOT_NORMALIZED"
 
 output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, 
-                                                              method_std_computation = method_std_computation, skip_run = True)
+                                                              method_std_computation = method_std_computation, skip_run = True, use_test_set = use_test_set)
 recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
 
 for neighborhood_order in neighborhood_order_list:
@@ -132,14 +132,18 @@ for neighborhood_order in neighborhood_order_list:
                     color = plot_config['color_2'], linestyle = 'dashed', marker = 'X')
     
         ax_error_outliers.set_xlabel("Epoch")
-        ax_error_outliers.set_ylabel("Reconstruction error", color = plot_config['color_1'])
-        # ax_error_outliers.set_title("Average Error Outliers - neighborhood order {}".format(neighborhood_order))
- 
+        ax_error_outliers.set_ylabel("Reconstruction error S{}".format(subj), color = plot_config['color_1'])
+        plt.setp(ax_error_outliers.get_yticklabels(), color = plot_config['color_1'])
+
         line_3 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "n. of outliers", 
                                     color = plot_config['color_3'], linestyle = 'solid', marker = '^')
-        ax_n_outliers.set_ylabel("N. of outliers", color = plot_config['color_3'])
         ax_n_outliers.set_xlabel("Epoch")
-        
+        ax_n_outliers.set_ylabel("N. of outliers", color = plot_config['color_3'])
+        if epoch == 80 and neighborhood_order == 15:
+            if subj in [1, 4, 6, 9]: ax_n_outliers.set_ylim([10, 35])
+            # if subj == 2: ax_n_outliers.set_ylim([10, 80])
+        plt.setp(ax_n_outliers.get_yticklabels(), color = plot_config['color_3'])
+
         # Grid
         ax_n_outliers.grid(True, axis = 'both', linestyle = 'solid')
         ax_error_outliers.grid(True, which = 'both', axis = 'both', linestyle = 'dashed')
