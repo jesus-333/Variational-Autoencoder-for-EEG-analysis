@@ -18,7 +18,9 @@ tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-epoch_list = [60]
+epoch_list = [80]
+# model_name = 'hvEEGNet_shallow'
+model_name = 'vEEGNet'
 
 use_test_set = False
 
@@ -74,7 +76,12 @@ for subj in subj_list:
                 continue
             
             try:
-                path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
+                if model_name == 'hvEEGNet_shallow':
+                    path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
+                elif model_name == 'vEEGNet':
+                    path_load = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
+                else:
+                    raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
                 tmp_recon_error = np.load(path_load)
                 
                 recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
@@ -123,3 +130,6 @@ for i in range(len(subj_list)):
     
     tmp_string = "{}±{}".format(round(recon_loss_average_mean[subj][-1], 2), round(recon_loss_average_std[subj][-1], 2))
     list_to_copy.append(tmp_string)
+    
+list_to_copy.append(np.round(np.mean(mean_vector), 2))
+list_to_copy.append(np.round(np.mean(std_vector), 2))
