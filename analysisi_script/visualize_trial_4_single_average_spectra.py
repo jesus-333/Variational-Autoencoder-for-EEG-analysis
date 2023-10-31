@@ -27,24 +27,23 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [5]
-ch_list = ['FC3', 'Fz', 'FC4', 'C5', 'Cz', 'C6', 'P1', 'POz', 'P2']
-ch_list_for_grid = [['FC3', 'Fz', 'FC4'], ['C5', 'Cz', 'C6'], ['P1', 'POz', 'P2']]
+subj_list = [3, 4, 6, 7, 8 ,9]
+ch = 'Cz'
 
 use_test_set = True
-
-n_trial_to_plot = 3
 
 nperseg = 500
 
 plot_config = dict(
-    figsize = (26, 16),
+    figsize = (10, 8),
     fontsize = 16, 
     capsize = 3,
     save_fig = True
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+plt.rcParams.update({'font.size': plot_config['fontsize']})
+
 for subj in subj_list:
 
     # Get the data
@@ -70,46 +69,46 @@ for subj in subj_list:
     # Create a variable to saved the average spectra for the various channels
 
     _, tmp_spectra = signal.welch(dataset[0][0].squeeze()[0, :], fs = 250, nperseg = nperseg)
-    computed_spectra = np.zeros((len(ch_list), len(dataset), len(tmp_spectra)))
+    computed_spectra = np.zeros((len(dataset), len(tmp_spectra)))
 
     # Compute the average spectra
     for idx_trial in range(len(dataset)): # Cycle through eeg trials
         x, _ = dataset[idx_trial]
 
-        for i in range(len(ch_list)): # Cycle through channels
-            ch = ch_list[i]
-            idx_ch = dataset.ch_list == ch
-            
-            # Compute PSD
-            f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
 
-            computed_spectra[i, idx_trial, :] = x_psd
+        idx_ch = dataset.ch_list == ch
+        
+        # Compute PSD
+        f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
+
+        computed_spectra[idx_trial, :] = x_psd
     
-    average_spectra = computed_spectra.mean(1)
-    std_spectra = computed_spectra.std(1)
+    average_spectra = computed_spectra.mean(0)
+    std_spectra = computed_spectra.std(0)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
-    fig_freq, ax_freq = plt.subplots(3, 3, figsize = plot_config['figsize'])
+    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
-    k = 0
-    for i in range(3):
-        for j in range(3):
             
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-            # Plot in frequency domain
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # Plot in frequency domain
 
-            ax_freq[i,j].plot(f, average_spectra[k])
-            ax_freq[i,j].fill_between(f, average_spectra[k] + std_spectra[k], average_spectra[k] - std_spectra[k], alpha = 0.25)
-            ax_freq[i,j].set_xlabel("Frequency [Hz]")
-            ax_freq[i,j].set_ylabel(r"PSD [$\mu V^2/Hz$]")
-            ax_freq[i,j].set_xlim([0, 80])
-            ax_freq[i,j].legend()
-            ax_freq[i,j].grid(True) 
-            ax_freq[i,j].set_title(ch_list_for_grid[i][j])
-            k += 1
+    ax_freq.plot(f, average_spectra)
+    ax_freq.fill_between(f, average_spectra + std_spectra, average_spectra - std_spectra, alpha = 0.25)
+    ax_freq.set_xlabel("Frequency [Hz]")
+    ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$] (S{})".format(subj))
+    ax_freq.legend()
+    ax_freq.grid(True) 
+    ax_freq.set_xlim([0, 80])
+    
+    if subj == 1:
+        ax_freq.set_ylim([-10, 50])
+    elif subj == 2:
+        ax_freq.set_ylim([-5, 23])
+    elif subj == 5:
+        ax_freq.set_ylim([-10, 40])
 
-    fig_freq.suptitle("Subject {}".format(subj))
     fig_freq.tight_layout()
     fig_freq.show()
 
@@ -122,6 +121,6 @@ for subj in subj_list:
         os.makedirs(path_save, exist_ok = True)
 
         path_save = 'Saved Results/only_original_trial/'
-        path_save += 'grid_{}_average_spectra_S{}_{}'.format(n_trial_to_plot, subj, dataset_string)
+        path_save += 'single_spectra_average_spectra_S{}_{}'.format(subj, dataset_string)
         fig_freq.savefig(path_save + ".png", format = 'png')
         fig_freq.savefig(path_save + ".pdf", format = 'pdf')

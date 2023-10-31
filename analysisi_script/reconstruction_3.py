@@ -26,13 +26,13 @@ if len(sys.argv) > 1:
     model_name = sys.argv[3]
 else:
     tot_epoch_training = 80
-    subj = 1
-    # model_name = 'hvEEGNet_shallow'
-    model_name = 'vEEGNet'
+    subj = 2
+    model_name = 'hvEEGNet_shallow'
+    # model_name = 'vEEGNet'
 
 repetition_list = np.arange(20) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-epoch_list = [80]
+epoch_list = [45]
 use_test_set = True
 batch_size = 96
 device = 'cuda' if torch.cuda.is_available() else 'cpu'

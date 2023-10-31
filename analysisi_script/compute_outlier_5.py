@@ -30,7 +30,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2]
+# subj_list = [2]
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 repetition_list = np.arange(19) + 1
 
@@ -39,7 +39,7 @@ save_outliers = True
 
 method_std_computation = 2
 normalize_recon_error = False
-neighborhood_order_list = [5]
+neighborhood_order_list = [15]
 knn_algorithm = 'brute'
 s_knee = 1
 
