@@ -40,7 +40,7 @@ save_outliers = True
 method_std_computation = 2
 normalize_recon_error = False
 neighborhood_order_list = [15]
-knn_algorithm = 'brute'
+knn_algorithm = 'auto'
 s_knee = 1
 
 plot_config = dict(

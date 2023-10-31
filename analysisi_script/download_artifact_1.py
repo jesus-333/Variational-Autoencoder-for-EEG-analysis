@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
     download_hvEEGNet = sys.argv[2]
 else:
     tot_epoch = 80
-    subj_list_to_download = [7, 8] # If the list contains only a -1 the script downloads all the artifacts for all the versions
+    subj_list_to_download = [8, 9] # If the list contains only a -1 the script downloads all the artifacts for all the versions
     download_hvEEGNet = False
 
 if download_hvEEGNet:
