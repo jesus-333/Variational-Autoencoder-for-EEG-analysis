@@ -24,7 +24,7 @@ from library.config import config_dataset as cd
 tot_epoch_training = 80
 subj = 9
 rand_trial_sample = False
-use_test_set = True
+use_test_set = False
 
 t_min = 2
 t_max = 6
@@ -35,16 +35,16 @@ nperseg = 500
 plot_to_create = 80
 
 # If rand_trial_sample == True they are selected randomly below
-repetition = 8
+repetition = 19
 n_trial = 250
-channel = 'FCz'
+channel = 'C1'
     
-epoch = 30
+epoch = 80
 
 plot_config = dict(
     figsize_time = (12, 8),
     figsize_freq = (12, 8),
-    fontsize = 20, 
+    fontsize = 24   , 
     linewidth_original = 2,
     linewidth_reconstructed = 1,
     save_fig = True,
@@ -52,6 +52,9 @@ plot_config = dict(
 
 batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+xticks_time = None
+xticks_time = [2, 3, 4, 5, 6]
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -61,7 +64,7 @@ if rand_trial_sample is False: plot_to_create = 1
 
 dataset_config = cd.get_moabb_dataset_config([subj])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
 
 # Decide if use the train or the test dataset
 if use_test_set: dataset = test_dataset
@@ -116,8 +119,9 @@ for n_plot in range(plot_to_create):
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
     ax_time.set_xlim([t_min, t_max])
-    ax_time.legend()
+    # ax_time.legend()
     ax_time.grid(True)
+    if xticks_time is not None: ax_time.set_xticks(xticks_time)
     
     fig_time.tight_layout()
     fig_time.show()
@@ -126,12 +130,14 @@ for n_plot in range(plot_to_create):
     # Plot in frequency domain
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
-    ax_freq.plot(f, x_psd, label = 'original signal', color = 'grey', linewidth =plot_config['linewidth_original'])
-    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', color = 'black', linewidth =plot_config['linewidth_reconstructed'])
+    ax_freq.plot(f, x_psd, label = 'original signal', 
+                 color = 'grey', linewidth = plot_config['linewidth_original'])
+    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', 
+                 color = 'black', linewidth = plot_config['linewidth_reconstructed'])
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
     ax_freq.set_xlim([0, 80])
-    ax_freq.legend()
+    # ax_freq.legend()
     ax_freq.grid(True) 
 
     fig_freq.tight_layout()

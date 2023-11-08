@@ -25,16 +25,16 @@ from library.analysis import support
 
 tot_epoch_training = 80
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [4]
+# subj_list = [3]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 
 plot_config = dict(
     figsize = (10, 8),
-    fontsize = 24, 
+    fontsize = 28, 
     capsize = 3,
     use_log_scale = False,
-    save_fig = False
+    save_fig = True
 )
 
 method_std_computation = 2
@@ -50,7 +50,7 @@ for subj in subj_list:
     output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = method_std_computation, skip_run = False)
     recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
     ax.errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
-                label = "All training runs", capsize = plot_config['capsize'],
+                label = "all training runs", capsize = plot_config['capsize'],
                 color = 'dimgray', linewidth = 1.4,
                 marker = "o",
                 )
@@ -59,15 +59,16 @@ for subj in subj_list:
     output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, method_std_computation = method_std_computation, skip_run = True)
     recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
     ax.errorbar(epoch_list, recon_loss_to_plot_mean[subj], yerr = recon_loss_to_plot_std[subj], 
-                label = "Good training runs", capsize = plot_config['capsize'] + 3,
+                label = "successful runs only", capsize = plot_config['capsize'] + 3,
                 color = 'black', linewidth = 2,
-                marker = "s", markerfacecolor = 'none', markeredgecolor = 'black', markersize = 11, markeredgewidth = 2
+                marker = "s", markerfacecolor = 'none', markeredgecolor = 'black', markersize = 17, markeredgewidth = 2
                 )
 
     ax.grid(True)
-    ax.legend()
-    ax.set_ylabel("Reconstruction Error")
-    ax.set_xlabel("Epoch")
+    if subj == 3: ax.legend()
+    ax.set_ylabel("Reconstruction Error S{}".format(subj))
+    ax.set_xlabel("Epoch no.")
+    ax.set_xticks([0, 20, 40, 60, 80])
 
     if plot_config['use_log_scale']: ax.set_yscale('log')
 

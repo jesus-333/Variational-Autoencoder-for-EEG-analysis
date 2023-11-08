@@ -52,6 +52,8 @@ plot_config = dict(
     color_3 = 'red'       # N. outliers
 )
 
+xticks = [0, 20, 40, 60, 80]
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if normalize_recon_error:
@@ -124,23 +126,32 @@ for neighborhood_order in neighborhood_order_list:
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #%% Plot n. outliers vs epoch
-        line_1 = ax_error_outliers.plot(epoch_list, average_error_outliers_list, label = "reconstruction error outliers", 
-                                        color = plot_config['color_1'], linestyle = 'dashed', marker = 'o')
+        line_1 = ax_error_outliers.plot(epoch_list, average_error_outliers_list, label = "outliers average error", 
+                                        color = plot_config['color_1'], linestyle = 'dashed', 
+                                        marker = 'o', markersize = 9
+                                        )
         
         line_2 = ax_error_outliers.errorbar(epoch_list, average_error_subject_list, yerr = std_error_subject_list, 
-                    label = "reconstruction error subject", capsize = 3,
-                    color = plot_config['color_2'], linestyle = 'dashed', marker = 'X')
+                    label = "global average error", capsize = 3,
+                    color = plot_config['color_2'], linestyle = 'dashed', 
+                    marker = "s", markerfacecolor = 'none', markeredgecolor = 'black', markersize = 17, markeredgewidth = 2
+                    )
     
-        ax_error_outliers.set_xlabel("Epoch")
-        ax_error_outliers.set_ylabel("Reconstruction error S{}".format(subj), color = plot_config['color_1'])
+        ax_error_outliers.set_xlabel("Epoch no.")
+        ax_error_outliers.set_xticks(xticks)
+        ax_error_outliers.set_ylabel("Reconstruction error S{}".format(subj), 
+                                     color = plot_config['color_1'], fontweight='bold'
+                                     )
         plt.setp(ax_error_outliers.get_yticklabels(), color = plot_config['color_1'])
 
-        line_3 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "n. of outliers", 
-                                    color = plot_config['color_3'], linestyle = 'solid', marker = '^')
-        ax_n_outliers.set_xlabel("Epoch")
-        ax_n_outliers.set_ylabel("N. of outliers", color = plot_config['color_3'])
+        line_3 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "no. of outliers", 
+                                    color = plot_config['color_3'], linestyle = 'solid', 
+                                    marker = '^', markersize = 13)
+        ax_n_outliers.set_xlabel("Epoch no.")
+        ax_n_outliers.set_xticks(xticks)
+        ax_n_outliers.set_ylabel("No. of outliers", color = plot_config['color_3'])
         if epoch == 80 and neighborhood_order == 15:
-            if subj in [1, 4, 6, 9]: ax_n_outliers.set_ylim([10, 35])
+            if subj in [1, 4, 6, 9]: ax_n_outliers.set_ylim([9, 35])
             # if subj == 2: ax_n_outliers.set_ylim([10, 80])
         plt.setp(ax_n_outliers.get_yticklabels(), color = plot_config['color_3'])
 

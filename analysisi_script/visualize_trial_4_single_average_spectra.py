@@ -27,17 +27,19 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [3, 4, 6, 7, 8 ,9]
+subj_list = [1, 2, 5]
 ch = 'Cz'
 
-use_test_set = True
+use_test_set = False
 
 nperseg = 500
 
 plot_config = dict(
     figsize = (10, 8),
-    fontsize = 16, 
+    fontsize = 24, 
     capsize = 3,
+    alpha = 0.25,
+    color = 'black',
     save_fig = True
 )
 
@@ -94,11 +96,15 @@ for subj in subj_list:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in frequency domain
 
-    ax_freq.plot(f, average_spectra)
-    ax_freq.fill_between(f, average_spectra + std_spectra, average_spectra - std_spectra, alpha = 0.25)
+    ax_freq.plot(f, average_spectra,
+                 color = plot_config['color'],
+                 )
+    ax_freq.fill_between(f, average_spectra + std_spectra, average_spectra - std_spectra, 
+                         color = plot_config['color'], alpha = plot_config['alpha']
+                         )
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$] (S{})".format(subj))
-    ax_freq.legend()
+    # ax_freq.legend()
     ax_freq.grid(True) 
     ax_freq.set_xlim([0, 80])
     
@@ -108,6 +114,8 @@ for subj in subj_list:
         ax_freq.set_ylim([-5, 23])
     elif subj == 5:
         ax_freq.set_ylim([-10, 40])
+        
+    ax_freq.set_ylim(bottom = -1)
 
     fig_freq.tight_layout()
     fig_freq.show()
