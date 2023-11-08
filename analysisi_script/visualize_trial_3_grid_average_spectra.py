@@ -31,7 +31,7 @@ subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ch_list = ['FC3', 'Fz', 'FC4', 'C5', 'Cz', 'C6', 'P1', 'POz', 'P2']
 ch_list_for_grid = [['FC3', 'Fz', 'FC4'], ['C5', 'Cz', 'C6'], ['P1', 'POz', 'P2']]
 
-use_test_set = True
+use_test_set = False
 
 n_trial_to_plot = 3
 
@@ -62,9 +62,9 @@ for subj in subj_list:
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Select randomly 4 trial, 1 for each class and plot them (both in time and frequency domain)
 
-    path = "Saved Results/repetition_hvEEGNet_80/{}/subj {}/recon_error_{}_average.npy".format(dataset_string, subj, 80)
-    recon_error = np.load(path)
-    average_recon_error_per_trial = recon_error.mean(1)
+    # path = "Saved Results/repetition_hvEEGNet_80/{}/subj {}/recon_error_{}_average.npy".format(dataset_string, subj, 80)
+    # recon_error = np.load(path)
+    # average_recon_error_per_trial = recon_error.mean(1)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Create a variable to saved the average spectra for the various channels
