@@ -15,11 +15,11 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
+subj_to_use = 2
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2]
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-epoch_list = [45]
+epoch_list = [80]
 model_name = 'hvEEGNet_shallow'
 # model_name = 'vEEGNet'
 

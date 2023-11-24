@@ -26,7 +26,7 @@ if len(sys.argv) > 1:
     model_name = sys.argv[3]
 else:
     tot_epoch_training = 80
-    subj_to_use = 9
+    subj_to_use = 8
     model_name = 'hvEEGNet_shallow'
     # model_name = 'vEEGNet'
 
