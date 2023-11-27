@@ -77,13 +77,26 @@ class ChWi_net_v1(nn.Module) :
         """
         First version of the channel wise network. The model is composed of multiple chwi_module
         """
-
         super().__init__()
-        pass
+        
+        # Variable to save the list of modules
+        self.module_list = nn.Sequential()
+
+        # Network creation (iterate through the modules config)
+        for module_config in config['module_config_list'] :
+            self.module_list.append(ChWi_module(module_config))
 
     def forward(self, x): 
-        return x
+        """
+        x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
+        N.B. There must must be no EEG channel dimension
+        """
+        return self.module_list(x)
     
-    def check_input():
+    def check_input(self, x):
+        # TODO
+        pass
+
+    def reconstruct_multich_EEG(self, x):
         pass
 
