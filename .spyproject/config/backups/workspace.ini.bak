@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['library\\config\\config_plot.py', 'analysisi_script\\load_results_2.py', 'analysisi_script\\reconstruction_3.py', '..\\Seletech-Jesus-Local-Experiments\\library\\manage_data_other_sensors.py', 'analysisi_script\\reconstruction_7_cross_subject_error.py']
+recent_files = ['analysisi_script\\reconstruction_3.py', '..\\Seletech-Jesus-Local-Experiments\\library\\manage_data_other_sensors.py', 'analysisi_script\\reconstruction_7_cross_subject_error.py', 'analysisi_script\\compute_table_recon_error_TMP.py']
 
 [main]
 version = 0.2.0

@@ -15,7 +15,7 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_to_use = 3
+subj_to_use = 1
 subj_list = np.delete(np.arange(9) + 1, np.where(np.arange(9) + 1 == subj_to_use))
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]

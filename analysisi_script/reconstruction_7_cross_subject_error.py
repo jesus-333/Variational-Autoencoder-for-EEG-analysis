@@ -26,7 +26,7 @@ if len(sys.argv) > 1:
     model_name = sys.argv[3]
 else:
     tot_epoch_training = 80
-    subj_to_use = 8
+    subj_to_use = 5
     model_name = 'hvEEGNet_shallow'
     # model_name = 'vEEGNet'
 
@@ -34,6 +34,7 @@ subject_to_test_list = np.delete(np.arange(9) + 1, np.where(np.arange(9) + 1 == 
 repetition_list = np.arange(20) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 epoch_list = [10, 20, 40, 80]
+epoch_list = [40, 80]
 use_test_set = False
 batch_size = 96
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
