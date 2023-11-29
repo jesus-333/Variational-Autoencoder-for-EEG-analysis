@@ -174,5 +174,3 @@ class vEEGNet(nn.Module):
 
         return label
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-
