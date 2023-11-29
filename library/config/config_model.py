@@ -135,3 +135,33 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
 
     return config
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_ChWiAutoencoder() -> dict:
+
+    config = dict(
+        encoder_config = None,
+        decoder_config = None,
+        sample_layer_config = None
+    )
+
+    return config
+
+def get_config_ChWi_encoder() -> dict:
+    config = dict()
+
+    return config
+
+def get_config_ChWi_module_encoder() -> dict : 
+    config = dict(
+        in_channels = 1,
+        out_channels = 1,
+        c_kernel = 1,
+        padding = 'same', 
+        group = None,
+        use_batch_normalization = True,
+        activation = 'elu',
+        p_kernel = 1
+    )
+
+    return config

@@ -190,6 +190,7 @@ class ChWi_autoencoder(nn.Module) :
 
     def forward(self, x) :
         """
+        Encode and reconstruct a single EEG channel.
         x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
         N.B. There must must be no EEG channel dimension
         """
@@ -202,3 +203,4 @@ class ChWi_autoencoder(nn.Module) :
 
         x_r = self.decoder(z)
 
+        return x_r, z, mu, sigma
