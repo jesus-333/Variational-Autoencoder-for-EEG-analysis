@@ -21,6 +21,7 @@ This readme contain the complete list of all the files and functions in the repo
     * `get_activation`: (Function) Function that returns a list of activation function in PyTorch
     * `get_dropout`: (Function) Function that return a dropout or a 2d dropout
     * `count_trainable_parameters`: count the number of trainable parameter in a PyTorch module
+
 <!-- Reference Link -->
 [EEGNet_Journal]: https://iopscience.iop.org/article/10.1088/1741-2552/aace8c
 [EEGNet_Arxiv]: https://arxiv.org/abs/1611.08024
