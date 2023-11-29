@@ -97,6 +97,27 @@ class ChWi_net_v1(nn.Module) :
         # TODO
         pass
 
-    def reconstruct_multich_EEG(self, x):
-        pass
+    def reconstruct_multichannel_EEG(self, x, flatten : bool = False):
+        """
+        Compute, channel wise, the encoding through the ChWi modules.
+        x : input x of shape "B x 1 x C x T" with B = batch size, 1 = depth dimension, C = Number of EEG channels, T = Time samples
+        """
+        
+        # Compute the encode of a single channel to obtain the depth and temporal dimension
+        tmp_encode = self.forward(x[:, :, 0, :])
+        
+        # Create the variable used to save the multi channels encoding
+        x_encode = torch.zeros(x.size(0), tmp_encode.size(1), x.size(2), tmp_encode.size(2))
+
+        for ch_idx in range(x.size(2)) :
+            # Get data from EEG channel
+            x_ch = x[:, :, ch_idx, :]
+            
+            # Encode the EEG channel
+            x_encode[:, :, ch_idx, :] = self.forward(x_ch)
+
+        if flatten :
+            return x_encode.flatten(1)
+        else :
+            return x_encode
 
