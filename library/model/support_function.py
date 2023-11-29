@@ -106,19 +106,20 @@ class map_to_distribution_parameters_with_vector(nn.Module):
 
 class sample_layer(nn.Module):
     def __init__(self, input_shape, config : dict, hidden_space_dimension : int = -1):
-        super().__init__()
         """
         PyTorch module used to implement the reparametrization trick and the sampling from the laten space in the hierarchical VAE (hVAE)
         input_shape = shape of the input tensor
-        config = dictionary with some parameters
-        hidden_space_dimension = int with the dimension of the laten/hidden space. Used only if we have a vector as hidden variable
+        config = dictionary with parameters for the sampling layer. Check the README for more information.
+        hidden_space_dimension = int with the dimension of the laten/hidden space. Used only if we have a vector latent space
         """
+        super().__init__()
 
         self.parameters_map_type = config['parameters_map_type']
         self.input_shape = list(input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
-            self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],
+            depth = config['input_depth'] if 'input_depth' in config else input_shape[1]
+            self.parameters_map = map_to_distribution_parameters_with_convolution(depth = depth,
                                                                                use_activation = config['use_activation_in_sampling'], 
                                                                                activation = config['sampling_activation'])
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
