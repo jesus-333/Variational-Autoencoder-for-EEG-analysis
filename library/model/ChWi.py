@@ -9,11 +9,12 @@ Prototype of a (Ch)annel (Wi)se network
 import torch
 from torch import nn
 
-from . import support_function
+from . import support_function as sf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Encoder
 
-class ChWi_module(nn.Module) :
+class ChWi_module_encoder(nn.Module) :
     def __init__(self, module_config : dict) :
         """
         Module for the Channel Wise network
@@ -32,7 +33,7 @@ class ChWi_module(nn.Module) :
         batch_normalizer = nn.BatchNorm1d(module_config['out_channels']) if module_config['use_batch_normalization'] else nn.Identity()
 
         # Create activation
-        activation = support_function.get_activation(module_config['activation']) if module_config['activation'] is not None else nn.Identity()
+        activation = sf.get_activation(module_config['activation']) if module_config['activation'] is not None else nn.Identity()
 
         # Create pooling
         pooling = nn.AvgPool1d(module_config['p_kernel']) if module_config['p_kernel'] is not None else nn.Identity()
@@ -69,11 +70,9 @@ class ChWi_module(nn.Module) :
         if 'p_kernel' not in module_config :
             module_config['p_kernel'] = None
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+class ChWi_encoder_v1(nn.Module) : 
 
-class ChWi_net_v1(nn.Module) : 
-
-    def __init__(self, config : dict):
+    def __init__(self, config_list : list):
         """
         First version of the channel wise network. The model is composed of multiple chwi_module
         """
@@ -83,8 +82,8 @@ class ChWi_net_v1(nn.Module) :
         self.module_list = nn.Sequential()
 
         # Network creation (iterate through the modules config)
-        for module_config in config['module_config_list'] :
-            self.module_list.append(ChWi_module(module_config))
+        for module_config in config_list:
+            self.module_list.append(ChWi_module_encoder(module_config))
 
     def forward(self, x): 
         """
@@ -120,4 +119,86 @@ class ChWi_net_v1(nn.Module) :
             return x_encode.flatten(1)
         else :
             return x_encode
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Decoder
+
+class ChWi_module_decoder(nn.Module) :
+    def __init__(self, module_config : dict) :
+        """
+        Module for the Channel Wise network
+        """
+        super().__init__()
+
+        # Create the convolutional layer
+        conv_layer = nn.ConvTranspose1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
+                               kernel_size = module_config['c_kernel'], padding = module_config['padding'], group = module_config['group']
+                               )
+        
+        # Batch normalization
+        batch_normalizer = nn.BatchNorm1d(module_config['out_channels']) if module_config['use_batch_normalization'] else nn.Identity()
+
+        # Create activation
+        activation = sf.get_activation(module_config['activation']) if module_config['activation'] is not None else nn.Identity()
+
+        # Create pooling
+        upsample = nn.Upsample(scale_factor = module_config['scale_factor']) if module_config['scale_factor'] is not None else nn.Identity()
+
+        self.chwi_module = nn.Sequential(
+            upsample,
+            conv_layer,
+            batch_normalizer,
+            activation,
+        )
+
+    def forward(self, x) :
+        return self.chwi_module(x)
+
+class ChWi_decoder_v1(nn.Module) : 
+
+    def __init__(self, config_list : list):
+        super().__init__()
+        
+        # Variable to save the list of modules
+        self.module_list = nn.Sequential()
+
+        # Network creation (iterate through the modules config)
+        for module_config in config_list :
+            self.module_list.append(ChWi_module_decoder(module_config))
+
+    def forward(self, x): 
+        """
+        x : encode of a EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = length of temporal axis after encoding 
+        N.B. There must must be no EEG channel dimension
+        """
+        return self.module_list(x)
+    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+class ChWi_autoencoder(nn.Module) : 
+
+    def __init__(self, config : dict) :
+        super().__init__()
+        
+        # Create encoder and decoder
+        self.encoder = ChWi_encoder_v1(config['encoder_config'])
+        self.decoder = ChWi_decoder_v1(config['decoder_config'])
+
+        # Hidden space map
+        config['sample_layer_config']['input_depth'] = config['encoder_config'][-1]['out_channels']
+        self.sample_layer = sf.sample_layer(-1, config['sample_layer_config'])
+
+    def forward(self, x) :
+        """
+        x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
+        N.B. There must must be no EEG channel dimension
+        """
+        
+        # Encode the data
+        x = self.encoder(x)
+        
+        # Sample from the hidden space
+        z, mu, sigma = self.sample_layer(x)
+
+        x_r = self.decoder(z)
 
