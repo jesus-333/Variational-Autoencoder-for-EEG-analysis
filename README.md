@@ -5,6 +5,7 @@ This repository contains the code used for different pubblications. Different br
 ## List of branches
 - main : default brach
 - [code_ICT4AWE_2023](https://github.com/jesus-333/Variational-Autoencoder-for-EEG-analysis/tree/code_ICT4AWE_2023) : Code used for [[1]][vEEGNet_ver1] and [[2]][vEEGNet_ver2_preprint]. Contains the code for vEEGNet-ver1 and vEEGNet-ver2
+- [Before_rewriting](https://github.com/jesus-333/Variational-Autoencoder-for-EEG-analysis/tree/Before_rewriting) : The branch contains the codes before a complete rewriting and reorganization of the repository
 - [backup_after_dwt_implementation](https://github.com/jesus-333/Variational-Autoencoder-for-EEG-analysis/tree/backup_after_dwt_implementation) : As the name suggests, it contains the codes after a backup of the repository after the implementation of DTW loss function.
 - [hvEEGNet_paper](https://github.com/jesus-333/Variational-Autoencoder-for-EEG-analysis/tree/hvEEGNet_paper) : Code used for [[3]][hvEEGNet_preprint]. Contains the code for vEEGNet-ver3 and hvEEGNet
 - [jesus-experiment](https://github.com/jesus-333/Variational-Autoencoder-for-EEG-analysis/tree/jesus-experiment) : Branch for personal experiments
