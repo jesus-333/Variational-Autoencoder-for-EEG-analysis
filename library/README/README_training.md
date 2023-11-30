@@ -118,7 +118,7 @@ conda install -c conda-forge wandb
 
 ⚠️ Important disclaimer ⚠️
 
-Most of the parameters remain valid for all models. The parameter differences between the various models usually reside in some specific hyperparameter (e.g. the hyperparameters that multiply the loss of the vae)
+Most of the training parameters remain valid for all models. The training parameters differences between the various models usually are some specific hyperparameter (e.g. the hyperparameters that multiply the loss of the vae)
 
 ## MBEEGNet (Classifier)
 
