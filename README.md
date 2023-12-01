@@ -32,8 +32,8 @@ The complete list of subpackages is :
   <summary>Click to expand!</summary>
  
   - [[1]][vEEGNet_ver1] Zancanaro, A., Zoppis, I., Manzoni, S., & Cisotto, G. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG. In Proceedings of the 9th International Conference on Information and Communication Technologies for Ageing Well and e-Health, ICT4AWE 2023, Prague, Czech Republic, April 22-24, 2023 (Vol. 2023, pp. 245-252). Science and Technology Publications.
-  - [[2]][vEEGNet_ver2_preprint] Zancanaro, A., Cisotto, G. Zoppis, I., & Manzoni, S. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG., vEEGNet: learning latent representations to reconstruct EEG raw data via variational autoencoders (under review)
-  - [[3]][hvEEGNet_preprint]  Cisotto, G. Zoppis, Zancanaro, A., I., & Manzoni, S. (2023). hvEEGNet: exploiting hierarchical VAEs on EEG data for neuroscience applications (under review)
+  - [[2]][vEEGNet_ver2_preprint] Zancanaro, A., Cisotto, G. Zoppis, I., & Manzoni, S. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG., vEEGNet: learning latent representations to reconstruct EEG raw data via variational autoencoders (under review) ([preprint][vEEGNet_ver2_preprint] on ResearchGate)
+  - [[3]][hvEEGNet_preprint]  Cisotto, G., Zancanaro, A., Zoppis, I., & Manzoni, S. (2023). hvEEGNet: exploiting hierarchical VAEs on EEG data for neuroscience applications (under review) ([preprint][hvEEGNet_preprint] on ResearchGate)
   
 </details>
 
