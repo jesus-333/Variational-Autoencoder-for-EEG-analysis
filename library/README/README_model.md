@@ -13,6 +13,13 @@ model = model_name.model_name(config)
 Example of complete config dictionary are presented in the file `config_model.py`.
 Note that when you create a specific model you need to insert in the dictionary all the parameters required inside the constructor. 
 
+Index of the README.
+* [EEGNet](#eegnet)
+* [MBEEGNet](#mbeegnet)
+* [MBEEGNet](#mbeegnet)
+* [vEEGNet](#veegnet)
+* [hierarchical-vEEGNet (hvEEGNet)](#hierarchical-vEEGNet (hvEEGNet))
+
 # EEGNet
 This repository contains our own implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet_Journal]).
 
