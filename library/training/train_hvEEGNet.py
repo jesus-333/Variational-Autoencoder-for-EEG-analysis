@@ -143,9 +143,3 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
     return validation_loss
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
