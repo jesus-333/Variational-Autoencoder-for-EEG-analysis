@@ -18,11 +18,10 @@ Index of the README.
 * [MBEEGNet](#mbeegnet)
 * [MBEEGNet](#mbeegnet)
 * [vEEGNet](#veegnet)
-* [hierarchical-vEEGNet (hvEEGNet)](#hierarchical-vEEGNet (hvEEGNet))
+* [hierarchical-vEEGNet (hvEEGNet)](#hierarchical-veegnet)
 
 # EEGNet
 This repository contains our own implementation of EEGNet ([ArXiv][EEGNet_Arxiv], [Journal][EEGNet_Journal]).
-
 
 Example of config file:
 ```python
@@ -97,8 +96,8 @@ Example of config file:
     )
 ```
 
-# hierarchical-vEEGNet (hvEEGNet)
-This repository contains the implementation of hierarchical-vEEGNet ([preprint][hvEEGNet_preprint]). The model is a vEEGNet with a hierarchical structure (inspired by [NVAE][NVAE])
+# hierarchical-vEEGNet
+This repository contains the implementation of hierarchical-vEEGNet (hvEEGNet) ([preprint][hvEEGNet_preprint]). The model is a vEEGNet with a hierarchical structure (inspired by [NVAE][NVAE])
 
 Example of config file:
 ```python
@@ -120,6 +119,9 @@ Example of config file:
 ```
 
 ## Note about hvEEGNet creation
+The hierarchical VAE is implemented as self-contained class in the file [hierarchical_VAE.py](../model/hierarchical_VAE.py). This class must receive in input two lists of modules : one for the encoder and one for the decoder. A module is considered as a level of hierarchy, i.e. the output of each module correspond to a latent space and it is the input of the next module. To create hvEEGNet we use the file [hvEEGNet.py](../model/hvEEGNet.py) that basically create a standard vEEGNet, divide it in the 3 modules (temporal convolution, spatial convolution and separable convolution) and use them as input for the the hierarchical_VAE class.
+
+Technically the hierarchical_VAE class allow you to implement a high variety of models, not just hvEEGNet.
 
 
 
