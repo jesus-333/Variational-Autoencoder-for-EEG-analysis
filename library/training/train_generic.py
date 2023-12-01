@@ -186,6 +186,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
                 wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
             
             wandb.log(log_dict)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         
         # End training cycle
     

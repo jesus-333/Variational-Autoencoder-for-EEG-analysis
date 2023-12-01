@@ -72,17 +72,15 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
     recon_loss = recon_loss / len(train_loader.sampler)
-    kl_loss = kl_loss / len(train_loader.sampler)
+    kl_loss    = kl_loss / len(train_loader.sampler)
     if train_config['use_classifier']: clf_loss /= len(train_loader.sampler)
 
     if log_dict is not None:
-        log_dict['train_loss'] = float(train_loss)
+        log_dict['train_loss']       = float(train_loss)
         log_dict['train_loss_recon'] = float(recon_loss)
-        log_dict['train_kl_loss'] = float(kl_loss)
-        # for i in range(len(train_loss[3])):
-        #     kl_loss = train_loss[3][i]
-        #     log_dict['train_loss_recon_{}'.format(i+1)] = kl_loss
-        if train_config['use_classifier']:  log_dict['train_loss_clf'] = float(clf_loss)
+        log_dict['train_kl_loss']    = float(kl_loss)
+
+        if train_config['use_classifier']: log_dict['train_loss_clf'] = float(clf_loss)
         print("TRAIN LOSS")
         pprint.pprint(log_dict)
     

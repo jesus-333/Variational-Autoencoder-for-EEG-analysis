@@ -53,6 +53,7 @@ def train_wandb(model_name, dataset_config, train_config, model_config):
         run.log_artifact(model_artifact)
 
         return model
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def main_EEGNet_classifier(): 
@@ -136,7 +137,3 @@ def main_hvEEGNet_shallow(dataset_config, train_config, model_config):
     model = train_wandb('hvEEGNet_shallow', dataset_config, train_config, model_config)
     
     return model
-
-if __name__ == '__main__':
-    # model = main_EEGNet_classifier()
-    main_hvEEGNet_shallow()
