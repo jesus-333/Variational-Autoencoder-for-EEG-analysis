@@ -91,5 +91,5 @@ for subj in subj_list:
         os.makedirs(path_save, exist_ok = True)
         
         # Save fig
-        path_save += 'recon_error_S{}'.format(subj)
+        path_save += 'image_recon_error_S{}'.format(subj)
         fig.savefig(path_save + ".png", format = 'png')

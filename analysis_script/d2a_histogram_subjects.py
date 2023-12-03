@@ -1,0 +1,70 @@
+"""
+From the table of the reconstruction error create an histogram.
+The table are the one obtained with the scripts reconstruction_3.py
+"""
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Imports
+
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Settings
+
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+subj_list = [2]
+
+plot_config = dict(
+    figsize = (12, 8),
+    bins = 1000,
+    color_train = 'green',
+    color_test = 'red',
+    save_fig = True,
+)
+
+tot_epoch_training = 80
+epoch_to_plot = 80
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Get the data and create the image
+
+
+for subj in subj_list:
+    # Create the array to save the data
+
+    # Load train reconstruction error (session 1)
+    path_load_train = 'Saved Results/repetition_hvEEGNet_{}/train/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch_to_plot)
+    recon_error_train = np.load(path_load_train).flatten()
+
+    # Load test reconstruction error (session 2)
+    path_load_test = 'Saved Results/repetition_hvEEGNet_{}/test/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch_to_plot)
+    recon_error_test = np.load(path_load_test).flatten()
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # Create and show the image
+
+    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+
+    ax.hist(recon_error_train,  bins = plot_config['bins'],
+            color = plot_config['color_train'], label = 'Session 1 (Train)')
+    ax.hist(recon_error_test,  bins = plot_config['bins'],
+            color = plot_config['color_test'], label = 'Session 2 (Test)')
+
+    ax.legend()
+    ax.set_title('Subject {}'.format(subj))
+    ax.set_xlabel('Reconstruction error')
+
+    fig.tight_layout()
+    fig.show()
+
+
+    if plot_config['save_fig']:
+        # Create pat
+        path_save = 'Saved Results/d2a_analysis/'
+        os.makedirs(path_save, exist_ok = True)
+        
+        # Save fig
+        path_save += 'hist_recon_error_S{}'.format(subj)
+        fig.savefig(path_save + ".png", format = 'png')
