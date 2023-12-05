@@ -22,7 +22,7 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_to_use = 2
+subj_to_use = 8
 subject_to_test_list = np.delete(np.arange(9) + 1, np.where(np.arange(9) + 1 == subj_to_use))
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
@@ -30,7 +30,7 @@ epoch_list = [10, 15, 20, 40]
 model_name = 'hvEEGNet_shallow'
 # model_name = 'vEEGNet'
 
-use_test_set = False
+use_test_set = True
 
 plot_config = dict(
     figsize = (12, 8),

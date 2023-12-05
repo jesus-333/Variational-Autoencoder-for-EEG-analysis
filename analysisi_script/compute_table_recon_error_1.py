@@ -28,7 +28,7 @@ epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
 model_name = 'hvEEGNet_shallow'
 # model_name = 'vEEGNet'
 
-use_test_set = False
+use_test_set = True
 
 plot_config = dict(
     figsize = (12, 8),
