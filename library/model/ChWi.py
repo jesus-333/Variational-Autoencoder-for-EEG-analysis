@@ -204,3 +204,27 @@ class ChWi_autoencoder(nn.Module) :
         x_r = self.decoder(z)
 
         return x_r, z, mu, sigma
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+class domain_predictor(nn.Module) : 
+
+    def __init__(self, config : dict) :
+        super().__init__()
+
+        activation = sf.get_activation(config['activation']) if config['activation'] is not None else nn.Identity()
+        input_layer  = nn.Linear(config['input_length'], config['input_length'] / 2)
+        hidden_layer = nn.Linear(config['input_length'] / 2, config['input_length'] / 4)
+        output_layer = nn.Linear(config['input_length'] / 4, config['n_domain'])
+
+        self.predictor = nn.Sequential(
+            input_layer,
+            activation,
+            hidden_layer,
+            activation,
+            output_layer,
+            nn.Softmax() # TODO add dim
+        )
+
+    def forward(self, x) :
+        return self.predictor(x)
