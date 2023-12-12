@@ -14,13 +14,15 @@ import os
 # Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2]
+# subj_list = [2]
 
 plot_config = dict(
     figsize = (12, 8),
     bins = 1000,
     color_train = 'green',
     color_test = 'red',
+    alpha = 0.6,
+    use_log_scale = True, # If True use log scale for x axis
     save_fig = True,
 )
 
@@ -47,14 +49,17 @@ for subj in subj_list:
 
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
-    ax.hist(recon_error_train,  bins = plot_config['bins'],
-            color = plot_config['color_train'], label = 'Session 1 (Train)')
     ax.hist(recon_error_test,  bins = plot_config['bins'],
-            color = plot_config['color_test'], label = 'Session 2 (Test)')
+            color = plot_config['color_test'], label = 'Session 2 (Test)',
+            alpha = plot_config['alpha'])
+    ax.hist(recon_error_train,  bins = plot_config['bins'],
+            color = plot_config['color_train'], label = 'Session 1 (Train)',
+            alpha = plot_config['alpha'])
 
     ax.legend()
     ax.set_title('Subject {}'.format(subj))
     ax.set_xlabel('Reconstruction error')
+    if plot_config['use_log_scale']: ax.set_xscale('log')
 
     fig.tight_layout()
     fig.show()
@@ -62,9 +67,10 @@ for subj in subj_list:
 
     if plot_config['save_fig']:
         # Create pat
-        path_save = 'Saved Results/d2a_analysis/'
+        path_save = 'Saved Results/d2a_analysis/hist_subj/'
         os.makedirs(path_save, exist_ok = True)
         
         # Save fig
-        path_save += 'hist_recon_error_S{}'.format(subj)
+        path_save += 'hist_recon_error_S{}_bins_{}'.format(subj, plot_config['bins'])
+        if plot_config['use_log_scale']: path_save += '_LOGSCALE'
         fig.savefig(path_save + ".png", format = 'png')
