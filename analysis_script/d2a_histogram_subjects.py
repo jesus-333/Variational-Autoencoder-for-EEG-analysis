@@ -10,11 +10,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [2]
+subj_list = [2]
 
 plot_config = dict(
     figsize = (12, 8),
@@ -29,7 +29,7 @@ plot_config = dict(
 tot_epoch_training = 80
 epoch_to_plot = 80
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get the data and create the image
 
 
