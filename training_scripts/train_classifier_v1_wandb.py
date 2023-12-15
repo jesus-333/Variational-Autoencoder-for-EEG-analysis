@@ -30,4 +30,4 @@ train_config = ct.get_config_classifier()
 train_config['wandb_training'] = True
 train_config['model_artifact_name'] = 'classifier'
 
-model = wt.train_wandb('classifier_v1', dataset_config, train_config, model_config)
+# model = wt.train_wandb('classifier_v1', dataset_config, train_config, model_config)
