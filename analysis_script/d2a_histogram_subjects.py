@@ -1,5 +1,5 @@
 """
-From the table of the reconstruction error create an histogram.
+From the table of the reconstruction error create an histogram for each subject.
 The table are the one obtained with the scripts reconstruction_3.py
 """
 
@@ -18,7 +18,7 @@ subj_list = [2]
 
 plot_config = dict(
     figsize = (12, 8),
-    bins = 1000,
+    bins = 5,
     color_train = 'green',
     color_test = 'red',
     alpha = 0.6,
@@ -29,8 +29,8 @@ plot_config = dict(
 tot_epoch_training = 80
 epoch_to_plot = 80
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Get the data and create the image
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Get the data and create the histogram
 
 
 for subj in subj_list:
@@ -45,16 +45,14 @@ for subj in subj_list:
     recon_error_test = np.load(path_load_test).flatten()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Create and show the image
+    # Plot the histogram
 
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
     ax.hist(recon_error_test,  bins = plot_config['bins'],
-            color = plot_config['color_test'], label = 'Session 2 (Test)',
-            alpha = plot_config['alpha'])
+            color = plot_config['color_test'], label = 'Session 2 (Test)', alpha = 0.5)
     ax.hist(recon_error_train,  bins = plot_config['bins'],
-            color = plot_config['color_train'], label = 'Session 1 (Train)',
-            alpha = plot_config['alpha'])
+            color = plot_config['color_train'], label = 'Session 1 (Train)', alpha = 0.5)
 
     ax.legend()
     ax.set_title('Subject {}'.format(subj))

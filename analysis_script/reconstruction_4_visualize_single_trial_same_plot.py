@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 8
+subj = 2
 rand_trial_sample = False
 use_test_set = True
 
@@ -37,6 +37,9 @@ plot_to_create = 80
 repetition = 10
 n_trial = 81
 channel = 'FC4'
+channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
+       'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
+       'P2', 'POz'])
     
 first_epoch = 10
 second_epoch = 60
@@ -61,6 +64,8 @@ train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset
 # Decide if use the train or the test dataset
 if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
+
+if rand_trial_sample == True : plot_to_create = 1
 
 for n_plot in range(plot_to_create):
 

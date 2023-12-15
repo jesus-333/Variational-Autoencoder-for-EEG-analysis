@@ -1,5 +1,5 @@
 """
-From the table of the reconstruction error create an histogram.
+From the tables of the reconstruction error create an histogram for each channel.
 The table are the one obtained with the scripts reconstruction_3.py
 """
 
@@ -13,7 +13,6 @@ import os
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-
 channel_list = np.asarray(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz'])
 channel_list = np.asarray(['C1'])
 
@@ -22,7 +21,14 @@ plot_config = dict(
     bins = 1000,
     alpha = 0.6,
     use_log_scale = True, # If True use log scale for x axis
-    save_fig = True,
+    color_train = 'green',
+    color_test = 'red',
+)
+
+
+plot_config = dict(
+    figsize = (12, 8),
+    bins = 1000,
 )
 
 tot_epoch_training = 80
@@ -32,6 +38,7 @@ epoch_to_plot = 80
 # Get the data and create the image
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# subj_list = [2]
 
 # Used for indexing
 complet_channel_list = np.asarray(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz'])

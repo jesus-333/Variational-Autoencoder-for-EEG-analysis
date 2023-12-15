@@ -4,8 +4,6 @@ Created on Fri Sep  1 10:03:59 2023
 @author: Alberto Zancanaro (jesus)
 @organization: University of Padua
 
-Visualize multiple trial in a grid 3 x 3
-The trial 
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

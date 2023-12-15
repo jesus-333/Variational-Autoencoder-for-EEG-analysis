@@ -22,9 +22,9 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 9
+subj = 2
 rand_trial_sample = False
-use_test_set = False
+use_test_set = True
 
 t_min = 2
 t_max = 6
@@ -36,17 +36,21 @@ plot_to_create = 80
 
 # If rand_trial_sample == True they are selected randomly below
 repetition = 19
-n_trial = 250
+n_trial = 48 * 5
 channel = 'C1'
+channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
+       'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
+       'P2', 'POz'])
     
 epoch = 80
 
 plot_config = dict(
-    figsize_time = (12, 8),
-    figsize_freq = (12, 8),
+    figsize_time = (14, 10),
+    figsize_freq = (14, 10),
     fontsize = 24   , 
     linewidth_original = 2,
     linewidth_reconstructed = 1,
+    add_title = True,
     save_fig = True,
 )
 
@@ -108,7 +112,6 @@ for n_plot in range(plot_to_create):
     f, x_psd = signal.welch(x_original_for_psd, fs = 250, nperseg = nperseg)
     f, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
     
-    
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in time domain
     
@@ -122,6 +125,8 @@ for n_plot in range(plot_to_create):
     # ax_time.legend()
     ax_time.grid(True)
     if xticks_time is not None: ax_time.set_xticks(xticks_time)
+
+    if plot_config['add_title']: ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
     
     fig_time.tight_layout()
     fig_time.show()
@@ -137,8 +142,10 @@ for n_plot in range(plot_to_create):
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
     ax_freq.set_xlim([0, 80])
-    # ax_freq.legend()
+    ax_freq.legend()
     ax_freq.grid(True) 
+
+    if plot_config['add_title']: ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
 
     fig_freq.tight_layout()
     fig_freq.show()
