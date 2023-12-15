@@ -38,6 +38,7 @@ from ..model import hvEEGNet
 from . import train_EEGNet
 from . import train_vEEGNet
 from . import train_hvEEGNet
+from . import train_classifier
     
 """
 %load_ext autoreload
@@ -224,6 +225,8 @@ def get_loss_function(model_name, config = None):
         return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss(config)
+    elif model_name == 'classifier':
+        return torch.nn.NLLLoss()
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -236,6 +239,8 @@ def get_train_and_validation_function(model):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
+    elif 'classifier' in str(type(model)):
+        return train_classifier.train_epoch, train_classifier.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")
 

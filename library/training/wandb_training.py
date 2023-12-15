@@ -139,4 +139,3 @@ def main_hvEEGNet_shallow(dataset_config, train_config, model_config):
 
 if __name__ == '__main__':
     # model = main_EEGNet_classifier()
-    main_hvEEGNet_shallow()
