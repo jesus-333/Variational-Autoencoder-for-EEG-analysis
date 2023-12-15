@@ -33,6 +33,7 @@ from ..model import EEGNet
 from ..model import MBEEGNet
 from ..model import vEEGNet
 from ..model import hvEEGNet
+from ..model import classifier
 
 # Training functions for specific model
 from . import train_EEGNet
@@ -215,6 +216,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return vEEGNet.vEEGNet(model_config)
     elif model_name == 'hvEEGNet_shallow':
         return hvEEGNet.hvEEGNet_shallow(model_config)
+    elif model_name == 'classifier_v1':
+        return classifier.classifier_model_v1(model_config)
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -225,7 +228,7 @@ def get_loss_function(model_name, config = None):
         return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss(config)
-    elif model_name == 'classifier':
+    elif model_name == 'classifier_v1':
         return torch.nn.NLLLoss()
     else:
         raise ValueError("Type of the model not recognized")

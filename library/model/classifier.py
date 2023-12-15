@@ -25,17 +25,17 @@ class classifier_v1(nn.Module):
         """
         super().__init__()
 
-        use_bias = config['use_bias']
+        use_bias = config['use_bias'] if 'use_bias' in config else True
         activation = support_function.get_activation(config['activation'])
         dropout = support_function.get_dropout(config['prob_dropout'], use_droput_2d = False)
 
-        input_layer = nn.Linear(config['input_size'], config['neurons_list'][0])
+        input_layer = nn.Linear(config['input_size'], config['neurons_list'][0], bias = use_bias)
 
         hidden_layer = nn.ModuleList([input_layer])
         for i in range(len(config['neurons_list']) - 1):
             hidden_layer.append(dropout)
             hidden_layer.append(activation)
-            hidden_layer.append(config['neurons_list'][i], config['neurons_list'][i + 1])
+            hidden_layer.append(config['neurons_list'][i], config['neurons_list'][i + 1], bias = use_bias)
 
         self.clf = nn.Sequential(
             input_layer,
@@ -47,7 +47,7 @@ class classifier_v1(nn.Module):
         return self.clf(x)
 
 
-class clf_model_v1(nn.Module):
+class classifier_model_v1(nn.Module):
 
     def __init__(self, config : dict):
         """

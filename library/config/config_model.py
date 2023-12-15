@@ -135,3 +135,18 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
 
     return config
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_classifier_v1():
+    """
+    Used to train classifier_model_v1
+    """
+
+    config = dict(
+        neurons_list = [256, 4],
+        activation = 'elu',
+        prob_dropout = 0.2,
+        use_bias = False,
+    )
+
+    return config

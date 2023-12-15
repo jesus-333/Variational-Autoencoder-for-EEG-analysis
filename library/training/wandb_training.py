@@ -137,5 +137,20 @@ def main_hvEEGNet_shallow(dataset_config, train_config, model_config):
     
     return model
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_dict_for_classifier_v1(subj : int, path_weight_hvEEGNet : str):
+    dataset_config, _, hvEEGNet_config = get_config_dict_for_hvEEGNet_shallow([subj])
+    classifier_config = cm.get_config_classifier_v1()
+
+    train_config = ct.get_config_classifier()
+    train_config['wandb_training'] = True
+    train_config['model_artifact_name'] = 'classifier'
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 if __name__ == '__main__':
+    pass
     # model = main_EEGNet_classifier()
