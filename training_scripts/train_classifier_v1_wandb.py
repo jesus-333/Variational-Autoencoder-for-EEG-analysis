@@ -10,9 +10,12 @@ from library.config import config_training as ct
 #%% Settings
 
 subj_data = 2
-subj_weight = 1
+subj_weights = 1
 
-path_weights_hvEEGNet = 'Saved model/' # TODO
+repetition = 1
+epoch_trained = 80
+
+path_weights_hvEEGNet = 'Saved Model/repetition_hvEEGNet_80/subj {}/rep {}/model_{}.pth'.format(subj_weights, repetition, epoch_trained)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -28,6 +31,19 @@ model_config = dict(
 
 train_config = ct.get_config_classifier()
 train_config['wandb_training'] = True
+train_config['project_name'] = 'hvEEGNet_classifier'
 train_config['model_artifact_name'] = 'classifier'
 
-# model = wt.train_wandb('classifier_v1', dataset_config, train_config, model_config)
+train_config['extra_info_training'] = dict(
+    subj_data = subj_data,
+    subj_weights = subj_weights,
+    repetition = repetition,
+    epoch_trained = epoch_trained,
+    path_weights_hvEEGNet = path_weights_hvEEGNet
+)
+
+train_config['epochs'] = 3 
+train_config['device'] = 'cpu'
+
+model_name = 'classifier_v1'
+model = wt.train_wandb(model_name, dataset_config, train_config, model_config)

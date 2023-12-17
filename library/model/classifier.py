@@ -35,7 +35,7 @@ class classifier_v1(nn.Module):
         for i in range(len(config['neurons_list']) - 1):
             hidden_layer.append(dropout)
             hidden_layer.append(activation)
-            hidden_layer.append(config['neurons_list'][i], config['neurons_list'][i + 1], bias = use_bias)
+            hidden_layer.append(nn.Linear(config['neurons_list'][i], config['neurons_list'][i + 1], bias = use_bias))
 
         self.clf = nn.Sequential(
             input_layer,
@@ -53,6 +53,7 @@ class classifier_model_v1(nn.Module):
         """
         Model composed by the encoder of hvEEGNet + classifier_v1
         """
+        super().__init__()
         
         # Get the dictionary config
         config_hvEEGNet = config['config_hvEEGNet']
@@ -64,7 +65,7 @@ class classifier_model_v1(nn.Module):
         
         # Get the encoder and freeze the weights
         self.encoder = tmp_hvEEGNet.h_vae.encoder
-        for param in self.encoder.parameters: param.require_grad = False
+        for param in self.encoder.parameters(): param.require_grad = False
 
         # Classifier option and computation of input size
         self.use_only_mu_for_classification = config['use_only_mu_for_classification']

@@ -37,8 +37,8 @@ def get_config_classifier():
 
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "ICT4AWE_Extension",
-        model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
+        project_name = "project_name",
+        model_artifact_name = "model_name",    # Name of the artifact used to save the models
         log_freq = 1,
         notes = "",
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
