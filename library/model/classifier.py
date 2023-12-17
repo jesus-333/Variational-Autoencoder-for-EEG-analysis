@@ -64,11 +64,12 @@ class classifier_model_v1(nn.Module):
         tmp_hvEEGNet.load_state_dict(torch.load(config['path_weights'], map_location = 'cpu'))
         
         # Get the encoder and freeze the weights
-        self.encoder = tmp_hvEEGNet.h_vae.encoder
-        for param in self.encoder.parameters(): param.require_grad = False
+        if config['freeze_encoder']:
+            self.encoder = tmp_hvEEGNet.h_vae.encoder
+            for param in self.encoder.parameters(): param.require_grad = False
 
         # Classifier option and computation of input size
-        self.use_only_mu_for_classification = config['use_only_mu_for_classification']
+        self.use_only_mu_for_classification = config_clf['use_only_mu_for_classification']
         tmp_x = torch.rand((1, 1, config_hvEEGNet['encoder_config']['C'], config_hvEEGNet['encoder_config']['T']))
         _, mu, log_var, _ = self.encoder(tmp_x)
         n_neurons = len(mu.flatten()) if self.use_only_mu_for_classification else len(mu.flatten()) + len(log_var.flatten())

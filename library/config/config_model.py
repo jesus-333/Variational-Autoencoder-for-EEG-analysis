@@ -137,16 +137,18 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_config_classifier_v1():
+def get_config_classifier_v1(use_only_mu_for_classification = True, freeze_encoder = True):
     """
     Used to train classifier_model_v1
     """
 
     config = dict(
+        use_only_mu_for_classification = use_only_mu_for_classification,  # If False use concatenate the mu and logvar output of the decoder in a single vector and used as input for the classifier. Otherwise use only mu output
         neurons_list = [256, 4],
         activation = 'elu',
         prob_dropout = 0.2,
-        use_bias = False,
+        use_bias = False,       # If True use bias in the ff layer
+        freeze_encoder = freeze_encoder   # If True freeze the encoder weights
     )
 
     return config
