@@ -33,6 +33,7 @@ def get_config_classifier():
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,
         repetition = 1,                     # Number of time to repeat the training 
+        use_classifier = True,              # Do NOT CHANGE and keep True. Needed for metric computation in the train function (train_generic.py) 
         print_var = True,
 
         # (OPTIONAL) wandb settings

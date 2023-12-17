@@ -31,7 +31,7 @@ class classifier_v1(nn.Module):
 
         input_layer = nn.Linear(config['input_size'], config['neurons_list'][0], bias = use_bias)
 
-        hidden_layer = nn.ModuleList([input_layer])
+        hidden_layer = nn.ModuleList()
         for i in range(len(config['neurons_list']) - 1):
             hidden_layer.append(dropout)
             hidden_layer.append(activation)
@@ -77,16 +77,30 @@ class classifier_model_v1(nn.Module):
         # Create the classifier
         self.clf = classifier_v1(config_clf)
 
+
     def forward(self, x):
         # Pass the data through the encoder
         _, mu, log_var, _ = self.encoder(x)
         
         if self.use_only_mu_for_classification:
-            x = mu
+            x = mu.flatten(1)
         else:
             x = torch.cat([mu, log_var], dim = 1).flatten(1)
 
-        label = self.clf(x)
+        y = self.clf(x) # Note that the clf network return the log probability of the n classes
+
+        return y
+
+
+    def classify(self, x, return_as_index = True):
+        """
+        Directly classify an input by returning the label (return_as_index = True) or the probability distribution on the labels (return_as_index = False)
+        """
+
+        label = self.forward(x)
+
+        if return_as_index:
+            predict_prob = torch.squeeze(torch.exp(label).detach())
+            label = torch.argmax(predict_prob, dim = 1)
 
         return label
-

@@ -49,7 +49,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
         predict_label = model(x)
         
         # Loss evaluation
-        batch_train_loss = loss_function.compute_loss(predict_label, true_label)
+        batch_train_loss = loss_function(predict_label, true_label)
     
         # Backward/Optimization pass
         batch_train_loss.backward()
@@ -87,7 +87,7 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
             predict_label = model(x)
             
             # Loss evaluation
-            batch_validation_loss = loss_function.compute_loss(predict_label, true_label)
+            batch_validation_loss = loss_function(predict_label, true_label)
 
             # Accumulate loss
             validation_loss += batch_validation_loss * x.shape[0]
