@@ -84,7 +84,7 @@ for sample_data_batch, sample_label_batch in dataset_loader:
 recon_loss_function = SoftDTW(use_cuda = True if torch.cuda.is_available() else False, normalize = False)
 
 for j in range(len(list_of_combinations)): 
-    print("Iterations : {}%".format(round((j + 1) / len(list_of_combinations) * 100, 2)))
+    print("Iterations : {}%".format(round((j + 1) / len(list_of_combinations) * 100, 3)))
 
     idx_0 = list_of_combinations[j][0]
     idx_1 = list_of_combinations[j][1]
