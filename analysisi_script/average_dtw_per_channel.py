@@ -92,14 +92,15 @@ for j in range(len(list_of_combinations)):
     x_0 = x_r_dataset[idx_0].unsqueeze(0).unsqueeze(0)
     x_1 = x_r_dataset[idx_1].unsqueeze(0).unsqueeze(0)
 
-
     # Compute the DTW channel by channels
     for k in range(x_0.shape[2]): # Iterate through EEG Channels
-        x_0 = x_0[:, :, k, :].swapaxes(1,2)
-        x_1 = x_1[:, :, k, :].swapaxes(1,2)
+        x_0_ch = x_0[:, :, k, :].swapaxes(1,2)
+        x_1_ch = x_1[:, :, k, :].swapaxes(1,2)
         # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
         # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
         
-        tmp_recon_loss = float(recon_loss_function(x_0, x_1).cpu())
+        tmp_recon_loss = float(recon_loss_function(x_0_ch, x_1_ch).cpu()) / x_0.shape[-1]
 
         intra_subj_DTW_values[k, idx_0, idx_1] = tmp_recon_loss
+
+np.save("intra_subject_dtw_S{}.npy".format(subj), intra_subj_DTW_values)
