@@ -11,6 +11,7 @@ import itertools
 
 from library.analysis import support
 from library.config import config_dataset as cd 
+from library.training.soft_dtw_cuda import SoftDTW
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Settings
@@ -48,7 +49,7 @@ for ch in ch_list: idx_ch = np.logical_or(idx_ch, ch_list_dataset == ch)
 
 # Tensor to save the data
 x_r_dataset = torch.asarray([]).to(device) # Save reconstructed data
-tensor_DTW = torch.zeros((len(ch_list), len(dataset), len(dataset))) # Save DTW
+intra_subj_DTW_values = np.zeros((len(ch_list), len(dataset), len(dataset))) # Save DTW
 
 # Load weights
 path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
@@ -77,10 +78,28 @@ for sample_data_batch, sample_label_batch in dataset_loader:
     x_r_dataset = torch.cat((x_r_dataset, x_z1))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% 
+#%% DTW Computation
+
+# DTW loss funcion
+recon_loss_function = SoftDTW(use_cuda = True if torch.cuda.is_available() else False, normalize = False)
+
+for j in range(len(list_of_combinations)): 
+    print("Iterations : {}%".format(round((j + 1) / len(list_of_combinations) * 100, 2)))
+
+    idx_0 = list_of_combinations[j][0]
+    idx_1 = list_of_combinations[j][1]
+
+    x_0 = x_r_dataset[idx_0].unsqueeze(0).unsqueeze(0)
+    x_1 = x_r_dataset[idx_1].unsqueeze(0).unsqueeze(0)
 
 
+    # Compute the DTW channel by channels
+    for k in range(x_0.shape[2]): # Iterate through EEG Channels
+        x_0 = x_0[:, :, k, :].swapaxes(1,2)
+        x_1 = x_1[:, :, k, :].swapaxes(1,2)
+        # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+        # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+        
+        tmp_recon_loss = float(recon_loss_function(x_0, x_1).cpu())
 
-    
-
-
+        intra_subj_DTW_values[k, idx_0, idx_1] = tmp_recon_loss
