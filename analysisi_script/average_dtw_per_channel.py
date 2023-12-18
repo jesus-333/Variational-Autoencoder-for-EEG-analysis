@@ -1,5 +1,6 @@
 """
-Compute the average DTW for a specific subject between the reconstruction obtained with only the deepest latent space (z1)
+Compute the average DTW for between the reconstruction obtained with only the deepest latent space (z1)
+Can work both intra-subject or cross subject
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -16,7 +17,8 @@ from library.training.soft_dtw_cuda import SoftDTW
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Settings
 
-subj = 2
+subj_data = 2
+subj_weights = 2 # For intra-subject set subj_data == subj_weights
 
 ch_list = np.asarray(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz','P2', 'POz'])
 ch_list = np.asarray(['Fz', 'C2', 'P1'])
@@ -35,7 +37,7 @@ epoch = 80 # Select the epoch of the weights. Must be less or equal than tot_epo
 #%% Create dataset and model
 
 # Get the datasets and model
-dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config = cd.get_moabb_dataset_config([subj_data])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
 
@@ -52,7 +54,7 @@ x_r_dataset = torch.asarray([]).to(device) # Save reconstructed data
 intra_subj_DTW_values = np.zeros((len(ch_list), len(dataset), len(dataset))) # Save DTW
 
 # Load weights
-path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj_weights, repetition, epoch)
 model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
 
 # Dataloader
@@ -103,4 +105,13 @@ for j in range(len(list_of_combinations)):
 
         intra_subj_DTW_values[k, idx_0, idx_1] = tmp_recon_loss
 
-np.save("intra_subject_dtw_S{}.npy".format(subj), intra_subj_DTW_values)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Save results
+path_save = "Saved Results/intra_subjects_study/"
+
+if subj_weights == subj_weights: # Intra subject
+    path_save += "intra_subject_dtw_S{}.npy".format(subj_weights)
+else:
+    path_save += "cross_subject_dtw_source_S{}_target_s{}.npy".format(subj_weights, subj_data)
+    
+np.save(path_save, intra_subj_DTW_values)
