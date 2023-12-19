@@ -107,11 +107,11 @@ for j in range(len(list_of_combinations)):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Save results
-path_save = "Saved Results/intra_subjects_study/"
+path_save = "Saved Results/variability_study/"
 
-if subj_weights == subj_weights: # Intra subject
+if subj_data == subj_weights: # Intra subject
     path_save += "intra_subject_dtw_S{}.npy".format(subj_weights)
 else:
-    path_save += "cross_subject_dtw_source_S{}_target_s{}.npy".format(subj_weights, subj_data)
+    path_save += "cross_subject_dtw_source_S{}_target_S{}.npy".format(subj_weights, subj_data)
     
 np.save(path_save, intra_subj_DTW_values)
