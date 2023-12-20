@@ -23,8 +23,8 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 3
-use_test_set = True
+subj = 9
+use_test_set = False
 
 t_min = 2
 t_max = 6
@@ -37,8 +37,8 @@ rand_trial_sample = False
 plot_to_create = 80
 
 repetition = 19
-n_trial = 150
-channel = 'C6'
+n_trial = 250
+channel = 'C1'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
@@ -51,7 +51,8 @@ plot_config = dict(
     linewidth_original = 2,
     linewidth_reconstructed = 1,
     add_title = True,
-    save_fig = False,
+    save_fig = True,
+    format_so_save = ['png', 'eps']
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -153,12 +154,12 @@ for n_plot in range(plot_to_create):
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
         os.makedirs(path_save, exist_ok = True)
-        path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
-        
+        # path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
+        path_save += "s{}_trial_{}_{}_rep_{}_epoch_{}".format(subj, n_trial + 1, channel, repetition, epoch)
+
         if use_test_set: path_save += '_test_set'
         else: path_save += '_train_set'
-        
-        fig_time.savefig(path_save + "_time.png", format = 'png')
-        fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
-        fig_freq.savefig(path_save + "_freq.png", format = 'png')
-        fig_freq.savefig(path_save + "_freq.pdf", format = 'pdf')
+
+        for format in plot_config['format_so_save']:
+            fig_time.savefig(path_save + "_time." + format, format = format)
+            fig_freq.savefig(path_save + "_freq." + format, format = format)
