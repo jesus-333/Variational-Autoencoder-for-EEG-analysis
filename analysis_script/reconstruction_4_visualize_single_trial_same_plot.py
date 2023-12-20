@@ -23,7 +23,6 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 subj = 2
-rand_trial_sample = False
 use_test_set = True
 
 t_min = 2
@@ -31,9 +30,9 @@ t_max = 6
 
 nperseg = 500
 
-plot_to_create = 80
-
+rand_trial_sample = False
 # If rand_trial_sample == True they are selected randomly below
+plot_to_create = 80
 repetition = 10
 n_trial = 81
 channel = 'FC4'

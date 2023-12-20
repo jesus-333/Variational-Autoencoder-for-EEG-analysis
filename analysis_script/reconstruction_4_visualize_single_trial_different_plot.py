@@ -22,27 +22,27 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-subj = 2
-rand_trial_sample = False
+epoch = 80
+subj = 3
 use_test_set = True
 
 t_min = 2
 t_max = 6
-compute_spectra_with_entire_signal = True
 
+compute_spectra_with_entire_signal = True
 nperseg = 500
 
+# If rand_trial_sample == True the trial to plot are selected randomly below
+rand_trial_sample = False
 plot_to_create = 80
 
-# If rand_trial_sample == True they are selected randomly below
 repetition = 19
-n_trial = 48 * 5
-channel = 'C1'
-channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
-       'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
-       'P2', 'POz'])
+n_trial = 150
+channel = 'C6'
+# channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
+#        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
+#        'P2', 'POz'])
     
-epoch = 80
 
 plot_config = dict(
     figsize_time = (14, 10),
@@ -51,10 +51,9 @@ plot_config = dict(
     linewidth_original = 2,
     linewidth_reconstructed = 1,
     add_title = True,
-    save_fig = True,
+    save_fig = False,
 )
 
-batch_size = 64
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 xticks_time = None
