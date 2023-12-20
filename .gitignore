@@ -94,3 +94,5 @@ Saved Results/repetition_hvEEGNet_80/subj 9/Plot/
 Saved Results/repetition_hvEEGNet_80/subj 9/Plot
 Saved Results/repetition_hvEEGNet_80/recon_error_outliers/EEG_trials_subj_2
 Saved Results/repetition_hvEEGNet_80/recon_error_outliers/EEG_trials_subj_9
+*.ini
+*.bak
