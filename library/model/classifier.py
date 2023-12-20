@@ -64,8 +64,8 @@ class classifier_model_v1(nn.Module):
         tmp_hvEEGNet.load_state_dict(torch.load(config['path_weights'], map_location = 'cpu'))
         
         # Get the encoder and freeze the weights
+        self.encoder = tmp_hvEEGNet.h_vae.encoder
         if config['freeze_encoder']:
-            self.encoder = tmp_hvEEGNet.h_vae.encoder
             for param in self.encoder.parameters(): param.require_grad = False
 
         # Classifier option and computation of input size

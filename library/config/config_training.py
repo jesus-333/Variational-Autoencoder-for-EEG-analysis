@@ -19,9 +19,9 @@ def get_config_classifier():
     """
     config = dict(
         # Training settings
-        batch_size = 20,                    
-        lr = 1e-3,                          # Learning rate (lr)
-        epochs = 300,                        # Number of epochs to train the model
+        batch_size = 144,                    
+        lr = 1e-8,                          # Learning rate (lr)
+        epochs = 100,                       # Number of epochs to train the model
         use_scheduler = False,              # Use the lr scheduler
         lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer

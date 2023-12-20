@@ -9,12 +9,13 @@ from library.config import config_training as ct
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Settings
 
-subj_data = 2
-subj_weights = 1
+subj_data = 6
+subj_weights = 3
 repetition_list = [1]
+epochs = 800
 
-freeze_encoder = True
-use_only_mu_for_classification = True
+freeze_encoder = False
+use_only_mu_for_classification = False
 
 epoch_trained = 80
 hvEEGNet_training_repetition = 1 # Since for each subject we train hvEEGNet 20 times this parameter specifies the training run
@@ -24,12 +25,13 @@ path_weights_hvEEGNet = 'Saved Model/repetition_hvEEGNet_80/subj {}/rep {}/model
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 dataset_config, _, hvEEGNet_config = wt.get_config_dict_for_hvEEGNet_shallow([subj_data])
-classifier_config = cm.get_config_classifier_v1(freeze_encoder, use_only_mu_for_classification)
+classifier_config = cm.get_config_classifier_v1(use_only_mu_for_classification)
 
 model_config = dict(
     config_clf = classifier_config,
     config_hvEEGNet = hvEEGNet_config,
     path_weights = path_weights_hvEEGNet,
+    freeze_encoder = freeze_encoder   # If True freeze the encoder weights
 )
 
 train_config = ct.get_config_classifier()
