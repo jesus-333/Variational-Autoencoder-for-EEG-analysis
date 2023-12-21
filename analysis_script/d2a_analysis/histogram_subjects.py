@@ -14,11 +14,11 @@ import os
 # Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2]
+subj_list = [4]
 
 plot_config = dict(
     figsize = (12, 8),
-    bins = 5,
+    bins = 6000,
     color_train = 'green',
     color_test = 'red',
     alpha = 0.6,
@@ -57,7 +57,36 @@ for subj in subj_list:
     ax.legend()
     ax.set_title('Subject {}'.format(subj))
     ax.set_xlabel('Reconstruction error')
-    if plot_config['use_log_scale']: ax.set_xscale('log')
+    
+    if plot_config['use_log_scale']: ax.set_yscale('log')
+    if plot_config['use_log_scale']: 
+        ax.set_xscale('log')
+    
+        # xticks = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100]
+        if subj == 1: 
+            xticks = [0.5, 1, 2, 5, 10, 20, 50]
+        if subj == 2: 
+            xticks = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
+        if subj == 3: 
+            xticks = [0.5, 1, 2, 5, 10, 20, 50]
+            ax.set_xlim([0.5, 22])
+        if subj == 4: 
+            xticks = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20]
+            ax.set_xlim([0.5, 20])
+        if subj == 5: 
+            xticks = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]
+        if subj == 6: 
+            xticks = [0.5, 1, 2, 5, 10]
+        if subj == 7: 
+            xticks = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10]
+        if subj == 8: 
+            xticks = [1, 2, 5, 10, 20]
+            ax.set_xlim([1, 20])
+        if subj == 9: 
+            xticks = [0.5, 1, 2, 5, 10, 20]
+            ax.set_xlim([0.5, 20])
+        
+        ax.set_xticks(xticks, labels = xticks)
 
     fig.tight_layout()
     fig.show()
@@ -65,7 +94,7 @@ for subj in subj_list:
 
     if plot_config['save_fig']:
         # Create pat
-        path_save = 'Saved Results/d2a_analysis/hist_subj/'
+        path_save = 'Saved Results/d2a_analysis/hist_subj/bins {}/'.format(plot_config['bins'])
         os.makedirs(path_save, exist_ok = True)
         
         # Save fig
