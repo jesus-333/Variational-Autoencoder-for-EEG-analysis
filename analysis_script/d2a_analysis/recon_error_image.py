@@ -15,7 +15,7 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [2, 4]
+subj_list = [1]
 
 plot_config = dict(
     figsize = (12, 8),
