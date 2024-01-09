@@ -23,7 +23,7 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 1
+subj = 2
 use_test_set = True
 
 t_min = 2
@@ -33,12 +33,12 @@ compute_spectra_with_entire_signal = True
 nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = False
-plot_to_create = 80
+rand_trial_sample = True
+plot_to_create = 10
 
 repetition = 19
-n_trial = 68 
-channel = 'C5'
+n_trial = 249
+channel = 'C2'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
@@ -51,7 +51,7 @@ plot_config = dict(
     linewidth_original = 2,
     linewidth_reconstructed = 1,
     add_title = False,
-    save_fig = True,
+    save_fig = False,
     format_so_save = ['png', 'eps']
 )
 

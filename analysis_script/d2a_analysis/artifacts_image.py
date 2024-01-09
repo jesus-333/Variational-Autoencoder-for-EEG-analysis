@@ -13,10 +13,11 @@ import os
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-threshold = 100
+threshold = 20
 
 plot_config = dict(
     figsize = (12, 8),
+    fontsize = 24,
     colormap = 'Reds',
     # colormap = 'Greys',
     save_fig = True,
@@ -26,6 +27,8 @@ tot_epoch_training = 80
 epoch_to_plot = 80
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+plt.rcParams.update({'font.size': plot_config['fontsize']})
 
 def compute_artifacts_for_subject(recon_error_matrix, threshold : float = -1):
     if threshold < 0: threshold = np.mean(recon_error_matrix) + 3 * np.abs(np.std(recon_error_matrix))
@@ -87,11 +90,11 @@ for i in range(len(subj_list)):
     path_load_test = 'Saved Results/repetition_hvEEGNet_{}/test/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch_to_plot)
     recon_error_test = np.load(path_load_test)
 
-    # artifacts_map_train = compute_artifacts_for_subject(recon_error_train, threshold)
-    # artifacts_map_test = compute_artifacts_for_subject(recon_error_test, threshold)
+    artifacts_map_train = compute_artifacts_for_subject(recon_error_train, threshold)
+    artifacts_map_test = compute_artifacts_for_subject(recon_error_test, threshold)
     
-    artifacts_map_train = compute_artifacts_for_subject_2(recon_error_train, threshold)
-    artifacts_map_test = compute_artifacts_for_subject_2(recon_error_test, threshold)
+    # artifacts_map_train = compute_artifacts_for_subject_2(recon_error_train, threshold)
+    # artifacts_map_test = compute_artifacts_for_subject_2(recon_error_test, threshold)
     
     image_to_plot_train[i, :] = artifacts_map_train
     image_to_plot_test[i, :] = artifacts_map_test
@@ -106,11 +109,19 @@ image_to_plot_test_original = image_to_plot_test_original.T.to_numpy()[1:, :]
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Plot image
 
-fig_session_1_hv, ax_session_1_hv = plot_image(image_to_plot_train, plot_config, 'Session 1 (hvEEGNet)')
-fig_session_1_orig, ax_session_1_orig = plot_image(image_to_plot_train_original, plot_config, 'Session 1 (original)')
+# Figure without title
+fig_session_1_hv, ax_session_1_hv = plot_image(image_to_plot_train, plot_config, None)
+fig_session_1_orig, ax_session_1_orig = plot_image(image_to_plot_train_original, plot_config, None)
 
-fig_session_2_hv, ax_session_2_hv = plot_image(image_to_plot_test, plot_config, 'Session 2 (hvEEGNet)')
-fig_session_2_orig, ax_session_2_orig = plot_image(image_to_plot_test_original, plot_config, 'Session 2 (original)')
+fig_session_2_hv, ax_session_2_hv = plot_image(image_to_plot_test, plot_config, None)
+fig_session_2_orig, ax_session_2_orig = plot_image(image_to_plot_test_original, plot_config, None)
+
+# Figure WITH title
+# fig_session_1_hv, ax_session_1_hv = plot_image(image_to_plot_train, plot_config, 'Session 1 (hvEEGNet)')
+# fig_session_1_orig, ax_session_1_orig = plot_image(image_to_plot_train_original, plot_config, 'Session 1 (original)')
+#
+# fig_session_2_hv, ax_session_2_hv = plot_image(image_to_plot_test, plot_config, 'Session 2 (hvEEGNet)')
+# fig_session_2_orig, ax_session_2_orig = plot_image(image_to_plot_test_original, plot_config, 'Session 2 (original)')
 
 if plot_config['save_fig']:
     # Create pat
@@ -118,18 +129,22 @@ if plot_config['save_fig']:
     os.makedirs(path_save, exist_ok = True)
     
     # Save figs
+    path_save = 'Saved Results/d2a_analysis/artifacts_map/'
     path_save += 'artifacts_map_session_1_hv'
-    fig_session_1_hv.savefig(path_save + "_.png", format = 'png')
-    fig_session_1_hv.savefig(path_save + "_.eps", format = 'eps')
+    fig_session_1_hv.savefig(path_save + ".png", format = 'png')
+    fig_session_1_hv.savefig(path_save + ".eps", format = 'eps')
 
+    path_save = 'Saved Results/d2a_analysis/artifacts_map/'
     path_save += 'artifacts_map_session_2_hv'
-    fig_session_2_hv.savefig(path_save + "_.png", format = 'png')
-    fig_session_2_hv.savefig(path_save + "_.eps", format = 'eps')
+    fig_session_2_hv.savefig(path_save + ".png", format = 'png')
+    fig_session_2_hv.savefig(path_save + ".eps", format = 'eps')
 
+    path_save = 'Saved Results/d2a_analysis/artifacts_map/'
     path_save += 'artifacts_map_session_1_orig'
-    fig_session_1_orig.savefig(path_save + "_.png", format = 'png')
-    fig_session_1_orig.savefig(path_save + "_.eps", format = 'eps')
+    fig_session_1_orig.savefig(path_save + ".png", format = 'png')
+    fig_session_1_orig.savefig(path_save + ".eps", format = 'eps')
 
+    path_save = 'Saved Results/d2a_analysis/artifacts_map/'
     path_save += 'artifacts_map_session_2_orig'
-    fig_session_2_orig.savefig(path_save + "_.png", format = 'png')
-    fig_session_2_orig.savefig(path_save + "_.eps", format = 'eps')
+    fig_session_2_orig.savefig(path_save + ".png", format = 'png')
+    fig_session_2_orig.savefig(path_save + ".eps", format = 'eps')
