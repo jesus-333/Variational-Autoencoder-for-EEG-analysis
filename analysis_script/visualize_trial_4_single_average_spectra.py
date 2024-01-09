@@ -26,9 +26,9 @@ from library.analysis import support
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 subj_list = [1, 2, 5]
-ch = 'Cz'
+ch = 'C3'
 
-use_test_set = False
+use_test_set = True
 
 nperseg = 500
 
@@ -75,7 +75,6 @@ for subj in subj_list:
     for idx_trial in range(len(dataset)): # Cycle through eeg trials
         x, _ = dataset[idx_trial]
 
-
         idx_ch = dataset.ch_list == ch
         
         # Compute PSD
@@ -111,7 +110,7 @@ for subj in subj_list:
     elif subj == 2:
         ax_freq.set_ylim([-5, 23])
     elif subj == 5:
-        ax_freq.set_ylim([-10, 40])
+        ax_freq.set_ylim([-10, 23])
         
     ax_freq.set_ylim(bottom = -1)
 
@@ -129,4 +128,5 @@ for subj in subj_list:
         path_save = 'Saved Results/only_original_trial/'
         path_save += 'single_spectra_average_spectra_S{}_{}'.format(subj, dataset_string)
         fig_freq.savefig(path_save + ".png", format = 'png')
-        fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+        # fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+        fig_freq.savefig(path_save + ".eps", format = 'eps')

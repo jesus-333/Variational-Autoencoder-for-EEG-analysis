@@ -14,7 +14,7 @@ import os
 # Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [9]
+subj_list = [1, 2, 5]
 
 plot_config = dict(
     figsize = (12, 8),

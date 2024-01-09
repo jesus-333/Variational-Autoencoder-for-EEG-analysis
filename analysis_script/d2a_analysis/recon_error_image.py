@@ -15,14 +15,16 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [1]
+# subj_list = [1]
 
 plot_config = dict(
     figsize = (12, 8),
     min_value = 0,
     max_value = 75,
+    fontsize = 20,
     # colormap = 'RdYlGn_r',
     colormap = 'Reds',
+    add_title = False,
     save_fig = True,
 )
 
@@ -31,6 +33,8 @@ epoch_to_plot = 80
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get the data and create the image
+
+plt.rcParams.update({'font.size': plot_config['fontsize']})
 
 # Channels list (used for the plot)
 channel_list = np.asarray(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz', 'P2', 'POz'])
@@ -77,7 +81,7 @@ for subj in subj_list:
             ax.set_ylabel('Trials')
             ax.set_xlabel('Channels')
 
-        ax.set_title('Subject {}'.format(subj))
+        if plot_config['add_title'] : ax.set_title('Subject {}'.format(subj))
 
         xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48 
         yticks = np.arange(22)
@@ -94,7 +98,7 @@ for subj in subj_list:
 
     if plot_config['save_fig']:
         # Create pat
-        path_save = 'Saved Results/d2a_analysis/'
+        path_save = 'Saved Results/d2a_analysis/recon_error_image/'
         os.makedirs(path_save, exist_ok = True)
         
         # Save fig
@@ -102,3 +106,6 @@ for subj in subj_list:
 
         fig_train.savefig(path_save + "_TRAIN.png", format = 'png')
         fig_test.savefig(path_save + "_TEST.png", format = 'png')
+
+        fig_train.savefig(path_save + "_TRAIN.eps", format = 'eps')
+        fig_test.savefig(path_save + "_TEST.eps", format = 'eps')
