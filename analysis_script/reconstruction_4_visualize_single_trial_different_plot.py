@@ -23,8 +23,8 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 9
-use_test_set = False
+subj = 4
+use_test_set = True
 
 t_min = 2
 t_max = 6
@@ -37,8 +37,8 @@ rand_trial_sample = False
 plot_to_create = 80
 
 repetition = 19
-n_trial = 250
-channel = 'C1'
+n_trial = 151
+channel = 'C5'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
