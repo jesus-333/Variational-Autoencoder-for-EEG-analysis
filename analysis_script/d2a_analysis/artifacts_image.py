@@ -106,10 +106,30 @@ image_to_plot_test_original = image_to_plot_test_original.T.to_numpy()[1:, :]
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Plot image
 
-plot_image(image_to_plot_train, plot_config, 'Session 1 (hvEEGNet)')
-plot_image(image_to_plot_train_original, plot_config, 'Session 1 (original)')
+fig_session_1_hv, ax_session_1_hv = plot_image(image_to_plot_train, plot_config, 'Session 1 (hvEEGNet)')
+fig_session_1_orig, ax_session_1_orig = plot_image(image_to_plot_train_original, plot_config, 'Session 1 (original)')
 
-plot_image(image_to_plot_test, plot_config, 'Session 2 (hvEEGNet)')
-plot_image(image_to_plot_test_original, plot_config, 'Session 2 (original)')
+fig_session_2_hv, ax_session_2_hv = plot_image(image_to_plot_test, plot_config, 'Session 2 (hvEEGNet)')
+fig_session_2_orig, ax_session_2_orig = plot_image(image_to_plot_test_original, plot_config, 'Session 2 (original)')
 
+if plot_config['save_fig']:
+    # Create pat
+    path_save = 'Saved Results/d2a_analysis/artifacts_map/'
+    os.makedirs(path_save, exist_ok = True)
+    
+    # Save figs
+    path_save += 'artifacts_map_session_1_hv'
+    fig_session_1_hv.savefig(path_save + "_.png", format = 'png')
+    fig_session_1_hv.savefig(path_save + "_.eps", format = 'eps')
 
+    path_save += 'artifacts_map_session_2_hv'
+    fig_session_2_hv.savefig(path_save + "_.png", format = 'png')
+    fig_session_2_hv.savefig(path_save + "_.eps", format = 'eps')
+
+    path_save += 'artifacts_map_session_1_orig'
+    fig_session_1_orig.savefig(path_save + "_.png", format = 'png')
+    fig_session_1_orig.savefig(path_save + "_.eps", format = 'eps')
+
+    path_save += 'artifacts_map_session_2_orig'
+    fig_session_2_orig.savefig(path_save + "_.png", format = 'png')
+    fig_session_2_orig.savefig(path_save + "_.eps", format = 'eps')
