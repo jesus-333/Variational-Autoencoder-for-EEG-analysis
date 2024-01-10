@@ -66,29 +66,13 @@ for subj in subj_list:
     average_recon_error_per_trial = recon_error.mean(1)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Create a variable to saved the average spectra for the various channels
-
-    _, tmp_spectra = signal.welch(dataset[0][0].squeeze()[0, :], fs = 250, nperseg = nperseg)
-    computed_spectra = np.zeros((len(dataset), len(tmp_spectra)))
-
-    # Compute the average spectra
-    for idx_trial in range(len(dataset)): # Cycle through eeg trials
-        x, _ = dataset[idx_trial]
-
-        idx_ch = dataset.ch_list == ch
-        
-        # Compute PSD
-        f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
-
-        computed_spectra[idx_trial, :] = x_psd
     
-    average_spectra = computed_spectra.mean(0)
-    std_spectra = computed_spectra.std(0)
+    idx_ch = dataset.ch_list == ch
+    average_spectra, std_spectra = support.compute_average_spectra(dataset, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
-
             
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in frequency domain
