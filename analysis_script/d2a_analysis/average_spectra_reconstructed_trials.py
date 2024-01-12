@@ -27,7 +27,7 @@ repetition = 17
 epoch = 80
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [4]
+subj_list = [9]
 ch = 'C3'
 
 use_test_set = True
@@ -35,7 +35,7 @@ use_test_set = True
 nperseg = 500
 
 plot_config = dict(
-    figsize = (14, 8),
+    figsize = (18, 8),
     fontsize = 20, 
     capsize = 3,
     alpha = 0.25,
@@ -80,11 +80,14 @@ for subj in subj_list:
         model_hv.cuda()
     
     # Reconstruct the data
-    x_r_train = model_hv.reconstruct(x_train.unsqueeze(0)).squeeze()
-    x_r_test = model_hv.reconstruct(x_test.unsqueeze(0)).squeeze()
+    x_r_train = model_hv.reconstruct(x_train).squeeze()
+    x_r_test = model_hv.reconstruct(x_test).squeeze()
+    
+    x_r_train = x_r_train.cpu().numpy()
+    x_r_test = x_r_test.cpu().numpy()
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Get average spectra for artifacts/NON artifacts
+    # Get average spectra for train and test set
 
     idx_ch = train_dataset.ch_list == ch
     
@@ -98,12 +101,17 @@ for subj in subj_list:
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
     if plot_config['use_different_figure']:
-        fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
+        fig_freq_1, ax_freq_1 = plt.subplots(1, 1, figsize = plot_config['figsize'])
+        fig_freq_2, ax_freq_2 = plt.subplots(1, 1, figsize = plot_config['figsize'])
+        
+        ax_freq_list = [ax_freq_1, ax_freq_2]
+        fig_freq_list = [fig_freq_1, fig_freq_2]
     else:
         fig_freq, ax_freq_list = plt.subplots(1, 2, figsize = plot_config['figsize'])
         idx_figures = [0, 1] 
+        fig_freq_list = [fig_freq]
 
-    for i in range(4):
+    for i in range(2):
         average_spectra = average_spectra_list[i]
         std_spectra = std_spectra_list[i]
 
@@ -125,7 +133,8 @@ for subj in subj_list:
         if plot_config['add_title']: ax_freq.set_title(label_list[i])
             
         ax_freq.set_ylim(bottom = -1)
-
-        fig_freq.tight_layout()
-        fig_freq.show()
+        
+    for fig in fig_freq_list: 
+        fig.tight_layout()
+        fig.show()
 
