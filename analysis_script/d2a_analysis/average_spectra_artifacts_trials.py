@@ -57,7 +57,6 @@ for subj in subj_list:
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
     train_dataset, validation_dataset, test_dataset , _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
 
-
     subject_artifacts_map_train = artifacts_map_train[subj_idx]
     subject_artifacts_map_test = artifacts_map_test[subj_idx]
 

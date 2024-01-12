@@ -88,34 +88,26 @@ for subj in subj_list:
 
     idx_ch = train_dataset.ch_list == ch
     
-    # For S4 the expert does not find any artifacts in the training set
-    average_spectra_NON_artifacts_train, std_spectra_NON_artifacts_train, f = support.compute_average_spectra(train_dataset.data[subject_artifacts_map_train == 0], nperseg = nperseg, fs = 250, idx_ch = idx_ch)
-    if subj != 4: 
-        average_spectra_artifacts_train, std_spectra_artifacts_train, f = support.compute_average_spectra(train_dataset.data[subject_artifacts_map_train == 1], nperseg = nperseg, fs = 250, idx_ch = idx_ch)
-    else:
-       average_spectra_artifacts_train, std_spectra_artifacts_train = np.zeros(len(average_spectra_NON_artifacts_train)), np.zeros(len(average_spectra_NON_artifacts_train))
+    average_spectra_train, std_spectra_train, f = support.compute_average_spectra(x_r_train, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
+    average_spectra_test, std_spectra_test, f = support.compute_average_spectra(x_r_test, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
 
-    average_spectra_artifacts_test, std_spectra_artifacts_test, f = support.compute_average_spectra(test_dataset.data[subject_artifacts_map_test == 1], nperseg = nperseg, fs = 250, idx_ch = idx_ch)
-    average_spectra_NON_artifacts_test, std_spectra_NON_artifacts_test, f = support.compute_average_spectra(test_dataset.data[subject_artifacts_map_test == 0], nperseg = nperseg, fs = 250, idx_ch = idx_ch)
-
-    average_spectra_list = [average_spectra_artifacts_train, average_spectra_NON_artifacts_train, average_spectra_artifacts_test, average_spectra_NON_artifacts_test]
-    std_spectra_list = [std_spectra_artifacts_train, std_spectra_NON_artifacts_train, std_spectra_artifacts_test, std_spectra_NON_artifacts_test]
-
-    label_list = ["Artifacts train", "NON Artifacts train", "Artifacts test", "NON Artifacts test"]
+    average_spectra_list = [average_spectra_train, average_spectra_test]
+    std_spectra_list = [std_spectra_train, std_spectra_test]
+    label_list = ["Train", "Test"]
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
     if plot_config['use_different_figure']:
         fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
     else:
-        fig_freq, ax_freq_list = plt.subplots(2, 2, figsize = plot_config['figsize'])
-        idx_figures = [[0, 0], [0, 1], [1, 0], [1, 1]] 
+        fig_freq, ax_freq_list = plt.subplots(1, 2, figsize = plot_config['figsize'])
+        idx_figures = [0, 1] 
 
     for i in range(4):
         average_spectra = average_spectra_list[i]
         std_spectra = std_spectra_list[i]
 
-        ax_freq = ax_freq_list[*idx_figures[i]]
+        ax_freq = ax_freq_list[idx_figures[i]]
 
 
         ax_freq.plot(f, average_spectra,
