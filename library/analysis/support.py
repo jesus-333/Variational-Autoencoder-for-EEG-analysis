@@ -212,7 +212,7 @@ def compute_average_spectra(data, nperseg, fs, idx_ch):
 
     # Compute the average spectra
     for idx_trial in range(len(data)): # Cycle through eeg trials
-        x, _ = data[idx_trial]
+        x = data[idx_trial]
         
         # Compute PSD
         f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = fs, nperseg = nperseg)
@@ -222,4 +222,4 @@ def compute_average_spectra(data, nperseg, fs, idx_ch):
     average_spectra = computed_spectra.mean(0)
     std_spectra = computed_spectra.std(0)
 
-    return average_spectra, std_spectra
+    return average_spectra, std_spectra, f
