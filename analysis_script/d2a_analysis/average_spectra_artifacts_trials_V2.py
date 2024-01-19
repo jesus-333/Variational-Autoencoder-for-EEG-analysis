@@ -1,6 +1,7 @@
 """
 Plot the average spectra for the artifacts and NON artifacts for dataset 2a.
-artifacts and non artifacts are selected based on the the expert classification
+Artifacts and non artifacts are selected based on the the expert classification.
+Same computation as V1, the only change is the plot with the same figure. V2 does not support plot in different figure.
 """
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -34,9 +35,8 @@ plot_config = dict(
     fontsize = 20, 
     capsize = 3,
     alpha = 0.25,
-    color = 'black',
     add_title = False,
-    use_different_figure = False,
+    add_legend = True,
     save_fig = True
 )
 
@@ -82,36 +82,23 @@ for subj in subj_list:
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
-    if plot_config['use_different_figure']:
-        fig_freq_1, ax_freq_1 = plt.subplots(1, 1, figsize = plot_config['figsize'])
-        fig_freq_2, ax_freq_2 = plt.subplots(1, 1, figsize = plot_config['figsize'])
-        fig_freq_3, ax_freq_3 = plt.subplots(1, 1, figsize = plot_config['figsize'])
-        fig_freq_4, ax_freq_4 = plt.subplots(1, 1, figsize = plot_config['figsize'])
-        
-        ax_freq_list = [ax_freq_1, ax_freq_2, ax_freq_3, ax_freq_4]
-        fig_freq_list = [fig_freq_1, fig_freq_2, fig_freq_3, fig_freq_4]
-    else:
-        fig_freq, ax_freq_list = plt.subplots(2, 2, figsize = plot_config['figsize'])
-        idx_figures = [[0, 0], [0, 1], [1, 0], [1, 1]] 
-        fig_freq_list = [fig_freq]
+    fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
     for i in range(4):
+        if subj == 4 and i == 0 : continue
+
         average_spectra = average_spectra_list[i]
         std_spectra = std_spectra_list[i]
 
-        if not plot_config['use_different_figure']: ax_freq = ax_freq_list[*idx_figures[i]]
-        else : ax_freq = ax_freq_list[i]
-
-
         ax_freq.plot(f, average_spectra,
-                     color = plot_config['color'], label = label_list[i]
+                     label = label_list[i]
                      )
-        ax_freq.fill_between(f, average_spectra + std_spectra, average_spectra - std_spectra, 
-                             color = plot_config['color'], alpha = plot_config['alpha']
-                             )
+        # ax_freq.fill_between(f, average_spectra + std_spectra, average_spectra - std_spectra, 
+        #                      color = plot_config['color'], alpha = plot_config['alpha']
+        #                      )
         ax_freq.set_xlabel("Frequency [Hz]")
         ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$] (S{})".format(subj))
-        # ax_freq.legend()
+        if plot_config['add_legend']: ax_freq.legend()
         ax_freq.grid(True) 
         ax_freq.set_xlim([0, 80])
         ax_freq.set_ylim([0, 30])
@@ -119,25 +106,19 @@ for subj in subj_list:
             
         ax_freq.set_ylim(bottom = -1)
     
-    if plot_config['use_different_figure']:
-        for i in range(4):
-            fig = fig_freq_list[i]
-            label = label_list[i].replace(" ", "_").lower()
-            
-            fig.tight_layout()
-            fig.show()
-            
-            if plot_config['save_fig']: #TODO eventualmente aggiungere save anche per figura unica
-                # Create pat
-                path_save = 'Saved Results/d2a_analysis/average_spectra/'
-                os.makedirs(path_save, exist_ok = True)
-                
-                # Save fig
-                path_save += 'avg_spectra_S{}_'.format(subj) + label
-    
-                fig.savefig(path_save + ".png", format = 'png')
-                fig.savefig(path_save + ".eps", format = 'eps')
-    else:
+        label = label_list[i].replace(" ", "_").lower()
+        
         fig_freq.tight_layout()
         fig_freq.show()
+        
+        if plot_config['save_fig']: #TODO eventualmente aggiungere save anche per figura unica
+            # Create pat
+            path_save = 'Saved Results/d2a_analysis/average_spectra/'
+            os.makedirs(path_save, exist_ok = True)
+            
+            # Save fig
+            path_save += 'avg_spectra_S{}_'.format(subj) + label
+
+            fig_freq.savefig(path_save + ".png", format = 'png')
+            fig_freq.savefig(path_save + ".eps", format = 'eps')
 
