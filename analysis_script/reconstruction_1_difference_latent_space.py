@@ -2,7 +2,7 @@
 Analysis of the reconstruction of the various layer of the hvEEGNet
 (i.e. reconstruct using only the deepest latent space, the deepest and the middle or all three)
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 import sys
 import os
 
@@ -21,7 +21,7 @@ from library.dataset import preprocess as pp
 from library.training import train_generic
 from library.analysis import support
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
 
 subj = 3
@@ -34,7 +34,7 @@ tot_epoch_training = 80
 idx_trial = 0
 channel = 'C3'
 
-compute_psd = True 
+compute_psd = False 
 use_test_set = True
 
 config = dict(
@@ -43,14 +43,16 @@ config = dict(
 )
 
 plot_config = dict(
-    figsize = (12, 8),
-    fontsize = 20,
-    linewidth_original = 3,
+    figsize = (24, 8),
+    fontsize = 24,
+    linewidth_original = 1,
     linewidth_reconstructed = 1,
+    color_original = 'black',
+    color_reconstructed = 'red',
     save_fig = True,
 )
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Function
 
 def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
@@ -67,16 +69,16 @@ def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
 
 def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, compute_psd, plot_config):
     ax.plot(horizontal_axis_value, x, label = 'Original signal',
-            color = 'grey', linewidth = plot_config['linewidth_original'])
+            color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
     ax.plot(horizontal_axis_value_r, x_r, label = 'Reconstructed signal',
-            color = 'black', linewidth = plot_config['linewidth_reconstructed'])
+            color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
     if compute_psd: ax.set_xlabel("Frequency [Hz]")
     else: ax.set_xlabel("Time [s]")
     ax.set_xlim([horizontal_axis_value_r[0], horizontal_axis_value_r[-1]])
     ax.legend()
     ax.grid(True)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     
 plt.rcParams.update({'font.size': plot_config['fontsize']})
@@ -84,7 +86,7 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 
 dataset_config = cd.get_moabb_dataset_config([subj])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config)
+train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
 
 
 for epoch in epoch_list:

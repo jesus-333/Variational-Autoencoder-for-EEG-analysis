@@ -23,8 +23,8 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 2
-use_test_set = True
+subj = 9    
+use_test_set = False
 
 t_min = 2
 t_max = 6
@@ -33,26 +33,28 @@ compute_spectra_with_entire_signal = True
 nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = True
+rand_trial_sample = False
 plot_to_create = 10
 
 repetition = 19
-n_trial = 249
-channel = 'C2'
+n_trial = 250
+channel = 'C1'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
     
 
 plot_config = dict(
-    figsize_time = (14, 10),
-    figsize_freq = (14, 10),
+    figsize_time = (12, 8),
+    figsize_freq = (12, 8),
     fontsize = 24   , 
-    linewidth_original = 2,
+    linewidth_original = 1,
     linewidth_reconstructed = 1,
+    color_original = 'black',
+    color_reconstructed = 'red',
     add_title = False,
-    save_fig = False,
-    format_so_save = ['png', 'eps']
+    save_fig = True,
+    format_so_save = ['png', 'pdf', 'eps']
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -117,14 +119,16 @@ for n_plot in range(plot_to_create):
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
     
-    ax_time.plot(t, x_original_to_plot, label = 'original signal', color = 'grey', linewidth = plot_config['linewidth_original'])
-    ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal', color = 'black', linewidth = plot_config['linewidth_reconstructed'])
+    ax_time.plot(t, x_original_to_plot, label = 'original signal', 
+                 color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
+    ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal', 
+                 color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
-    ax_time.set_xlim([t_min, t_max])
     # ax_time.legend()
-    ax_time.grid(True)
     if xticks_time is not None: ax_time.set_xticks(xticks_time)
+    ax_time.set_xlim([t_min, t_max])
+    ax_time.grid(True)
 
     if plot_config['add_title']: ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
     
@@ -136,13 +140,13 @@ for n_plot in range(plot_to_create):
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
     ax_freq.plot(f, x_psd, label = 'original signal', 
-                 color = 'grey', linewidth = plot_config['linewidth_original'])
+                 color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
     ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', 
-                 color = 'black', linewidth = plot_config['linewidth_reconstructed'])
+                 color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
     ax_freq.set_xlim([0, 80])
-    ax_freq.legend()
+    # ax_freq.legend()
     ax_freq.grid(True) 
 
     if plot_config['add_title']: ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))

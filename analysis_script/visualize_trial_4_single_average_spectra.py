@@ -25,7 +25,7 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [1, 2, 5]
+subj_list = [4]
 ch = 'C3'
 
 use_test_set = True
@@ -68,7 +68,7 @@ for subj in subj_list:
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     
     idx_ch = dataset.ch_list == ch
-    average_spectra, std_spectra = support.compute_average_spectra(dataset, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
+    average_spectra, std_spectra, f = support.compute_average_spectra(dataset.data, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures

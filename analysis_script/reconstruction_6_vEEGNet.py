@@ -37,14 +37,16 @@ nperseg = 500
 n_trial = 0
 channel = 'C3'
     
-epoch = 20
+epoch = 40
 
 plot_config = dict(
     figsize_time = (24, 8),
     figsize_freq = (12, 8),
-    fontsize = 20, 
-    linewidth_original = 3,
+    fontsize = 24, 
+    linewidth_original = 1.2,
     linewidth_reconstructed = 1,
+    color_original = 'black',
+    color_reconstructed = 'red',
     save_fig = True,
 )
 batch_size = 64
@@ -123,9 +125,9 @@ f_r, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
 
 fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
 ax_time.plot(t, x_original_to_plot, label = 'Original Signal', 
-             color = 'grey', linewidth = plot_config['linewidth_original'])
+             color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
 ax_time.plot(t_r, x_r_to_plot, label = 'Reconstruct Signal',
-             color = 'black', linewidth = plot_config['linewidth_reconstructed'])
+             color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
 ax_time.set_xlabel("Time [s]")
 ax_time.set_ylabel(r"Amplitude [$\mu$V]")
 ax_time.set_xlim([t_min, t_max])
@@ -140,9 +142,9 @@ fig_time.show()
 
 fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
 ax_freq.plot(f, x_psd, label = 'Original Signal', 
-             color = 'grey', linewidth = plot_config['linewidth_original'])
+             color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
 ax_freq.plot(f_r, x_r_psd, label = 'Reconstruct Signal', 
-             color = 'black', linewidth = plot_config['linewidth_reconstructed'])
+             color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
 ax_freq.set_xlabel("Frequency [Hz]")
 ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
 ax_freq.set_xlim([0, 80])
@@ -161,5 +163,8 @@ if plot_config['save_fig']:
     path_save += "subj_{}_trial_{}_ch_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, epoch, label_name)
     fig_time.savefig(path_save + "_time.png", format = 'png')
     fig_time.savefig(path_save + "_time.pdf", format = 'pdf')
+    fig_time.savefig(path_save + "_time.eps", format = 'eps')
+    
     fig_freq.savefig(path_save + "_freq.png", format = 'png')
     fig_freq.savefig(path_save + "_freq.pdf", format = 'pdf')
+    fig_freq.savefig(path_save + "_freq.eps", format = 'eps')
