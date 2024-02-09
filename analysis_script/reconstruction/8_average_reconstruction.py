@@ -111,8 +111,8 @@ for i in range(len(subj_list)):
         else :
             x_r = torch.cat((x_r, x_r_deep_only), 0)
 
-    x_avg_list.append(x_r.mean(0))
-    x_std_list.append(x_r.std(0))
+    x_avg_list.append(x_r.mean(0).cpu())
+    x_std_list.append(x_r.std(0).cpu())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Plot data
@@ -147,8 +147,10 @@ for i in range(len(subj_list)):
 
 if string_domain == 'freq': 
     ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
 elif string_domain == 'time': 
     ax.set_xlabel("Time [s]")
+    ax.set_ylabel(r"Amplitude [$\mu$V]")
 
 ax.set_xlim([horizontal_axis_value[0], horizontal_axis_value[-1]])
 ax.legend()
