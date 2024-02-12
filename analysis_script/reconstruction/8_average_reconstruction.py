@@ -40,6 +40,7 @@ fmax = 5
 
 latent_space_to_ignore = [True, True, False] # Use only deep latent space
 # latent_space_to_ignore = [True, False, False] # Use deep and middle latent space
+latent_space_to_ignore = [False, False, False] # Use all 3 latent spaces
 
 t_min = 2
 t_max = 6
@@ -50,6 +51,7 @@ plot_config = dict(
     figsize = (24, 15),
     fontsize = 20,
     add_std = False,
+    add_original = True, # Only in the 3 x 3
     alpha = 0.33,
     save_fig = True,
 )
@@ -77,7 +79,8 @@ def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, comp
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 
-x_avg_list = []
+x_avg_orig_list = []
+x_avg_r_list = []
 x_std_list = []
 
 for i in range(len(subj_list)):
@@ -107,20 +110,24 @@ for i in range(len(subj_list)):
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, 2, epoch)
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     model_hv.to(device)
-
+    
+    x_orig = None
     x_r = None
 
     for batch_data, batch_label in dataloader : 
-        x = batch_data.to(device)
+        tmp_x = batch_data.to(device)
 
-        x_r_deep_only = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore).squeeze()
+        tmp_x_r = model_hv.h_vae.reconstruct_ignoring_latent_spaces(tmp_x, latent_space_to_ignore).squeeze()
 
         if x_r is None :
-            x_r = x_r_deep_only
+            x_orig = tmp_x
+            x_r = tmp_x_r
         else :
-            x_r = torch.cat((x_r, x_r_deep_only), 0)
+            x_orig = torch.cat((x_orig, tmp_x), 0)
+            x_r = torch.cat((x_r, tmp_x_r), 0)
 
-    x_avg_list.append(x_r.mean(0).cpu())
+    x_avg_orig_list.append(x_orig.mean(0).cpu())
+    x_avg_r_list.append(x_r.mean(0).cpu())
     x_std_list.append(x_r.std(0).cpu())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -133,24 +140,27 @@ for i in range(len(subj_list)):
     subj = subj_list[i]
     color = subj_to_color[i]
 
-    x_avg = x_avg_list[i]
+    x_avg_orig = x_avg_orig_list[i]
+    x_avg_r = x_avg_r_list[i]
     x_std = x_std_list[i]
 
     if compute_psd:
         nperseg = 500
-        horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+        horizontal_axis_value, x_avg_r_plot = signal.welch(x_avg_r[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
         string_domain = 'freq'
     else :
-        x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
+        x_avg_orig_plot, horizontal_axis_value = support.crop_signal(x_avg_orig, idx_ch, 2, 6, t_min, t_max)
+        x_avg_r_plot, horizontal_axis_value = support.crop_signal(x_avg_r, idx_ch, 2, 6, t_min, t_max)
         x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
         string_domain = 'time'
 
-    ax.plot(horizontal_axis_value, x_avg_plot, 
-            label = 'S{}'.format(subj), color = color
+    ax.plot(horizontal_axis_value, x_avg_r_plot, color = color,
+            label = 'S{}'.format(subj), 
             )
+
     
     if plot_config['add_std']:
-        ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
+        ax.fill_between(horizontal_axis_value, x_avg_r_plot + x_std_plot, x_avg_r_plot - x_std_plot, 
                         color = color, alpha = plot_config['alpha']
                         )
 
@@ -183,27 +193,37 @@ if len(subj_list) == 9:
             subj = subj_list[k]
             color = subj_to_color[k]
 
-            x_avg = x_avg_list[k]
-            x_std = x_std_list[k]
+            x_avg_orig = x_avg_orig_list[i]
+            x_avg_r = x_avg_r_list[i]
+            x_std = x_std_list[i]
             k += 1
 
             ax = axs[i, j]
-
+            
+            # (OPTIONAL) Convert in PSD
             if compute_psd:
                 nperseg = 500
-                horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+                horizontal_axis_value, x_avg_r_plot = signal.welch(x_avg_r[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
                 string_domain = 'freq'
             else :
-                x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
+                x_avg_orig_plot, horizontal_axis_value = support.crop_signal(x_avg_orig, idx_ch, 2, 6, t_min, t_max)
+                x_avg_r_plot, horizontal_axis_value = support.crop_signal(x_avg_r, idx_ch, 2, 6, t_min, t_max)
                 x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
                 string_domain = 'time'
 
-            ax.plot(horizontal_axis_value, x_avg_plot, 
-                    label = 'S{}'.format(subj), color = color
+            # (Optioanl) plot the average of the original signal
+            if plot_config['add_original']:
+                ax.plot(horizontal_axis_value, x_avg_orig_plot, color = 'black',
+                        label = 'S{} - Orig'.format(subj), 
+                        )
+            
+            # Plot the average of the reconstructed signal
+            ax.plot(horizontal_axis_value, x_avg_r_plot, color = color,
+                    label = 'S{}'.format(subj) if plot_config['add_original'] == False else 'S{} - Recon'.format(subj), 
                     )
             
             if plot_config['add_std']:
-                ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
+                ax.fill_between(horizontal_axis_value, x_avg_r_plot + x_std_plot, x_avg_r_plot - x_std_plot, 
                                 color = color, alpha = plot_config['alpha']
                                 )
 
