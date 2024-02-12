@@ -115,7 +115,7 @@ for subj in subj_list:
 
     if plot_config['save_fig']:
         # Create pat
-        path_save = 'Saved Results/d2a_analysis/hist_subj/bins {}/'.format(plot_config['bins'])
+        path_save = 'Saved Results/d2a_analysis/hist_error_subj/bins {}/'.format(plot_config['bins'])
         os.makedirs(path_save, exist_ok = True)
         
         # Save fig
