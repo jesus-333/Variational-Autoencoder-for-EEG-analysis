@@ -31,7 +31,7 @@ plot_config = dict(
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
     fontsize = 24,
-    save_fig = False,
+    save_fig = True,
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -88,4 +88,4 @@ for i in range(len(subj_list)):
         if plot_config['use_log_scale_x']: path_save += '_LOGSCALE_X'
         if plot_config['use_log_scale_y']: path_save += '_LOGSCALE_Y'
         fig.savefig(path_save + ".png", format = 'png')
-        fig.savefig(path_save + ".eps", format = 'eps')
+        # fig.savefig(path_save + ".eps", format = 'eps')

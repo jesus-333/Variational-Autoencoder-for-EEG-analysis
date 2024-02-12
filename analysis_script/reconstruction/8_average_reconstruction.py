@@ -29,23 +29,25 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [1, 2, 3]
-# subj_list = [1]
 use_test_set = False
 
 epoch = 80
 tot_epoch_training = 80
 
+filter_data = False
+fmin = 0.5
+fmax = 5
+
 latent_space_to_ignore = [True, True, False] # Use only deep latent space
-latent_space_to_ignore = [True, False, False] # Use deep and middle latent space
+# latent_space_to_ignore = [True, False, False] # Use deep and middle latent space
 
 t_min = 2
 t_max = 6
-channel = 'C3'
+channel = 'P2'
 compute_psd = False
 
 plot_config = dict(
-    figsize = (20, 20),
+    figsize = (24, 15),
     fontsize = 20,
     add_std = False,
     alpha = 0.33,
@@ -82,9 +84,14 @@ for i in range(len(subj_list)):
     subj = subj_list[i]
     print("Reconstruction subj {}".format(subj))
     
-    # Load/create data and model
+    # Get dataset config
     dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
+    dataset_config['filter_data'] = filter_data
+    dataset_config['fmin'] = fmin
+    dataset_config['fmax'] = fmax
+
+    # Load/create data and model
     train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
     
     # Select train/test data and create dataloader
@@ -117,98 +124,103 @@ for i in range(len(subj_list)):
     x_std_list.append(x_r.std(0).cpu())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% Plot data
-
-# idx_ch = dataset.ch_list == channel
-# fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
-#
-# for i in range(len(subj_list)):
-#     subj = subj_list[i]
-#     color = subj_to_color[i]
-#
-#     x_avg = x_avg_list[i]
-#     x_std = x_std_list[i]
-#
-#     if compute_psd:
-#         nperseg = 500
-#         horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
-#         string_domain = 'freq'
-#     else :
-#         x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
-#         x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
-#         string_domain = 'time'
-#
-#     ax.plot(horizontal_axis_value, x_avg_plot, 
-#             label = 'S{}'.format(subj), color = color
-#             )
-#     
-#     if plot_config['add_std']:
-#         ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
-#                         color = color, alpha = plot_config['alpha']
-#                         )
-#
-# if string_domain == 'freq': 
-#     ax.set_xlabel("Frequency [Hz]")
-#     ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
-# elif string_domain == 'time': 
-#     ax.set_xlabel("Time [s]")
-#     ax.set_ylabel(r"Amplitude [$\mu$V]")
-#
-# ax.set_xlim([horizontal_axis_value[0], horizontal_axis_value[-1]])
-# ax.legend()
-# ax.grid(True)
-#
-# fig.tight_layout()
-# fig.show()
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% Plot data (a line for subject in the same plot)
 
 idx_ch = dataset.ch_list == channel
-fig, axs = plt.subplots(3, 3, figsize = plot_config['figsize'])
+fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
-k = 0
-for i in range(3):
-    for j in range(3):
+for i in range(len(subj_list)):
+    subj = subj_list[i]
+    color = subj_to_color[i]
 
-        subj = subj_list[k]
-        color = subj_to_color[k]
+    x_avg = x_avg_list[i]
+    x_std = x_std_list[i]
 
-        x_avg = x_avg_list[k]
-        x_std = x_std_list[k]
-        k += 1
+    if compute_psd:
+        nperseg = 500
+        horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+        string_domain = 'freq'
+    else :
+        x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
+        x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
+        string_domain = 'time'
 
-        ax = axs[i, j]
+    ax.plot(horizontal_axis_value, x_avg_plot, 
+            label = 'S{}'.format(subj), color = color
+            )
+    
+    if plot_config['add_std']:
+        ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
+                        color = color, alpha = plot_config['alpha']
+                        )
 
-        if compute_psd:
-            nperseg = 500
-            horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
-            string_domain = 'freq'
-        else :
-            x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
-            x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
-            string_domain = 'time'
+if string_domain == 'freq': 
+    ax.set_xlabel("Frequency [Hz]")
+    ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
+elif string_domain == 'time': 
+    ax.set_xlabel("Time [s]")
+    ax.set_ylabel(r"Amplitude [$\mu$V]")
 
-        ax.plot(horizontal_axis_value, x_avg_plot, 
-                label = 'S{}'.format(subj), color = color
-                )
-        
-        if plot_config['add_std']:
-            ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
-                            color = color, alpha = plot_config['alpha']
-                            )
-
-        if string_domain == 'freq': 
-            ax.set_xlabel("Frequency [Hz]")
-            ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
-        elif string_domain == 'time': 
-            ax.set_xlabel("Time [s]")
-            ax.set_ylabel(r"Amplitude [$\mu$V]")
-
-        ax.set_xlim([horizontal_axis_value[0], horizontal_axis_value[-1]])
-        ax.legend()
-        ax.grid(True)
+ax.set_xlim([horizontal_axis_value[0], horizontal_axis_value[-1]])
+ax.legend()
+ax.grid(True)
 
 fig.tight_layout()
 fig.show()
 
-fig.save_fig("Only_deep_{}.png".format(channel))
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+# (OPTIONAL) If there are 9 subjcets in the list create also the 3 x 3 plot
+if len(subj_list) == 9:
+
+    idx_ch = dataset.ch_list == channel
+    fig, axs = plt.subplots(3, 3, figsize = plot_config['figsize'])
+
+    k = 0
+    for i in range(3):
+        for j in range(3):
+
+            subj = subj_list[k]
+            color = subj_to_color[k]
+
+            x_avg = x_avg_list[k]
+            x_std = x_std_list[k]
+            k += 1
+
+            ax = axs[i, j]
+
+            if compute_psd:
+                nperseg = 500
+                horizontal_axis_value, x_avg_plot = signal.welch(x_avg[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
+                string_domain = 'freq'
+            else :
+                x_avg_plot, horizontal_axis_value = support.crop_signal(x_avg, idx_ch, 2, 6, t_min, t_max)
+                x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
+                string_domain = 'time'
+
+            ax.plot(horizontal_axis_value, x_avg_plot, 
+                    label = 'S{}'.format(subj), color = color
+                    )
+            
+            if plot_config['add_std']:
+                ax.fill_between(horizontal_axis_value, x_avg_plot + x_std_plot, x_avg_plot - x_std_plot, 
+                                color = color, alpha = plot_config['alpha']
+                                )
+
+            if string_domain == 'freq': 
+                ax.set_xlabel("Frequency [Hz]")
+                ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
+            elif string_domain == 'time': 
+                ax.set_xlabel("Time [s]")
+                ax.set_ylabel(r"Amplitude [$\mu$V]")
+
+            ax.set_xlim([horizontal_axis_value[0], horizontal_axis_value[-1]])
+            ax.legend()
+            ax.grid(True)
+    
+    fig.suptitle("Channel {}".format(channel))
+    fig.tight_layout()
+    fig.show()
+    
+    # TODO complete save figure
+    fig.savefig("Only_deep_{}.png".format(channel))
