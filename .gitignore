@@ -5,6 +5,8 @@ TMP Test/tmp_data/
 *.png
 *.eps
 *.pdf
+Saved Results/
+Saved Model/
 Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
