@@ -14,6 +14,3 @@ The complete list of subpackages is :
 - *training* : contains function to train the various model. More information in the [training README](library/README/README_training.md). If you use wandb there are version of the training scripts with support for this awesome library. If you don't use wandb I highly recommend you try using it.
 - *config* : contains the configuration for the creation of models and training. More info in the [model REAMDE](library/README/README_model.md) and the [training README](library/README/README_training.md)
 - *dataset*: contains functions used to download dataset and to perform some basic preprocess. More info in the [dataset README](library/README/README_dataset.md)
-
-
-

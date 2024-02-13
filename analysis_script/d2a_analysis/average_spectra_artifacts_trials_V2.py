@@ -111,14 +111,12 @@ for subj in subj_list:
         fig_freq.tight_layout()
         fig_freq.show()
         
-        if plot_config['save_fig']: #TODO eventualmente aggiungere save anche per figura unica
-            # Create pat
-            path_save = 'Saved Results/d2a_analysis/average_spectra/'
-            os.makedirs(path_save, exist_ok = True)
-            
-            # Save fig
-            path_save += 'avg_spectra_S{}_'.format(subj) + label
-
-            fig_freq.savefig(path_save + ".png", format = 'png')
-            fig_freq.savefig(path_save + ".eps", format = 'eps')
-
+    if plot_config['save_fig']: #TODO eventualmente aggiungere save anche per figura unica
+        # Create pat
+        path_save = 'Saved Results/d2a_analysis/average_spectra/'
+        os.makedirs(path_save, exist_ok = True)
+        
+        # Save fig
+        path_save += 'avg_spectra_S{}_V2'.format(subj) 
+        fig_freq.savefig(path_save + ".png", format = 'png')
+        fig_freq.savefig(path_save + ".eps", format = 'eps')

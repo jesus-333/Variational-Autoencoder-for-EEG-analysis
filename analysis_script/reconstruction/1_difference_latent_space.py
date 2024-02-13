@@ -81,14 +81,12 @@ def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, comp
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
 
 dataset_config = cd.get_moabb_dataset_config([subj])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
-
 
 for epoch in epoch_list:
 
@@ -98,8 +96,6 @@ for epoch in epoch_list:
     else: 
         dataset = train_dataset
         string_dataset = 'train'
-        
-        
     
     # Load model weight
     # path_weight = 'Saved Model/hvEEGNet_shallow_{}/{}/model_{}.pth'.format(loss, 3, epoch)
@@ -133,9 +129,6 @@ for epoch in epoch_list:
         string_domain = 'freq'
     else:
         string_domain = 'time'
-
-    plt.rcParams.update({'font.size': plot_config['fontsize']})
-    
     
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
     plot_signal(ax, horizontal_axis_value, x_plot, horizontal_axis_value_r_1, x_r_1_plot, compute_psd, plot_config)
