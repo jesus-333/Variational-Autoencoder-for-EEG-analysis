@@ -4,19 +4,17 @@ Create an histogram with all the data of all the trials and all the channels for
 Optionally you can select only a specific channel
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
-import sys
 import os
 
-import numpy as np
 import matplotlib.pyplot as plt
 
 from library.config import config_dataset as cd
 from library.analysis import support
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -34,7 +32,7 @@ plot_config = dict(
     save_fig = True,
 )
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 for i in range(len(subj_list)):
     subj = subj_list[i]
