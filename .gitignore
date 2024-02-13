@@ -2,6 +2,7 @@
 TMP_Folder/
 TMP Test/tmp_data/
 *.pyc
+*.png
 Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
