@@ -4,6 +4,7 @@ TMP Test/tmp_data/
 *.png
 *.eps
 *.pdf
+*.npy
 Dataset/D2A/v1/Train.7z
 Dataset/D2A/v1/Test.7z
 wandb/
