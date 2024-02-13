@@ -31,7 +31,7 @@ epoch_list = [40]
 
 tot_epoch_training = 80
 
-idx_trial = 0
+idx_trial = 206
 channel = 'C3'
 
 compute_psd = False 
@@ -39,14 +39,14 @@ use_test_set = True
 
 config = dict(
     t_min = 2,
-    t_max = 3,
+    t_max = 3.5018,
 )
 
 plot_config = dict(
     figsize = (24, 8),
     fontsize = 24,
-    linewidth_original = 1,
-    linewidth_reconstructed = 1,
+    linewidth_original = 1.2,
+    linewidth_reconstructed = 1.4,
     color_original = 'black',
     color_reconstructed = 'red',
     save_fig = True,
@@ -74,8 +74,9 @@ def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, comp
             color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
     if compute_psd: ax.set_xlabel("Frequency [Hz]")
     else: ax.set_xlabel("Time [s]")
+    ax.set_xticks([2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 4, 4.5, 5])
     ax.set_xlim([horizontal_axis_value_r[0], horizontal_axis_value_r[-1]])
-    ax.legend()
+    # ax.legend()
     ax.grid(True)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
