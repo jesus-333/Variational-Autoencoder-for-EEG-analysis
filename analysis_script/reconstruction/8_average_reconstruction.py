@@ -14,18 +14,14 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent_directory = os.path.dirname(current)
 sys.path.insert(0, parent_directory)
 
-import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.config import config_dataset as cd
-from library.config import config_model as cm
-from library.dataset import preprocess as pp
-from library.training import train_generic
 from library.analysis import support
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -58,7 +54,7 @@ plot_config = dict(
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 subj_to_color = ['red', 'blue', 'black', 'green', 'orange', 'violet', 'pink', 'brown', 'cyan']
 
@@ -73,11 +69,11 @@ def plot_signal(ax, horizontal_axis_value, x, horizontal_axis_value_r, x_r, comp
     ax.legend()
     ax.grid(True)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Compute the average reconstruction
 
 plt.rcParams.update({'font.size': plot_config['fontsize']})
-label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue'}
 
 x_avg_orig_list = []
 x_avg_r_list = []
@@ -98,10 +94,10 @@ for i in range(len(subj_list)):
     train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
     
     # Select train/test data and create dataloader
-    if use_test_set: 
+    if use_test_set:
         dataset = test_dataset
         string_dataset = 'test'
-    else: 
+    else:
         dataset = train_dataset
         string_dataset = 'train'
     dataloader = DataLoader(dataset, batch_size = 72)
@@ -114,7 +110,7 @@ for i in range(len(subj_list)):
     x_orig = None
     x_r = None
 
-    for batch_data, batch_label in dataloader : 
+    for batch_data, batch_label in dataloader :
         tmp_x = batch_data.to(device)
 
         tmp_x_r = model_hv.h_vae.reconstruct_ignoring_latent_spaces(tmp_x, latent_space_to_ignore).squeeze()
@@ -130,7 +126,7 @@ for i in range(len(subj_list)):
     x_avg_r_list.append(x_r.mean(0).cpu())
     x_std_list.append(x_r.std(0).cpu())
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Plot data (a line for subject in the same plot)
 
 idx_ch = dataset.ch_list == channel
@@ -148,16 +144,15 @@ for i in range(len(subj_list)):
         nperseg = 500
         horizontal_axis_value, x_avg_r_plot = signal.welch(x_avg_r[idx_ch].squeeze(), fs = 250, nperseg = nperseg)
         string_domain = 'freq'
-    else :
+    else:
         x_avg_orig_plot, horizontal_axis_value = support.crop_signal(x_avg_orig, idx_ch, 2, 6, t_min, t_max)
         x_avg_r_plot, horizontal_axis_value = support.crop_signal(x_avg_r, idx_ch, 2, 6, t_min, t_max)
         x_std_plot, horizontal_axis_value = support.crop_signal(x_std, idx_ch, 2, 6, t_min, t_max)
         string_domain = 'time'
 
     ax.plot(horizontal_axis_value, x_avg_r_plot, color = color,
-            label = 'S{}'.format(subj), 
+            label = 'S{}'.format(subj),
             )
-
     
     if plot_config['add_std']:
         ax.fill_between(horizontal_axis_value, x_avg_r_plot + x_std_plot, x_avg_r_plot - x_std_plot, 
@@ -214,23 +209,23 @@ if len(subj_list) == 9:
             # (Optioanl) plot the average of the original signal
             if plot_config['add_original']:
                 ax.plot(horizontal_axis_value, x_avg_orig_plot, color = 'black',
-                        label = 'S{} - Orig'.format(subj), 
+                        label = 'S{} - Orig'.format(subj),
                         )
             
             # Plot the average of the reconstructed signal
             ax.plot(horizontal_axis_value, x_avg_r_plot, color = color,
-                    label = 'S{}'.format(subj) if plot_config['add_original'] == False else 'S{} - Recon'.format(subj), 
+                    label = 'S{}'.format(subj) if plot_config['add_original'] is False else 'S{} - Recon'.format(subj),
                     )
             
             if plot_config['add_std']:
-                ax.fill_between(horizontal_axis_value, x_avg_r_plot + x_std_plot, x_avg_r_plot - x_std_plot, 
+                ax.fill_between(horizontal_axis_value, x_avg_r_plot + x_std_plot, x_avg_r_plot - x_std_plot,
                                 color = color, alpha = plot_config['alpha']
                                 )
 
-            if string_domain == 'freq': 
+            if string_domain == 'freq':
                 ax.set_xlabel("Frequency [Hz]")
                 ax.set_ylabel(r"PSD [$\mu V^2/Hz$]")
-            elif string_domain == 'time': 
+            elif string_domain == 'time':
                 ax.set_xlabel("Time [s]")
                 ax.set_ylabel(r"Amplitude [$\mu$V]")
 

@@ -1,3 +1,7 @@
+"""
+Contains support functions to download the dataset and create the models
+"""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
