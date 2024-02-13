@@ -4,8 +4,6 @@ Created on Fri Sep  1 10:03:59 2023
 @author: Alberto Zancanaro (jesus)
 @organization: University of Padua
 
-Visualize multiple trial in a grid 3 x 3
-The trial 
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -27,10 +25,10 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [1, 2, 5]
-ch = 'Cz'
+subj_list = [4]
+ch = 'C3'
 
-use_test_set = False
+use_test_set = True
 
 nperseg = 500
 
@@ -68,30 +66,13 @@ for subj in subj_list:
     average_recon_error_per_trial = recon_error.mean(1)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Create a variable to saved the average spectra for the various channels
-
-    _, tmp_spectra = signal.welch(dataset[0][0].squeeze()[0, :], fs = 250, nperseg = nperseg)
-    computed_spectra = np.zeros((len(dataset), len(tmp_spectra)))
-
-    # Compute the average spectra
-    for idx_trial in range(len(dataset)): # Cycle through eeg trials
-        x, _ = dataset[idx_trial]
-
-
-        idx_ch = dataset.ch_list == ch
-        
-        # Compute PSD
-        f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = 250, nperseg = nperseg)
-
-        computed_spectra[idx_trial, :] = x_psd
     
-    average_spectra = computed_spectra.mean(0)
-    std_spectra = computed_spectra.std(0)
+    idx_ch = dataset.ch_list == ch
+    average_spectra, std_spectra, f = support.compute_average_spectra(dataset.data, nperseg = nperseg, fs = 250, idx_ch = idx_ch)
 
     #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     # Create figures
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize'])
-
             
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     # Plot in frequency domain
@@ -113,7 +94,7 @@ for subj in subj_list:
     elif subj == 2:
         ax_freq.set_ylim([-5, 23])
     elif subj == 5:
-        ax_freq.set_ylim([-10, 40])
+        ax_freq.set_ylim([-10, 23])
         
     ax_freq.set_ylim(bottom = -1)
 
@@ -131,4 +112,5 @@ for subj in subj_list:
         path_save = 'Saved Results/only_original_trial/'
         path_save += 'single_spectra_average_spectra_S{}_{}'.format(subj, dataset_string)
         fig_freq.savefig(path_save + ".png", format = 'png')
-        fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+        # fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+        fig_freq.savefig(path_save + ".eps", format = 'eps')
