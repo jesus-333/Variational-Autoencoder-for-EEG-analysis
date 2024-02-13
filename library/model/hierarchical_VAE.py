@@ -274,7 +274,9 @@ class hVAE_decoder(nn.Module):
                 
                 # Create the module to combine features
                 if i == 0:
-                    if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
+                    if config['use_h_in_decoder']: 
+                        # See Fig. 2 in NVAE paper
+                        # h is an extra input in the deepest hidden layer of the network
                         z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
                         tmp_z = torch.rand(config['h_shape'])
                     else:

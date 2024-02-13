@@ -1,3 +1,7 @@
+"""
+Contains support functions to download the dataset and create the models
+"""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
@@ -5,12 +9,14 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import scipy.fft as fft
+import scipy.signal as signal
 
 from ..config import config_dataset as cd
 from ..config import config_model as cm
 from ..dataset import preprocess as pp
 from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def get_dataset_and_model(dataset_config, model_name):
@@ -200,3 +206,24 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                 recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch])
 
     return recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std
+
+
+def compute_average_spectra(data, nperseg, fs, idx_ch):
+    # Create a variable to saved the average spectra for the various channels
+
+    _, tmp_spectra = signal.welch(data.squeeze()[0][0][:], fs = fs, nperseg = nperseg)
+    computed_spectra = np.zeros((len(data), len(tmp_spectra)))
+
+    # Compute the average spectra
+    for idx_trial in range(len(data)): # Cycle through eeg trials
+        x = data[idx_trial]
+        
+        # Compute PSD
+        f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = fs, nperseg = nperseg)
+
+        computed_spectra[idx_trial, :] = x_psd
+    
+    average_spectra = computed_spectra.mean(0)
+    std_spectra = computed_spectra.std(0)
+
+    return average_spectra, std_spectra, f

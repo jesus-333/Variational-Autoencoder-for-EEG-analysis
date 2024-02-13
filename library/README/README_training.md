@@ -2,7 +2,7 @@
 * [General informatin about training](#training-general-information): General information about train the model in this repository
 * [How to train a model](#how-to-train-a-model): Example on how to train a model
 	* [Python/IPython shell](#python-ipython-shell)	
-	* [Python IDE](#python-ide)
+	<!-- * [Python IDE](#python-ide) -->
 	* [Shell](#shell)
 * [Integration with wandb](#integration-with-wandb): How to use wandb to track your training
 * [Training config for each model](#training-config-for-each-model): Training parameters specific for each model
@@ -25,7 +25,7 @@ Each model has its own related traing files called `train_model_name.py` (e.g. f
 * `validation_epoch( ... )`: execute a validation epoch (i.e. compute loss, and and possibly other metrics, for the validation data but DO NOT perform the backward pass and the optimization step).
 * `check_train_config( ... )`: function used to check if there are problem with the training config
 
-Note that you are supposed to use the first 3 function of this list (and possibly `check_train_config()` if you want to check your train config). You are not supposed to use `train_epoch()` and `validation_epoch()`. 
+Note that you are supposed to use the first 3 functions of this list (and possibly `check_train_config()` if you want to check your train config). You are not supposed to use `train_epoch()` and `validation_epoch()`. 
 Also the use of `train_and_test_model()` is encouraged over using the individual `train` and `test` functions. This is because the `train_and_test_model` function provides an integrated and complete solution for downloading data, creating a model, training it and testing it
 
 # How to train a model 
@@ -67,8 +67,8 @@ train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 
 ```
 
-## Python IDE
-For train the models in a Python IDE (e.g. spyder, pycharm), simply open the training script you need (e.g. `train_MBEEGNet.py`) and run it. The configs used for dataset, training and model will be those specified in the files `config_model.py`, `config_dataset.py` and `config_training.py`
+<!-- ## Python IDE -->
+<!-- For train the models in a Python IDE (e.g. spyder, pycharm), simply open the training script you need (e.g. `train_MBEEGNet.py`) and run it. The configs used for dataset, training and model will be those specified in the files `config_model.py`, `config_dataset.py` and `config_training.py` -->
 
 
 ## Shell

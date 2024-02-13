@@ -38,8 +38,6 @@ The complete list of subpackages is :
 </details>
 
 
-
-
 [vEEGNet_ver1]: https://www.scitepress.org/Papers/2023/119908/119908.pdf
 [vEEGNet_ver2_preprint]: https://www.researchgate.net/publication/375867809_vEEGNet_learning_latent_representations_to_reconstruct_EEG_raw_data_via_variational_autoencoders
 [hvEEGNet_preprint]: https://www.researchgate.net/publication/375868326_hvEEGNet_exploiting_hierarchical_VAEs_on_EEG_data_for_neuroscience_applications
