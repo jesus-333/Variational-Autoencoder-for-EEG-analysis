@@ -187,6 +187,7 @@ if len(subj_list) == 9:
 
             subj = subj_list[k]
             color = subj_to_color[k]
+fig.savefig("Only_deep_{}.png".format(channel))
 
             x_avg_orig = x_avg_orig_list[i]
             x_avg_r = x_avg_r_list[i]
