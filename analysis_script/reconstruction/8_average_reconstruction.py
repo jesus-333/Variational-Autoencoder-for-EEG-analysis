@@ -2,7 +2,7 @@
 Compute the average reconstruction for a list of subjcet
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 import sys

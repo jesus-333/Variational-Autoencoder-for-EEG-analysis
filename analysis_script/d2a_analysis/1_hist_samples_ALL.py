@@ -1,5 +1,5 @@
 """
-Create an histogram with all the data of all the trials and all the channels for a specific subject
+Create an histogram with all the data of all the trials and all the channels for a specific subject.
 
 Optionally you can select only a specific channel
 """
@@ -41,7 +41,7 @@ for i in range(len(subj_list)):
     # Get subject data
     dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_dataset, validation_dataset, test_dataset , _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
+    train_dataset, validation_dataset, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
     
     # select train/test data
     if use_test_set:
