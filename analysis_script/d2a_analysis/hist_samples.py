@@ -25,7 +25,7 @@ channel_to_plot = None
 
 plot_config = dict(
     figsize = (16, 10),
-    bins = 1000,
+    bins = 100,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
     fontsize = 24,
