@@ -18,7 +18,7 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [3]
+subj_list = [5]
 use_test_set = False
 
 channel_to_plot = None
@@ -60,15 +60,19 @@ for i in range(len(subj_list)):
 
     # Plot the data
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    
+    ax.hist(data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
+    
+    # train_data = train_dataset.data.squeeze().mean(1).sort()[0]
+    # test_data = test_dataset.data.squeeze().mean(1).sort()[0]
+    # ax.hist(train_data.flatten(), bins = plot_config['bins'], label = 'S{} - Train data'.format(subj), histtype = 'step', linewidth = 1.5,)
+    # ax.hist(test_data.flatten(), bins = plot_config['bins'], label = 'S{} - Test data'.format(subj), histtype = 'step', linewidth = 1.5,)
 
-    ax.hist(data, bins = plot_config['bins'], label = 'S{}'.format(subj))
-
-    # ax.legend()
     ax.grid(True)
     ax.set_xlabel(r"Amplitude [$\mu$V]")
-    ax.set_title("S{} - {}".format(subj, dataset_string))
-    ax.set_xlim([-100, 100])
-    ax.set_ylim([0, 70000])
+    # ax.set_title("S{} - {}".format(subj, dataset_string))
+    # ax.set_xlim([-100, 100])
+    # ax.set_ylim([0, 70000])
     
     if plot_config['use_log_scale_x']: ax.set_xscale('log')
     if plot_config['use_log_scale_y']: ax.set_yscale('log')
