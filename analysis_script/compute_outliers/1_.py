@@ -10,7 +10,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent_directory = os.path.dirname(current)
 sys.path.insert(0, parent_directory)
 
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors as knn
 from sklearn.preprocessing import RobustScaler
@@ -105,4 +105,3 @@ for neighborhood_order in neighborhood_order_list:
             os.makedirs(path_save, exist_ok = True)
             path_save += "cluster_recon_error_{}_epoch_{}_neighborhood_order_{}".format(norm_string, epoch, neighborhood_order)
             fig.savefig(path_save)
-
