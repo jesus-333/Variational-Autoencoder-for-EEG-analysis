@@ -25,7 +25,7 @@ plot_config = dict(
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
     fontsize = 24,
-    save_fig = True,
+    save_fig = False,
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,5 +92,6 @@ elif factor_to_average == 'time':
 fig.tight_layout()
 fig.show()
 
+# TODO complete
 path_save = "TMP"
 fig.savefig(path_save + ".png", format = 'png')
