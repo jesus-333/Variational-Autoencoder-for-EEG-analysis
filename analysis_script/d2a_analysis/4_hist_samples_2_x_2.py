@@ -31,7 +31,7 @@ normalize_hist = True
 
 plot_config = dict(
     figsize = (30, 24),
-    n_bins = 100,
+    n_bins = 25,
     linewidth = 2,
     fontsize = 24,
     save_fig = True,

@@ -21,12 +21,14 @@ dataset_to_use = 'train'
 # dataset_to_use = 'both'
 
 factor_to_average = None
-# factor_to_average = 'channel'
+factor_to_average = 'channel'
 # factor_to_average = 'time'
+
+normalize_hist = True
 
 plot_config = dict(
     figsize = (30, 24),
-    bins = 100,
+    bins = 50,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
     fontsize = 24,
@@ -92,23 +94,28 @@ for i in range(len(subj_list)):
         else:
             raise ValueError("factor_to_average must have value None or channel or time")
 
-        ax.hist(data_class, bins = plot_config['bins'], label = label_dict[i], histtype = 'step', linewidth = 1)
+        ax.hist(data_class, bins = plot_config['bins'], density = normalize_hist,
+                label = label_dict[i], histtype = 'step', linewidth = 1
+                )
 
     ax.legend()
     ax.grid(True)
     ax.set_xlabel(r"Amplitude [$\mu$V]")
     ax.set_title("S{}".format(subj))
 
-    if factor_to_average is None:
+    if normalize_hist :
         pass
-        ax.set_xlim([-50, 50])
-        ax.set_ylim([0, 300000])
-    elif factor_to_average == 'channel':
-        ax.set_xlim([-40, 40])
-        ax.set_ylim([0, 13000])
-    elif factor_to_average == 'time':
-        ax.set_xlim([-2.5, 2.5])
-        ax.set_ylim([0, 300])
+    else :
+        if factor_to_average is None:
+            pass
+            ax.set_xlim([-50, 50])
+            ax.set_ylim([0, 300000])
+        elif factor_to_average == 'channel':
+            ax.set_xlim([-40, 40])
+            ax.set_ylim([0, 13000])
+        elif factor_to_average == 'time':
+            ax.set_xlim([-2.5, 2.5])
+            ax.set_ylim([0, 300])
 
 if factor_to_average is None:
     fig.suptitle("{} data - All Samples".format(dataset_to_use))
