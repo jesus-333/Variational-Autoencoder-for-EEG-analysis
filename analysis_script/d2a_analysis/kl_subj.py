@@ -19,12 +19,12 @@ from library.analysis import support
 #%% Settings
 
 # Dataset for first distribution
-dataset_to_use = 'train'
-# dataset_to_use = 'test'
+dataset_to_use_source = 'train'
+# dataset_to_use_source = 'test'
 
 # Dataset for second distribution
-dataset_to_use_target = 'train'
-# dataset_to_use_target = 'test'
+# dataset_to_use_target = 'train'
+dataset_to_use_target = 'test'
 
 factor_to_average = None
 factor_to_average = 'channel'
@@ -36,17 +36,18 @@ n_bins = 50
 
 plot_config = dict(
     figsize = (30, 24),
-    n_bins = 25,
     linewidth = 2,
     fontsize = 24,
     save_fig = True,
 )
 
+epsilon = 0.00001
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 mne.set_log_level(verbose = 0)
 
-def get_data(subj):
+def get_data(subj, dataset_to_use):
     # Get subject data
     dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
@@ -88,19 +89,20 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue'}
 kl_matrix = np.zeros((len(subj_list_source), len(subj_list_target)))
 
 for i in range(len(subj_list_source)):
-    subj = subj_list_source[i]
-    print("Subj SOURCE {}".format(subj))
+    subj_source = subj_list_source[i]
+    print("Subj SOURCE {}".format(subj_source))
     
-    data_source, label_source, average_method_string = get_data(subj)
+    data_source, label_source, average_method_string = get_data(subj_source, dataset_to_use_source)
     pdf_source, _ = np.histogram(data_source, bins = n_bins, density = True)
 
-    for j in range(len(subj_list_source)):
-        subj = subj_list_source[j]
-        print("Subj TARGET {}".format(subj))
+    for j in range(len(subj_list_target)):
+        subj_target = subj_list_target[j]
+        print("Subj TARGET {}".format(subj_target))
 
-        data_target, label_target, average_method_string = get_data(subj)
+        data_target, label_target, average_method_string = get_data(subj_target, dataset_to_use_target)
         pdf_target, _ = np.histogram(data_target, bins = n_bins, density = True)
 
-        kl_value = np.sum(kl_div(pdf_source, pdf_target))
+        kl_values = kl_div(pdf_source + epsilon, pdf_target  + epsilon)
 
-        kl_matrix[i, j] = kl_value
+        kl_matrix[i, j] = np.sum(kl_values)
+        # kl_matrix[i, j] = np.sum(np.where(pdf_source != 0, pdf_source * np.log(pdf_source / pdf_target), 0))
