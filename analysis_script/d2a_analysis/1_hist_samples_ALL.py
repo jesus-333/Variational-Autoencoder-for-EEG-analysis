@@ -9,6 +9,7 @@ Optionally you can select only a specific channel
 
 import os
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from library.config import config_dataset as cd
@@ -18,14 +19,19 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [5]
+# subj_list = [5]
 use_test_set = False
 
 channel_to_plot = None
 
+distribution_type = 1 # 1 means normalize automatically through matplotlib. Create a continuos PDF (i.e. the integral of the area under the histogram is equal to 1)
+distribution_type = 2 # 2 means the creation of a discrete PDF ( i.e. the hights of the bins is divided by the total number of the samples )
+
 plot_config = dict(
     figsize = (16, 10),
+    use_same_plot = True,
     bins = 100,
+    linewidth = 1.5,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
     fontsize = 24,
@@ -33,6 +39,8 @@ plot_config = dict(
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if plot_config['use_same_plot']: fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
 for i in range(len(subj_list)):
     subj = subj_list[i]
@@ -58,29 +66,49 @@ for i in range(len(subj_list)):
     else:
         data = dataset.data.flatten()
 
+    # Create a figure for each plot
+    if not plot_config['use_same_plot']: fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    
     # Plot the data
-    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
-    
-    ax.hist(data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
-    
-    # train_data = train_dataset.data.squeeze().mean(1).sort()[0]
-    # test_data = test_dataset.data.squeeze().mean(1).sort()[0]
-    # ax.hist(train_data.flatten(), bins = plot_config['bins'], label = 'S{} - Train data'.format(subj), histtype = 'step', linewidth = 1.5,)
-    # ax.hist(test_data.flatten(), bins = plot_config['bins'], label = 'S{} - Test data'.format(subj), histtype = 'step', linewidth = 1.5,)
+    if distribution_type == 1:
+        ax.hist(data.sort()[0], plot_config['bins'], density = True,
+                label = 'S{}'.format(subj), histtype = 'step', linewidth = plot_config['linewidth']
+                )
+
+        ax.set_ylabel("Continuos PDF")
+    elif distribution_type == 2:
+        p_x, bins_position = np.histogram(data.sort()[0], bins = plot_config['bins'])
+        p_x = p_x / len(data)
+        
+        step_bins = bins_position[1] - bins_position[0]
+        bins_position = bins_position[1:] - step_bins
+
+        ax.step(bins_position, p_x,
+                label = 'S{}'.format(subj),
+                )
+
+        # ax.fill_between(bins_position, p_x,
+        #                 alpha = 0.4, step = 'pre'
+        #                 )
+        ax.set_ylabel("Discrete PDF")
+    else:
+        ax.hist(data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
 
     ax.grid(True)
+    ax.legend()
     ax.set_xlabel(r"Amplitude [$\mu$V]")
-    # ax.set_title("S{} - {}".format(subj, dataset_string))
-    # ax.set_xlim([-100, 100])
     # ax.set_ylim([0, 70000])
+
+    ax.set_xlim([-50, 50])
     
     if plot_config['use_log_scale_x']: ax.set_xscale('log')
     if plot_config['use_log_scale_y']: ax.set_yscale('log')
 
-    fig.tight_layout()
-    fig.show()
+    if plot_config['save_fig'] and not plot_config['use_same_plot']:
+        ax.set_title("S{} - {}".format(subj, dataset_string))
+        fig.tight_layout()
+        fig.show()
 
-    if plot_config['save_fig']:
         # Create pat
         path_save = 'Saved Results/d2a_analysis/hist_samples/bins {}/'.format(plot_config['bins'])
         os.makedirs(path_save, exist_ok = True)
@@ -91,3 +119,19 @@ for i in range(len(subj_list)):
         if plot_config['use_log_scale_y']: path_save += '_LOGSCALE_Y'
         fig.savefig(path_save + ".png", format = 'png')
         # fig.savefig(path_save + ".eps", format = 'eps')
+
+
+if plot_config['save_fig'] and plot_config['use_same_plot']:
+    fig.tight_layout()
+    fig.show()
+
+    # Create pat
+    path_save = 'Saved Results/d2a_analysis/hist_samples/bins {}/'.format(plot_config['bins'])
+    os.makedirs(path_save, exist_ok = True)
+    
+    # Save fig
+    path_save += 'hist_samples_all_subj_{}_bins_{}'.format(dataset_string, plot_config['bins'])
+    if plot_config['use_log_scale_x']: path_save += '_LOGSCALE_X'
+    if plot_config['use_log_scale_y']: path_save += '_LOGSCALE_Y'
+    fig.savefig(path_save + ".png", format = 'png')
+    # fig.savefig(path_save + ".eps", format = 'eps')
