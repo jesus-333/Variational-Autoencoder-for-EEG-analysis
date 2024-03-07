@@ -8,6 +8,10 @@ TMP_File/
 artifacts/
 Dataset/D2A/v1_backup/Test.7z
 Dataset/D2A/v1_backup/Train.7z
+*.png
+*.jpg
+Saved Results/
+Saved Model/
 New Code/Plot
 New Code/TMP_Folder
 New Code/TMP
