@@ -22,8 +22,8 @@ subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 use_test_set = False
 
 factor_for_division = 'class'
-factor_for_division = 'channel'
-# factor_for_division = 'artifacts'
+# factor_for_division = 'channel'
+factor_for_division = 'artifacts'
 
 ch_to_plot = None
 ch_to_plot = ['C3', 'Fz', 'POz']
@@ -31,7 +31,7 @@ ch_to_plot = ['C3', 'Fz', 'POz']
 plot_config = dict(
     # figsize = (16, 10),
     figsize = (25, 15),
-    bins = 300,
+    bins = 100,
     normalize = True,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
@@ -84,8 +84,8 @@ for i in range(len(subj_list)):
         for j in range(len(labels_for_plot)):
             label = labels_for_plot[j]
             idx_label = labels == label
-            tmp_label_data = data[idx_label, :, :].flatten()
-            data_divided.append(tmp_label_data)
+            tmp_label_data = data[idx_label, :, :]
+            data_divided.append(tmp_label_data.flatten())
 
         label_dict = {0 : 'left hand', 1 : 'right hand', 2 : 'foot', 3 : 'tongue'}
         labels_for_plot = [label_dict[label] for label in labels_for_plot]
