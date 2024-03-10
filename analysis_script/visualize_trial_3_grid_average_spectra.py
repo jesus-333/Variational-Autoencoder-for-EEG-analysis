@@ -88,7 +88,7 @@ for subj in subj_list:
     average_spectra = computed_spectra.mean(1)
     std_spectra = computed_spectra.std(1)
 
-    #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
+    #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Create figures
     fig_freq, ax_freq = plt.subplots(3, 3, figsize = plot_config['figsize'])
 
@@ -96,25 +96,24 @@ for subj in subj_list:
     for i in range(3):
         for j in range(3):
             
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             # Plot in frequency domain
 
-            ax_freq[i,j].plot(f, average_spectra[k])
-            ax_freq[i,j].fill_between(f, average_spectra[k] + std_spectra[k], average_spectra[k] - std_spectra[k], alpha = 0.25)
-            ax_freq[i,j].set_xlabel("Frequency [Hz]")
-            ax_freq[i,j].set_ylabel(r"PSD [$\mu V^2/Hz$]")
-            ax_freq[i,j].set_xlim([0, 80])
-            ax_freq[i,j].legend()
-            ax_freq[i,j].grid(True) 
-            ax_freq[i,j].set_title(ch_list_for_grid[i][j])
+            ax_freq[i, j].plot(f, average_spectra[k])
+            ax_freq[i, j].fill_between(f, average_spectra[k] + std_spectra[k], average_spectra[k] - std_spectra[k], alpha = 0.25)
+            ax_freq[i, j].set_xlabel("Frequency [Hz]")
+            ax_freq[i, j].set_ylabel(r"PSD [$\mu V^2/Hz$]")
+            ax_freq[i, j].set_xlim([0, 80])
+            ax_freq[i, j].legend()
+            ax_freq[i, j].grid(True)
+            ax_freq[i, j].set_title(ch_list_for_grid[i][j])
             k += 1
 
     fig_freq.suptitle("Subject {}".format(subj))
     fig_freq.tight_layout()
     fig_freq.show()
 
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Save plots
 
     if plot_config['save_fig']:
