@@ -120,7 +120,6 @@ for i in range(len(subj_list)):
         fig.savefig(path_save + ".png", format = 'png')
         # fig.savefig(path_save + ".eps", format = 'eps')
 
-
 if plot_config['save_fig'] and plot_config['use_same_plot']:
     fig.tight_layout()
     fig.show()
