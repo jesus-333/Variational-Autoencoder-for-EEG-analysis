@@ -19,7 +19,7 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [5]
+subj_list = [3]
 use_test_set = False
 
 channel_to_plot = None
@@ -28,9 +28,9 @@ distribution_type = 1 # 1 means normalize automatically through matplotlib. Crea
 distribution_type = 2 # 2 means the creation of a discrete PDF ( i.e. the hights of the bins is divided by the total number of the samples )
 
 plot_config = dict(
-    figsize = (16, 10),
+    figsize = (10, 8),
     use_same_plot = True,
-    bins = 100,
+    bins = 50,
     linewidth = 1.5,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
@@ -77,9 +77,9 @@ for i in range(len(subj_list)):
 
         ax.set_ylabel("Continuos PDF")
     elif distribution_type == 2:
-        p_x, bins_position = np.histogram(data.sort()[0], bins = plot_config['bins'])
+        p_x, bins_position = np.histogram(data.sort()[0], bins = plot_config['bins'], density = False)
         p_x = p_x / len(data)
-        
+
         step_bins = bins_position[1] - bins_position[0]
         bins_position = bins_position[1:] - step_bins
 

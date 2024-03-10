@@ -215,11 +215,12 @@ def get_data_subjects_train(subjecs_list : list):
 
     return trials_per_subject, labels_per_subject, ch_list
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Dataset 2A BCI Competition IV
 
 def get_D2a_data(config, type_dataset):
     check_config.check_config_dataset(config)
+    mne.set_log_level(False)
     
     # Select the dataset
     dataset = mb.BNCI2014001()
