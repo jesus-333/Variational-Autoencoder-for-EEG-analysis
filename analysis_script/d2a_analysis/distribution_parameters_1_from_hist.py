@@ -25,9 +25,10 @@ distribution_type = 1 # 1 means normalize automatically through matplotlib. Crea
 
 channel_to_use = None
 
-bins = 400
+bins = 50000
 
 compute_from_samples = False # If True, instead of creating the histogram all the metrics are directly computed from all the samples
+transpose_data = True # If true the data are saved in row array instead of column array
 
 plot_config = dict(
     figsize = (10, 8),
@@ -160,3 +161,16 @@ for i in range(len(subj_list)):
     string_to_print += "\n"
 
 print(string_to_print)
+
+if transpose_data:
+    train_mean_array     = train_mean_array.reshape((1, len(subj_list)))
+    train_std_array      = train_std_array.reshape((1, len(subj_list)))
+    train_kurtosis_array = train_kurtosis_array.reshape((1, len(subj_list)))
+    train_skew_array     = train_skew_array.reshape((1, len(subj_list)))
+    
+    # Variable to save parameters (test set)
+    test_mean_array     = test_mean_array.reshape((1, len(subj_list)))
+    test_std_array      = test_std_array.reshape((1, len(subj_list)))
+    test_kurtosis_array = test_kurtosis_array.reshape((1, len(subj_list)))
+    test_skew_array     = test_skew_array.reshape((1, len(subj_list)))
+
