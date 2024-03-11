@@ -173,4 +173,3 @@ if transpose_data:
     test_std_array      = test_std_array.reshape((1, len(subj_list)))
     test_kurtosis_array = test_kurtosis_array.reshape((1, len(subj_list)))
     test_skew_array     = test_skew_array.reshape((1, len(subj_list)))
-
