@@ -40,7 +40,7 @@ for i in range(len(subj_list)):
     test_data = test_dataset.data.flatten()
     
     # Do ttest and save results
-    t_test_output = ttest_ind(train_data, test_data, equal_var = True)
+    t_test_output = ttest_ind(train_data, test_data, equal_var = False)
     # t_test_output = ttest_rel(train_data, test_data)
     t_statistics, p_value, df = t_test_output.statistic, t_test_output.pvalue, t_test_output.df
 

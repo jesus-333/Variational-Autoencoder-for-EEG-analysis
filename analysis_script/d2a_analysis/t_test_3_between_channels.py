@@ -17,7 +17,7 @@ from library.analysis import support
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_list = [8]
-use_test_data = True
+use_test_data = False
 
 channel_to_use = None
 
@@ -45,16 +45,19 @@ for i in range(len(subj_list)):
         data = train_dataset.data.squeeze()
 
     for j in range(len(ch_list)):
-        ch_source = ch_list[j]
-        source_data = data[:, ch_source, :].flatten()
+        idx_ch_source = ch_list[j] == ch_list
+        source_data = data[:, idx_ch_source, :].flatten()
+        print("\t{} - {} SOURCE channel".format(j, ch_list[j]))
+        
         for k in range(len(ch_list)):
-            # if j == k : continue
-
-            ch_target = ch_list[k]
-            target_data = data[:, ch_target, :].flatten()
+            if j > k : continue
+            
+            idx_ch_target = ch_list[k] == ch_list
+            target_data = data[:, idx_ch_target, :].flatten()
+            print("\t\t{} - {} TARGET channel".format(k, ch_list[k]))
     
             # Do ttest and save results
-            t_test_output = ttest_ind(ch_source, ch_target, equal_var = True)
+            t_test_output = ttest_ind(source_data, target_data, equal_var = False)
             # t_test_output = ttest_rel(train_data, test_data)
             t_statistics, p_value, df = t_test_output.statistic, t_test_output.pvalue, t_test_output.df
 
