@@ -21,7 +21,7 @@ subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 channel_to_use = None
 
 distribution_type = 1
-bins = 500
+bins = 5000
 
 transpose_data = True # If true the data are saved in row array instead of column array
 
