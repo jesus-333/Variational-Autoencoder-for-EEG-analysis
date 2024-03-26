@@ -184,3 +184,42 @@ def reparametrize(mu, log_var):
     eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
 
     return  mu + sigma * eps
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Function for aEEGNet
+
+def create_head(config : dict) :
+    """
+    Create the head (Feedforward layer) for the attention module
+    """
+
+    if config['use_head_for_q'] :
+        q_head = nn.Linear(config['input_length'], config['qk_head_output_length'])
+    else :
+        q_head = nn.Identity()
+
+    if config['use_head_for_k'] :
+        k_head = nn.Linear(config['input_length'], config['qk_head_output_length'])
+    else :
+        k_head = nn.Identity()
+
+    if config['use_head_for_v'] :
+        v_head = nn.Linear(config['input_length'], config['v_head_output_length'])
+    else :
+        v_head = nn.Identity()
+
+    return q_head, k_head, v_head
+
+def compute_attention_values(q : torch.Tensor, k : torch.Tensor, v : torch.Tensor, normalize_qk : bool) -> torch.Tensor :
+    # Transpose k arrays
+    k = torch.permute(k, (0, 2, 1))
+    
+    # Compute the score to use in the linear combination of values
+    score = torch.bmm(q, k)
+    if normalize_qk : score /= torch.sqrt(torch.tensor(q.shape[2]))
+    score = nn.functional.softmax(score, dim = 2)
+
+    z = torch.bmm(score, v)
+
+    return z

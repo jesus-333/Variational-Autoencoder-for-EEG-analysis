@@ -135,7 +135,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int, parame
 
     return config
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_config_ChWiAutoencoder() -> dict:
 
@@ -162,6 +162,21 @@ def get_config_ChWi_module_encoder() -> dict :
         use_batch_normalization = True,
         activation = 'elu',
         p_kernel = 1
+    )
+
+    return config
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def get_config_attention_module() -> dict :
+    config = dict(
+        use_head_for_q = True,
+        use_head_for_k = True,
+        use_head_for_v = True,
+        qk_head_output_length = -1, # To set outside the function
+        v_head_output_length = -1, # To set outside the function
+        normalize_qk = True,
+        external_query_input_length = -1, # Used only for external attention_module
     )
 
     return config
