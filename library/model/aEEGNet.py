@@ -7,14 +7,51 @@ Implementation of a EEGNet + Attention
 import torch
 from torch import nn
 
-import support_function as sf
+from . import EEGNet
+from . import support_function as sf
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class aEEGNet(nn.Module):
+class aEEGNet_v1(nn.Module):
 
     def __init__(self, config : dict):
         super().__init__()
+        
+        # Create EEGNet
+        config['eegnet_config']['flatten_output'] = True
+        tmp_eggnet = EEGNet.EEGNet(config['eegnet_config'])
+
+        # Create temporal filter
+        self.temporal_filter = tmp_eggnet.temporal_filter
+    
+        # Create spatial filter
+        if config['use_channels_self_attention'] or config['channels_n_external_query'] > 0:
+            self.spatial_filter = channels_attention(config)
+        else :
+            self.spatial_filter = tmp_eggnet.spatial_filter
+
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
+        return x
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class channels_attention(nn.Module):
+    def __init__(self, config : dict):
+        super().__init__()
+        
+        # If you use self attention along channels create the module for self attention computation
+        if config['use_channels_self_attention'] :
+            self.use_self_attention = config['use_channels_self_attention']
+            self.self_attention_channels = self_attention_module(config['channels_self_attention_config'])
+
+        if config['channels_n_external_query'] > 0 :
+            self.external_attention_module_list = nn.ModuleList()
+
+            for i in range(config['channels_n_external_query']) :
+                # Get config for the module and create it
+                module_config = config['channels_external_attention_config_list'][i]
+                self.external_attention_module_list.append(external_attention_module(module_config))
+
 
     def forward(self, x):
         return x

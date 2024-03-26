@@ -2,7 +2,8 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Contain the config for the various models
+Contain the config for the various models.
+Note that the specific parameters present are intended as examples only.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -157,7 +158,7 @@ def get_config_ChWi_module_encoder() -> dict :
         in_channels = 1,
         out_channels = 1,
         c_kernel = 1,
-        padding = 'same', 
+        padding = 'same',
         group = None,
         use_batch_normalization = True,
         activation = 'elu',
@@ -167,6 +168,24 @@ def get_config_ChWi_module_encoder() -> dict :
     return config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Config for aEEGNet
+
+def get_config_aEEGNet(C : int, T : int, n_external_query : int = 0) -> dict :
+    config = dict(
+        eegnet_config = get_config_EEGNet(C, T),
+        use_channels_self_attention = True, # Compute the attention along the EEG channels
+        channels_self_attention_config = get_config_attention_module(),
+        channels_n_external_query = n_external_query, # Number of external query array to use in the computation of attention in channel attention
+        channels_external_attention_config_list = [], # Containts the config for each attention module used to compute the attention with the external query
+        use_depthwise_attention = False, # Compute the attention along the depth map after the spatial filters. STILL TO IMPLEMENTS
+    )
+
+    for i in range(n_external_query) : config['external_attention_config_list'].append(get_config_attention_module())
+
+    print("Note that the attention_module config (both for self-attention and external-attention) must be complted with the values of qk_head_output_length, v_head_output_length and external_query_input_length")
+    print("The external_query_input_length is needed only for the external-attention module.")
+
+    return config
 
 def get_config_attention_module() -> dict :
     config = dict(
