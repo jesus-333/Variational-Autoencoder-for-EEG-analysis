@@ -1,4 +1,4 @@
-In this README are described the model structure and how to declare/use them.
+In this README are described the models structure and how to declare/use them.
 Each model is implemented with PyTorch and when declared, the class constructor require a dictionary of parameters (specific for each class).
 
 Example of generic declaraion:

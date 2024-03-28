@@ -20,6 +20,8 @@ subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 channel_to_use = None
 
+flatten_data = False
+
 transpose_data = True # If true the data are saved in row array instead of column array
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,8 +38,10 @@ for i in range(len(subj_list)):
     train_dataset, validation_dataset, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
     
     # Get data from dataset and flatten them
+    # train_data = train_dataset.data.squeeze().flatten(0, 1) # Remove channels dimension. So I will have 288 * 22 trials of length 1000
+    # test_data = test_dataset.data.squeeze().flatten(0, 1)S
     train_data = train_dataset.data.flatten()
-    test_data = test_dataset.data.flatten()
+    test_data = train_dataset.data.flatten()
     
     # Do ttest and save results
     t_test_output = ttest_ind(train_data, test_data, equal_var = False)

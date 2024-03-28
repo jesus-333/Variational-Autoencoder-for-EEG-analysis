@@ -54,6 +54,7 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
     
     if dataset_config['use_stft_representation']:
+        # Specific config if a STFT image is used as an input.
         model_config['C'] = train_dataset[0][0].shape[0]
         model_config['T'] = train_dataset[0][0].shape[2]
         model_config['depth_first_layer'] = train_dataset[0][0].shape[0]
@@ -73,13 +74,13 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
     loss_function = get_loss_function(model_name, train_config)
 
     # Setup optimizer
-    optimizer = torch.optim.AdamW(model.parameters(), 
-                                  lr = train_config['lr'], 
+    optimizer = torch.optim.AdamW(model.parameters(),
+                                  lr = train_config['lr'],
                                   weight_decay = train_config['optimizer_weight_decay']
                                   )
 
     # Setup lr scheduler
-    if train_config['use_scheduler'] == True:
+    if train_config['use_scheduler'] :
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
     else:
         lr_scheduler = None
@@ -98,18 +99,18 @@ def train_and_test_model(model_name, dataset_config, train_config, model_config,
 
     return model
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None, model_artifact = None):
     """
     Function with the training cycle
     """
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Check train config
     check_config.check_train_config(train_config, model_artifact)
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Get the dataloader
     train_loader = loader_list[0]
     validation_loader = loader_list[1]
@@ -119,16 +120,15 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
     
     # (OPTIONAL) Dictionary used to saved information during training and load them on wandb
     log_dict = {}
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     train_epoch_function, validation_epoch_function = get_train_and_validation_function(model)
     
-    for epoch in range(train_config['epochs']):     
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    for epoch in range(train_config['epochs']):
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (MANDATORY) Advance epoch, check validation loss and save the network
 
         # Advance epoch for train set (backward pass) and validation (no backward pass)
-        # TODO add log dict to eegnet train/val function
         train_loss      = train_epoch_function(model, loss_function, optimizer, train_loader, train_config, log_dict)
         validation_loss = validation_epoch_function(model, loss_function, validation_loader, train_config, log_dict)
         
@@ -142,24 +142,24 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
         if (epoch + 1) % train_config['epoch_to_save_model'] == 0:
             torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # (OPTIONAL) Optional steps during the training
 
         # (OPTIONAL) Measure the various metrics related to classification (accuracy, precision etc)
         if train_config['measure_metrics_during_training'] and train_config['use_classifier']:
             # Compute the various metrics
-            train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])    
+            train_metrics_dict = metrics.compute_metrics(model, train_loader, train_config['device'])
             validation_metrics_dict = metrics.compute_metrics(model, validation_loader, train_config['device'])
 
         # (OPTIONAL) Update learning rate (if a scheduler is provided)
-        if lr_scheduler is not None: 
+        if lr_scheduler is not None:
             # Save the current learning rate if I load the data on wandb
             if train_config['wandb_training']: log_dict['learning_rate'] = optimizer.param_groups[0]['lr']
 
             # Update scheduler
             lr_scheduler.step()
 
-        # (OPTIONAL) Print loss 
+        # (OPTIONAL) Print loss
         if train_config['print_var']:
             print("Epoch:{}".format(epoch))
             print("\t Train loss        = {}".format(train_loss.detach().cpu().float()))
@@ -215,7 +215,7 @@ def get_untrained_model(model_name : str, model_config : dict):
     elif model_name == 'hvEEGNet_shallow':
         return hvEEGNet.hvEEGNet_shallow(model_config)
     else:
-        raise ValueError("Type of the model not recognized")
+        raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
 def get_loss_function(model_name, config = None):
     if model_name == 'EEGNet' or model_name == 'MBEEGNet':
@@ -225,7 +225,7 @@ def get_loss_function(model_name, config = None):
     elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss(config)
     else:
-        raise ValueError("Type of the model not recognized")
+        raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
 def get_train_and_validation_function(model):
     if 'EEGNet.EEGNet' in str(type(model)):
@@ -237,6 +237,6 @@ def get_train_and_validation_function(model):
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     else:
-        raise ValueError("Type of the model not recognized")
+        raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
