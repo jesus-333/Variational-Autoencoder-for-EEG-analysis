@@ -157,15 +157,17 @@ def filter_RawArray(raw_array_mne, config):
     filter_method = config['filter_method']
     iir_params = config['iir_params']
     if config['filter_type'] == 0: # Bandpass
-         raw_array_mne.filter(l_freq = config['fmin'], h_freq = config['fmax'],
-                                   method = filter_method, iir_params = iir_params)
+        raw_array_mne.filter(l_freq = config['fmin'], h_freq = config['fmax'],
+                          method = filter_method, iir_params = iir_params)
     if config['filter_type'] == 1: # Lowpass
-        raw_array_mne.filter( l_freq = None, h_freq = config['fmax'], 
-                                   method = filter_method, iir_params = iir_params)
-    if config['filter_type'] == 2: # Highpass 
-        raw_array_mne.filter( l_freq = config['fmin'], h_freq = None, 
-                                   method = filter_method, iir_params = iir_params)
-
+        raw_array_mne.filter(l_freq = None, h_freq = config['fmax'],
+                             method = filter_method, iir_params = iir_params)
+    if config['filter_type'] == 2: # Highpass
+        raw_array_mne.filter(l_freq = config['fmin'], h_freq = None,
+                             method = filter_method, iir_params = iir_params)
+    if config['filter_type'] == 3: # Notch Filter
+        raw_array_mne.filter(freqs = config['notch_freq'],
+                             method = filter_method, iir_params = iir_params)
     return raw_array_mne
 
 def divide_by_event(raw_run, events, config):
