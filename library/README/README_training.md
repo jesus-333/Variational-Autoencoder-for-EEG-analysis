@@ -10,17 +10,17 @@
 # Training General information
 
 Each model has its own related traing files called `train_model_name.py` (e.g. for the MBEEGNet model there is `train_MBEEGNet.py`). Each one of this files have the following functions (customized according to the model):
-* `train_and_test_model(dataset_config, train_config, model_config, model_artifact)`: This is the primary function to use for training and testing the model. It requires 3 config dictionaries:
+* `train_and_test_model(dataset_config, train_config, model_config, model_artifact)`: This is the function to use for training and testing the model. It requires 3 config dictionaries:
 	* `dataset_config`: contain the settings related to the data and dataset (e.g. train/validation split, preprocess info like filtering frequencies etc). For more information about dataset read the [README_dataset](README_dataset.md).
 	* `train_config`: contain the settings used during the training. See section [Training config for each model](#training-config-for-each-model) for more information about the parameters used in the training of each model.
 	* `model_config`: contain the config related to the model you want to train. For more information about models read [README_model](README_model.md). 	
-* `train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None)`: Function used to train the model. If you do not want to use the `train_and_test_model` (maybe because you prefer to use your own data) use this function to train the model. The input are the following:
+* `train(model, loss_function, optimizer, loader_list, train_config, lr_scheduler = None)`: Function used to train the model. If you do not want to use the `train_and_test_model` (maybe because you prefer to use your own data) use this function instead. The input are the following:
 	* `model`: PyTorch model to train.
 	* `loss_function`: loss function used during the training.
 	* `optimzer`: optimizer (e.g. ADAM) to used during the training.
 	* `loader_list`: list with 2 [Dataloader](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#iterate-through-the-dataloader). The first Dataloader must contain the training data and the second one the validation data.
 	* `train_config`: dictionary with parameters to used during the training. See section [Training config for each model](#training-config-for-each-model) for more information.
-* `test( ... )`: Test the model with the test data. The test and the input 
+* `test( ... )`: Test the model with the test data. NOT FULLY IMPLEMENTED FOR ALL MODEL. 
 * `train_epoch( ... )`: execute a single training epoch during training (i.e. forward and backward pass, optimization step).
 * `validation_epoch( ... )`: execute a validation epoch (i.e. compute loss, and and possibly other metrics, for the validation data but DO NOT perform the backward pass and the optimization step).
 * `check_train_config( ... )`: function used to check if there are problem with the training config
@@ -30,7 +30,7 @@ Also the use of `train_and_test_model()` is encouraged over using the individual
 
 # How to train a model 
 
-## Python-IPython shell
+## Python/IPython shell
 After open a python/ipython shell you simply declare the dictionary used for training
 
 ### Example with MBEEGNet
@@ -46,7 +46,7 @@ train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 ```
 
 Note that we already provide files with functions that return complete config dictionary for dataset, train and model. 
-You could simply call this functions without having to write the entire parameter dictionaries by yourself. Also if you need to change parameters you could simply modify these functions.
+You could simply call this functions without having to write the entire parameter dictionaries by yourself. If you need to change parameters you could simply use these functions to get a full dictionary and modify only the parameter(s) you need.
 
 Here, there is an example of training using the config functions:
 ```python
@@ -62,6 +62,7 @@ T = 512
 dataset_config = cd.get_moabb_dataset_config()
 train_config = ct.get_config_MBEEGNet_training()
 model_config = cm.get_config_MBEEGNet_classifier(C, T, 4)
+model_config['temporal_kernel_3'] = (1, 8)
 
 train_MBEEGNEt.train_and_test_model(dataset_config, train_config, model_config)
 
@@ -152,4 +153,4 @@ config = dict(
 ### Other notes
 The model expects input in 4 dimensions, batch size x 1 x eeg channels x time samples. This is because convolutions are done via [Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html).
 
-⚠️ The dimension with the 1 it's the dimension relative to the convolutions channels (which have nothing to do with EEG channels!!!)
+⚠️ The dimension with the 1 it's the dimension used for the convolutions channels (which have nothing to do with EEG channels!!!)
