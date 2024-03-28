@@ -60,7 +60,7 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
         return model
 
 
-def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, optimizer, train_dataset, validation_dataset):
+def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, train_dataset, validation_dataset):
     """
     Train a model with the data provided by the user and log everything on wandb.
 
@@ -92,6 +92,12 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, o
 
     # Declare loss function
     loss_function = train_generic.get_loss_function(model_name, train_config)
+
+    # Get loss function
+    optimizer = torch.optim.AdamW(model.parameters(),
+                                  lr = train_config['lr'],
+                                  weight_decay = train_config['optimizer_weight_decay']
+                                  )
 
     # Setup lr scheduler
     if train_config['use_scheduler'] :
