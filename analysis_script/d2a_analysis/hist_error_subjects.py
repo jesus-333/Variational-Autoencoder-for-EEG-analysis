@@ -3,14 +3,14 @@ From the table of the reconstruction error create an histogram for each subject.
 The table are the one obtained with the scripts reconstruction_3.py
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -30,7 +30,7 @@ plot_config = dict(
 tot_epoch_training = 80
 epoch_to_plot = 80
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get the data and create the histogram
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
@@ -45,14 +45,14 @@ for subj in subj_list:
     path_load_test = 'Saved Results/repetition_hvEEGNet_{}/test/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch_to_plot)
     recon_error_test = np.load(path_load_test).flatten()
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot the histogram
 
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
-    ax.hist(recon_error_test,  bins = plot_config['bins'],
+    ax.hist(recon_error_test, bins = plot_config['bins'],
             color = plot_config['color_test'], label = 'Session 2 (Test)', alpha = 0.5)
-    ax.hist(recon_error_train,  bins = plot_config['bins'],
+    ax.hist(recon_error_train, bins = plot_config['bins'],
             color = plot_config['color_train'], label = 'Session 1 (Train)', alpha = 0.5)
 
     ax.legend()
@@ -60,43 +60,43 @@ for subj in subj_list:
     ax.set_xlabel('Reconstruction error')
     
     if plot_config['use_log_scale']: ax.set_yscale('log')
-    if plot_config['use_log_scale']: 
+    if plot_config['use_log_scale']:
         ax.set_xscale('log')
     
         # xticks = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100]
         xlim = None
         ylim = None
-        if subj == 1: 
+        if subj == 1:
             xticks = [0.5, 1, 2, 5, 10, 20, 50, 100]
             yticks = [1, 2, 5, 10, 20, 50, 100]
             xlim = [0.5, 20]
-        if subj == 2: 
+        if subj == 2:
             xticks = [0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
             yticks = [1, 2, 5, 10, 20, 50]
-        if subj == 3: 
+        if subj == 3:
             xticks = [0.5, 1, 2, 5, 10, 20, 50]
             yticks = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
             xlim = [0.5, 22]
-        if subj == 4: 
+        if subj == 4:
             xticks = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20]
             yticks = [1, 2, 5, 10, 20, 50, 100, 200]
             xlim = [0.5, 20]
             ylim = [0, 200]
-        if subj == 5: 
+        if subj == 5:
             xticks = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]
             yticks = [1, 2, 5, 10, 20]
-        if subj == 6: 
+        if subj == 6:
             xticks = [0.5, 1, 2, 5, 10]
             yticks = [1, 2, 5, 10, 20]
-        if subj == 7: 
+        if subj == 7:
             xticks = [0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10]
             yticks = [1, 2, 5, 10]
-        if subj == 8: 
+        if subj == 8:
             xticks = [1, 2, 5, 10, 20]
             ax.set_xlim([1, 20])
             yticks = [1, 2, 5, 10, 20]
             ylim = [0, 25]
-        if subj == 9: 
+        if subj == 9:
             xticks = [0.5, 1, 2, 5, 10, 20]
             yticks = [1, 2, 5, 10, 20, 50]
             xlim = [0.5, 20]
@@ -111,7 +111,6 @@ for subj in subj_list:
 
     fig.tight_layout()
     fig.show()
-
 
     if plot_config['save_fig']:
         # Create pat

@@ -10,10 +10,8 @@ Contain the function to compute accuracy and other metrics
 
 import numpy as np
 import torch
-import pandas as pd
-from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix, multilabel_confusion_matrix
+from sklearn.metrics import cohen_kappa_score, accuracy_score, recall_score, f1_score, confusion_matrix
 import os
-import wandb
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Function to compute the metrics 

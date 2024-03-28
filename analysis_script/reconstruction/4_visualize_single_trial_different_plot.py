@@ -2,7 +2,7 @@
 Visualize (in time of frequency domain) the reconstruction of a single channel of a single eeg trial in different plot
 """
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys
 import os
 
@@ -16,14 +16,14 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config import config_dataset as cd 
+from library.config import config_dataset as cd
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
 tot_epoch_training = 80
 epoch = 80
-subj = 9    
+subj = 9
 use_test_set = False
 
 t_min = 2
@@ -47,7 +47,7 @@ channel = 'C1'
 plot_config = dict(
     figsize_time = (12, 8),
     figsize_freq = (12, 8),
-    fontsize = 24   , 
+    fontsize = 24,
     linewidth_original = 1,
     linewidth_reconstructed = 1,
     color_original = 'black',
@@ -62,10 +62,10 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 xticks_time = None
 xticks_time = [2, 3, 4, 5, 6]
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 plt.rcParams.update({'font.size': plot_config['fontsize']})
-label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue' }
+label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue'}
 if rand_trial_sample is False: plot_to_create = 1
 
 dataset_config = cd.get_moabb_dataset_config([subj])
@@ -79,7 +79,7 @@ else: dataset = train_dataset
 for n_plot in range(plot_to_create):
 
     np.random.seed(None)
-    if rand_trial_sample: 
+    if rand_trial_sample:
         n_trial = np.random.randint(len(dataset))
         repetition = np.random.randint(19) + 1
         channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
@@ -114,14 +114,14 @@ for n_plot in range(plot_to_create):
     f, x_psd = signal.welch(x_original_for_psd, fs = 250, nperseg = nperseg)
     f, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
     
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
     
-    ax_time.plot(t, x_original_to_plot, label = 'original signal', 
+    ax_time.plot(t, x_original_to_plot, label = 'original signal',
                  color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
-    ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal', 
+    ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal',
                  color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
     ax_time.set_xlabel("Time [s]")
     ax_time.set_ylabel(r"Amplitude [$\mu$V]")
@@ -135,25 +135,27 @@ for n_plot in range(plot_to_create):
     fig_time.tight_layout()
     fig_time.show()
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in frequency domain
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
-    ax_freq.plot(f, x_psd, label = 'original signal', 
+    ax_freq.plot(f, x_psd, label = 'original signal',
                  color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
-    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal', 
+    ax_freq.plot(f, x_r_psd, label = 'reconstructed signal',
                  color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
+
     ax_freq.set_xlabel("Frequency [Hz]")
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
     ax_freq.set_xlim([0, 80])
     # ax_freq.legend()
-    ax_freq.grid(True) 
+    ax_freq.grid(True)
 
     if plot_config['add_title']: ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
 
     fig_freq.tight_layout()
     fig_freq.show()
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if plot_config['save_fig']:
         path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
