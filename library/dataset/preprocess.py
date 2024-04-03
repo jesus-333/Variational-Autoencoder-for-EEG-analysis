@@ -127,7 +127,7 @@ def get_dataset_d2a(config : dict):
         labels_train = labels_train[config['train_trials_to_keep']]
     
     # Transform with stft (if you want time-frequency representation)
-    if config['use_stft_representation']: 
+    if config['use_stft_representation']:
         data_train, t, f = compute_stft(data_train, config)
         data_test, t, f = compute_stft(data_test, config)
 
@@ -138,14 +138,13 @@ def get_dataset_d2a(config : dict):
         labels = np.concatenate((labels_train, labels_test), 0)
         
         # Divide in train and test set
-        idx_train, idx_test =  sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
+        idx_train, idx_test = sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
         data_train, labels_train = data[idx_train], labels[idx_train]
         data_test, labels_test = data[idx_test], labels[idx_test]
-        
     
     # Split data in train and validation set
     if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
-        idx_train, idx_validation =  sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
+        idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
         data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
         data_train, labels_train = data_train[idx_train], labels_train[idx_train]
     else:

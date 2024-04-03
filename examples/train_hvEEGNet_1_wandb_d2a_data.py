@@ -1,5 +1,6 @@
 """ 
 Example of training script for hvEEGNet with dataset 2a of BCI Competition IV and use of wandb to log results
+The dataset is automatically downloaded through the library.
 
 @author : Alberto (Jesus) Zancanaro
 @organization : University of Padua
