@@ -43,8 +43,8 @@ model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters
 train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
 
-# Get the data
-train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
-
 # Train the model
-model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)
+
+model = wt.train_wandb_V1('hvEEGNet_shallow', dataset_config, train_config, model_config)
+
+
