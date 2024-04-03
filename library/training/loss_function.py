@@ -122,11 +122,11 @@ def vEEGNet_loss(x, x_r, mu, log_var, true_label, predicted_label, config):
 def hvEEGNet_loss(x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, config : dict, predicted_label = None, true_label = None):
     # Reconstruction loss
     recon_loss = recon_loss_function(x, x_r)
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-    # Kullback        
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Kullback
     kl_loss, kl_loss_list = hierarchical_KL(mu_list, log_var_list, delta_mu_list, delta_log_var_list)
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Classifier
 
     if config['use_classifier'] and (predicted_label is not None and true_label is not None):
@@ -150,7 +150,7 @@ class vEEGNet_loss():
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
             self.recon_loss_function = recon_loss_function
-        elif config['recon_loss_type'] == 1: # Soft-DTW 
+        elif config['recon_loss_type'] == 1: # Soft-DTW
             gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
             use_cuda = True if config['device'] == 'cuda' else False
             self.recon_loss_function = SoftDTW(use_cuda = use_cuda, gamma = gamma_dtw)
@@ -160,7 +160,7 @@ class vEEGNet_loss():
         if self.edge_samples_ignored < 0: self.edge_samples_ignored = 0
             
         # Kullback
-        self.kl_loss_function = kl_loss_normal_function 
+        self.kl_loss_function = kl_loss_normal_function
         
         # Classifier loss
         self.clf_loss_function = classifier_loss
@@ -172,20 +172,20 @@ class vEEGNet_loss():
         
     def compute_loss(self, x, x_r, mu, log_var, predicted_label = None, true_label = None):
         recon_loss = self.compute_recon_loss(x, x_r)
-        kl_loss  = self.kl_loss_function(mu, log_var) 
+        kl_loss  = self.kl_loss_function(mu, log_var)
         
         if predicted_label is not None and true_label is not None: # Compute classifier loss
             clf_loss = classifier_loss(predicted_label, true_label)
             final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
             return final_loss, recon_loss, kl_loss, clf_loss
         else: # Not compute classifier loss
-            final_loss = self.alpha * recon_loss + self.beta * kl_loss 
-            return final_loss, recon_loss, kl_loss 
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss
+            return final_loss, recon_loss, kl_loss
         
     def compute_recon_loss(self, x, x_r):
         # (OPTIONAL) Remove sample from border (could contain artifacts due to padding)
-        x = x[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
-        x_r = x_r[:, :, :, self.edge_samples_ignored:-1-self.edge_samples_ignored]
+        x = x[:, :, :, self.edge_samples_ignored: - 1 - self.edge_samples_ignored]
+        x_r = x_r[:, :, :, self.edge_samples_ignored: - 1 - self.edge_samples_ignored]
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
@@ -210,12 +210,12 @@ class hvEEGNet_loss(vEEGNet_loss):
         
     def compute_loss(self, x, x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, predicted_label = None, true_label = None):
         recon_loss = self.compute_recon_loss(x, x_r)
-        kl_loss, kl_loss_list = self.kl_loss_function(mu_list, log_var_list, delta_mu_list, delta_log_var_list) 
+        kl_loss, kl_loss_list = self.kl_loss_function(mu_list, log_var_list, delta_mu_list, delta_log_var_list)
         
         if predicted_label is not None and true_label is not None:
             clf_loss = classifier_loss(predicted_label, true_label)
             final_loss = self.alpha * recon_loss + self.beta * kl_loss + self.gamma * clf_loss
             return final_loss, recon_loss, kl_loss, kl_loss_list, clf_loss
         else:
-            final_loss = self.alpha * recon_loss + self.beta * kl_loss 
+            final_loss = self.alpha * recon_loss + self.beta * kl_loss
             return final_loss, recon_loss, kl_loss, kl_loss_list

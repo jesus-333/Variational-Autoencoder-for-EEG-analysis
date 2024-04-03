@@ -46,9 +46,9 @@ def get_config_classifier():
 def get_config_vEEGNet_training():
     config = dict(
         # Training settings
-        batch_size = 30,                    
+        batch_size = 30,
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 3,                        # Number of epochs to train the model
+        epochs = 3,                         # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
@@ -60,7 +60,6 @@ def get_config_vEEGNet_training():
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
-        # device = "cpu",
         epoch_to_save_model = 5,
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,
@@ -77,6 +76,13 @@ def get_config_vEEGNet_training():
     )
 
     return config
+
+def get_config_hierarchical_vEEGNet_training():
+    """
+    Return the config require for the hvEEGNet training.
+    Notes that the the configs required are the same of the standard vEEGNet.
+    """
+    return get_config_vEEGNet_training()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Sweep 
