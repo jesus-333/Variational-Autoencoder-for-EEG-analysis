@@ -10,7 +10,6 @@ The dataset is automatically downloaded through the library.
 # Imports
 
 from library.training import wandb_training as wt
-from library.dataset import preprocess as pp
 
 from library.config import config_training as ct
 from library.config import config_model as cm
@@ -44,7 +43,4 @@ train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
 
 # Train the model
-
 model = wt.train_wandb_V1('hvEEGNet_shallow', dataset_config, train_config, model_config)
-
-

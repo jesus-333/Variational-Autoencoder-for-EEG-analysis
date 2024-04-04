@@ -43,7 +43,7 @@ def get_config_classifier():
 
     return config
 
-def get_config_vEEGNet_training():
+def get_config_vEEGNet_training() -> dict:
     config = dict(
         # Training settings
         batch_size = 30,
@@ -52,18 +52,17 @@ def get_config_vEEGNet_training():
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
-        alpha = 1,
-        beta = 1,
-        gamma = 1,
-        recon_loss_type = 1,               # Loss function for the reconstruction (0 = L2, 1 = SDTW)
-        edge_samples_ignored = 0,          # Ignore this number of samples during the computation of the reconstructation loss
+        alpha = 1,                          # Multiplier of the reconstruction error
+        beta = 1,                           # Multiplier of the KL
+        gamma = 1,                          # Multiplier of the classification error (if you also use a classifier)
+        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW)
+        edge_samples_ignored = 0,           # Ignore this number of samples during the computation of the reconstructation loss
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
-        epoch_to_save_model = 5,
-        path_to_save_model = 'TMP_Folder',
-        measure_metrics_during_training = True,
-        repetition = 1,                     # Number of time to repeat the training 
+        epoch_to_save_model = 5,                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
+        path_to_save_model = 'TMP_Folder',          # Folder where the weights of the model will be saved during training
+        measure_metrics_during_training = True,     # If True measuere accuracy and other metrics during the training. Works only if the model is a classifier
         print_var = True,
 
         # (OPTIONAL) wandb settings
@@ -77,7 +76,7 @@ def get_config_vEEGNet_training():
 
     return config
 
-def get_config_hierarchical_vEEGNet_training():
+def get_config_hierarchical_vEEGNet_training() -> dict:
     """
     Return the config require for the hvEEGNet training.
     Notes that the the configs required are the same of the standard vEEGNet.

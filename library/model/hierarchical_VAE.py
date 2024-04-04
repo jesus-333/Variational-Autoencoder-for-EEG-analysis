@@ -2,11 +2,11 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Implementation of the (deep) Hierchical VAE 
+Implementation of the (deep) Hierchical VAE
 (https://arxiv.org/abs/2007.03898)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 import torch
@@ -14,11 +14,11 @@ from torch import nn
 
 from . import support_function as sf
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class hVAE(nn.Module):
 
-    def __init__(self, encoder_cell_list : list, decoder_cell_list : list, config : dict):
+    def __init__(self, encoder_cell_list : list, decoder_cell_list : list, config : dict) :
         super().__init__()
         # Create encoder
         self.encoder = hvae_encoder(encoder_cell_list, config)
@@ -30,7 +30,7 @@ class hVAE(nn.Module):
         # Create decoder
         self.decoder = hVAE_decoder(decoder_cell_list, config)
 
-    def forward(self, x, h = None):
+    def forward(self, x : torch.tensor, h : torch.tensor = None):
         # Encoder 
         z, mu, log_var, encoder_cell_outputs = self.encoder(x)
         

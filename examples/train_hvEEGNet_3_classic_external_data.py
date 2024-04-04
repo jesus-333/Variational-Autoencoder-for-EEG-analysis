@@ -1,5 +1,5 @@
 """
-Example of training script for hvEEGNet with external data and use of wandb to log results
+Example of training script for hvEEGNet with external data and without wandb tracking
 
 @author : Alberto (Jesus) Zancanaro
 @organization : University of Padua
@@ -21,15 +21,16 @@ from library.config import config_model as cm
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specific parameter to change inside the dictionary
 
-type_decoder = 0
-parameters_map_type = 0
+epochs = 2
+path_to_save_model = 'model_weights_backup'
+epoch_to_save_model = 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get data and train config
 
 # Create synthetic data
-train_data = np.random.rand((100, 1 , 3, 1000))
-validation_data = np.random.rand((100, 1 , 3, 1000))
+train_data = np.random.rand(100, 1 , 3, 1000)
+validation_data = np.random.rand(100, 1 , 3, 1000)
 
 # Create channel lists
 ch_list = ['C3', 'C5', 'C6']
@@ -45,6 +46,11 @@ validation_dataset = ds_time.EEG_Dataset(validation_data, validation_label, ch_l
 # Get training config
 train_config = ct.get_config_hierarchical_vEEGNet_training()
 
+# Update train config
+train_config['epochs'] = 2
+train_config['path_to_save_model'] = path_to_save_model
+train_config['epoch_to_save_model'] = 1
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get model
 
@@ -53,12 +59,11 @@ C = train_data.shape[2]
 T = train_data.shape[3]
 
 # Get model config
-model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
+model_config = cm.get_config_hierarchical_vEEGNet(C, T)
 
 # If the model has also a classifier add the information to training config
 train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
-
 
 # hvEEGNet creation
 model = hvEEGNet.hvEEGNet_shallow(model_config)
@@ -74,7 +79,7 @@ loader_list             = [train_dataloader, validation_dataloader]
 # Declare loss function
 # This method return the PyTorch loss function required by the training function.
 # The loss function for hvEEGNet is not directy implemented in PyTorch since it is a combination of different losses. So I have to create my own function to combine all the components.
-loss_function = train_generic.get_loss_function(model_name = 'hvEEGNet_shallow', train_config = train_config)
+loss_function = train_generic.get_loss_function(model_name = 'hvEEGNet_shallow', config = train_config)
 
 # Create optimizer
 optimizer = torch.optim.AdamW(model.parameters(),

@@ -80,8 +80,8 @@ class EEGNet_Decoder_Upsample(nn.Module):
             print("\tNumber of trainable parameters (Block 1 - Temporal transpose) = {}\n".format(support_function.count_trainable_parameters(self.temporal_convolution_transpose)))
             self.debug_shape()
 
-    def forward(self, z):
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    def forward(self, z : torch.tensor) -> torch.tensor :
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Feed-Forward section
         
         if self.parameters_map_type == 1:
@@ -93,14 +93,13 @@ class EEGNet_Decoder_Upsample(nn.Module):
         else:
             x = z
             
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
         x = self.separable_convolution_transpose(x)
         x = self.spatial_convolution_transpose(x)
         x = self.temporal_convolution_transpose(x)
 
         return x
-
 
     def debug_shape(self):
         """
@@ -141,13 +140,12 @@ class EEGNet_Decoder_Upsample(nn.Module):
         print("\tTemporal convolution :\t\t\t", x.shape)
 
 
-
 class EEGNet_Decoder_Transpose(nn.Module):
 
     def __init__(self, config : dict):
         super().__init__()
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Parameter used during the creation of the networks
         use_bias = config['use_bias']
         D = config['D']
@@ -155,7 +153,7 @@ class EEGNet_Decoder_Transpose(nn.Module):
         dropout = support_function.get_dropout(config['prob_dropout'], config['use_dropout_2d'])
         self.hidden_space = config['hidden_space']
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Feed-Forward section of the decoder
 
         # After the convolution layer reshape the array to this dimension
@@ -170,7 +168,7 @@ class EEGNet_Decoder_Transpose(nn.Module):
             activation,
         )
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section of the decoder
 
         self.separable_convolution_transpose = nn.Sequential(
@@ -179,7 +177,7 @@ class EEGNet_Decoder_Transpose(nn.Module):
             activation,
             nn.BatchNorm2d(config['filter_2']),
             nn.ConvTranspose2d(config['filter_1'] * D, config['filter_2'], kernel_size = (1, 1), groups = 1, bias = use_bias),
-            nn.ConvTranspose2d(config['filter_1'] * D, config['filter_1'] * D, kernel_size = config['c_kernel_3'], groups = config['filter_1'] * D, bias = use_bias, stride = (1,2)),
+            nn.ConvTranspose2d(config['filter_1'] * D, config['filter_1'] * D, kernel_size = config['c_kernel_3'], groups = config['filter_1'] * D, bias = use_bias, stride = (1, 2)),
         )
 
         self.spatial_convolution_transpose = nn.Sequential(
@@ -192,7 +190,7 @@ class EEGNet_Decoder_Transpose(nn.Module):
 
         self.temporal_convolution_transpose = nn.Sequential(
             nn.BatchNorm2d(config['filter_1']),
-            nn.ConvTranspose2d(config['filter_1'], 1, kernel_size = config['c_kernel_1'], bias = use_bias, stride = (1,2)),
+            nn.ConvTranspose2d(config['filter_1'], 1, kernel_size = config['c_kernel_1'], bias = use_bias, stride = (1, 2)),
         )
 
         if config['print_var']:
@@ -203,7 +201,7 @@ class EEGNet_Decoder_Transpose(nn.Module):
             self.debug_shape()
 
     def forward(self, z):
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Feed-Forward section
         
         # Feed-Forward decoder
@@ -212,14 +210,13 @@ class EEGNet_Decoder_Transpose(nn.Module):
         # Reshape the output for the convolutional section
         x = torch.reshape(x, self.dimension_reshape)
         
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Convolutional section
         x = self.separable_convolution_transpose(x)
         x = self.spatial_convolution_transpose(x)
         x = self.temporal_convolution_transpose(x)
 
         return x
-
 
     def debug_shape(self):
         """

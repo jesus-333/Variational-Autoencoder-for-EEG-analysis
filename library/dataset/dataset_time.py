@@ -27,8 +27,12 @@ class EEG_Dataset(Dataset):
         data = data used for the dataset. Must have shape [Trials x 1 x channels x time samples]
         Note that if you use normale EEG data depth dimension (the second axis) has value 1.
         """
+
+        if len(data.shape) != 4 or data.shape[1] != 1 :
+            raise ValueError("The input shape of data must be [Trials x 1 x channels x time samples]. Current shape {}".format(data.shape))
+
         # Transform data in torch array
-        self.data = torch.from_numpy(data).unsqueeze(1).float()
+        self.data = torch.from_numpy(data).float()
         self.labels = torch.from_numpy(labels).long()
         
         self.ch_list = ch_list
