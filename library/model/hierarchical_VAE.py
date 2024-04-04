@@ -44,7 +44,15 @@ class hVAE(nn.Module):
 
         return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
 
-    def generate(self, z = None):
+    def generate(self, z : torch.tensor = None) -> torch.tensor :
+        """
+        Generate a new sample from z.
+        If z is None a random z is created with torch.randn.
+
+        @param z: (torch.tensor)(OPTIONAL) Samples from the latent space to use as a base for the generation. Defualt = None
+        @return x: (torch.tensor) New sample generated from z
+        """
+
         # If not passed sampled the z
         if z is None: z = torch.randn(self.hidden_space_shape)
         
@@ -53,17 +61,21 @@ class hVAE(nn.Module):
 
         return x
 
-    def reconstruct(self, x, no_grad = True):
+    def reconstruct(self, x : torch.tensor, no_grad : bool = True) -> torch.tensor:
         """
-        Reconstruct the input signal
-        x = (Tensor) input 
-        no_grad = (bool) indicate if keep tracking of the gradient
+        Reconstruct the input signal x
+        @param x:  (torch.tensor) Input to reconstruct
+        @return no_grad : (bool)(OPTIONAL) Indicate if keep tracking of the gradient. Deafualt = True
+
+        @return x_r: (torch.tensor) Reconstructed version of x
         """
+
         if no_grad:
             with torch.no_grad():
                 output = self.forward(x)
         else:
             output = self.forward(x)
+
         return output[0]
 
     def reconstruct_ignoring_latent_spaces(self, x, laten_space_to_ignore: list):

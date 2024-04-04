@@ -18,7 +18,7 @@ from . import EEGNet, MBEEGNet, Decoder_EEGNet, support_function
 %autoreload 2
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class vEEGNet(nn.Module):
 
@@ -27,14 +27,14 @@ class vEEGNet(nn.Module):
 
         self.check_model_config(config)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Create Encoder
 
         # Convolutional section
         if config["type_encoder"] == 0:
-            self.cnn_encoder = EEGNet.EEGNet(config['encoder_config']) 
+            self.cnn_encoder = EEGNet.EEGNet(config['encoder_config'])
         elif config["type_encoder"] == 1:
-            self.cnn_encoder = MBEEGNet.MBEEGNet(config['encoder_config']) 
+            self.cnn_encoder = MBEEGNet.MBEEGNet(config['encoder_config'])
         
         # Get the size and the output shape after an input has been fed into the encoder
         # This info will also be used during the encoder creation
@@ -47,7 +47,7 @@ class vEEGNet(nn.Module):
         if self.parameters_map_type == 0: self.hidden_space = n_input_neurons
         elif self.parameters_map_type == 1: self.hidden_space = config['hidden_space'] # Note that in this case the variable is not used and is put here only as a placehoder to avoid error with old code
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         # (OPTIONAL) classifier
         self.use_classifier = config['use_classifier']
@@ -58,7 +58,7 @@ class vEEGNet(nn.Module):
                 nn.LogSoftmax(dim = 1)
             )
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Create Decoder
         # Note that the config used for the encoder  are also used for the decoder (stuff like the size of convolutional and pooling kernel)
         
@@ -71,36 +71,37 @@ class vEEGNet(nn.Module):
         # E.g. if the encoder is EEGNet also the decoder will be EEGNet
         if config["type_encoder"] == 0:
             if config['type_decoder'] == 0:
-                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Upsample(config['encoder_config']) 
+                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Upsample(config['encoder_config'])
             elif config['type_decoder'] == 1:
-                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Transpose(config['encoder_config']) 
+                self.decoder = Decoder_EEGNet.EEGNet_Decoder_Transpose(config['encoder_config'])
         elif config["type_encoder"] == 1:
-            # TODO Implement MBEEGNet decoder 
-            self.decoder = MBEEGNet(config['encoder_config']) 
+            # TODO Implement MBEEGNet decoder
+            # Due to the work on hvEEGNet and its performance this is indefinitely postponed
+            self.decoder = MBEEGNet(config['encoder_config'])
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def forward(self, x):
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Encoder section
         x = self.cnn_encoder(x)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Reparametrization and sampling
         # Note that the reparametrization trick is done by inside the sample_layer
         z, z_mean, z_log_var = self.sample_layer(x)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Decoder
         x_r = self.decoder(z)
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Classifier
         
         # Note that since the input of the classifier are vector their size is "Batch x n_elements"
         # So the concatenation will be along the dimension with index 1
 
-        if self.use_classifier: 
+        if self.use_classifier :
             z = torch.cat([z_mean, z_log_var], dim = 1)
             if self.parameters_map_type == 0: z = z.flatten(1)
             predicted_label = self.clf(z)
@@ -109,7 +110,7 @@ class vEEGNet(nn.Module):
         else:
             return x_r, z_mean, z_log_var
         
-    def reconstruct(self, x, no_grad = True):
+    def reconstruct(self, x, no_grad : bool = True) -> torch.tensor :
         if no_grad:
             with torch.no_grad():
                 output = self.forward(x)
@@ -118,7 +119,7 @@ class vEEGNet(nn.Module):
                 
         return output[0]
 
-    def generate(self):
+    def generate(self) -> torch.tensor :
         # Sample laten space (normal distribution)
         z = torch.randn(1, self.hidden_space)
         

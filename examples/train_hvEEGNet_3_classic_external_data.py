@@ -73,7 +73,7 @@ loader_list             = [train_dataloader, validation_dataloader]
 
 # Declare loss function
 # This method return the PyTorch loss function required by the training function.
-# The loss function for hvEEGNet is not directy implemented in PyTorch so I have to create my own function to combine all the components.
+# The loss function for hvEEGNet is not directy implemented in PyTorch since it is a combination of different losses. So I have to create my own function to combine all the components.
 loss_function = train_generic.get_loss_function(model_name = 'hvEEGNet_shallow', train_config = train_config)
 
 # Create optimizer
