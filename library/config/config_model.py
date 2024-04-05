@@ -131,19 +131,19 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
     
     # Config specific for vEEGNet
     config = dict(
-        hidden_space = 1, # Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
-        type_encoder = 0,
-        encoder_config = encoder_config, # Used also for the decoder
-        type_decoder = type_decoder, # N.b. specified the architecture of decoder
-        type_vae = 0, # 0 = normal VAE, 1 = conditional VAE (not implemented)
-        n_classes = 4,
-        use_h_in_decoder = False,
-        use_activation_in_sampling = True,
-        sampling_activation = 'elu',
-        convert_logvar_to_var = False,
-        hidden_space_dimension_list = [32, 128, 512], # Important only if parameters_map_type = 1
-        parameters_map_type = parameters_map_type,
-        use_classifier = False,
+        hidden_space = 1,   # Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
+        type_encoder = 0,   # Ignore. (0 -> EEGNet, 1 -> MBEEGNet (to check implementation)).
+        encoder_config = encoder_config,    # Parameter of the encoder. For more info check get_config_EEGNet. (also note that this parameters will be also used for the decoder).
+        type_decoder = type_decoder,        # N.b. specified the architecture of decoder. More info under this function definition.
+        type_vae = 0,                       # 0 = normal VAE, 1 = conditional VAE (not implemented)
+        n_classes = 4,                      # Used if there is a classifier. Ignore
+        use_h_in_decoder = False,           # Ignore.
+        use_activation_in_sampling = True,  # Ignore.
+        sampling_activation = 'elu',        # Ignore.
+        convert_logvar_to_var = False,      # Ignore.
+        hidden_space_dimension_list = [32, 128, 512],   # Important only if parameters_map_type = 1. Ignore otherwise.
+        parameters_map_type = parameters_map_type,      # More info under this function definition.
+        use_classifier = False,             # Ignore. If True add a classifier to hvEEGNet.
     )
 
     config['encoder_config']['print_var'] = False

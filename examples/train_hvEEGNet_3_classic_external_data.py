@@ -47,9 +47,9 @@ validation_dataset = ds_time.EEG_Dataset(validation_data, validation_label, ch_l
 train_config = ct.get_config_hierarchical_vEEGNet_training()
 
 # Update train config
-train_config['epochs'] = 2
+train_config['epochs'] = epochs
 train_config['path_to_save_model'] = path_to_save_model
-train_config['epoch_to_save_model'] = 1
+train_config['epoch_to_save_model'] = epoch_to_save_model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get model
@@ -69,7 +69,7 @@ train_config['use_classifier'] = model_config['use_classifier']
 model = hvEEGNet.hvEEGNet_shallow(model_config)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Dataloader, Loss function, optimizer and lr_scheduler
+# Dataloader, loss function, optimizer and lr_scheduler
 
 # Create dataloader
 train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)

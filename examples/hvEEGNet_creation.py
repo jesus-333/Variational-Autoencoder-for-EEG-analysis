@@ -23,6 +23,7 @@ model_config = cm.get_config_hierarchical_vEEGNet(C, T)
 
 # During the creation of hvEEGNet the size of the input data are needed to compute the size of some component of the model.
 # Also C is necessary for the size of the second convolutional kernel (spatial filter)
+# You can find an explanation of all the parameters used during the creation inside the config_model subpackage
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

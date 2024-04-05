@@ -277,7 +277,7 @@ class hVAE_decoder(nn.Module):
                     tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
 
                     # Pass the "data" through the modules
-                    tmp_encoder_output = torch.rand(encoder_output_shape[-1-i]) # Simulate the output of the ENCODER
+                    tmp_encoder_output = torch.rand(encoder_output_shape[- 1 - i]) # Simulate the output of the ENCODER
                     tmp_z, _, _ = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
 
                 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -286,7 +286,7 @@ class hVAE_decoder(nn.Module):
                 
                 # Create the module to combine features
                 if i == 0:
-                    if config['use_h_in_decoder']: 
+                    if config['use_h_in_decoder']:
                         # See Fig. 2 in NVAE paper
                         # h is an extra input in the deepest hidden layer of the network
                         z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])

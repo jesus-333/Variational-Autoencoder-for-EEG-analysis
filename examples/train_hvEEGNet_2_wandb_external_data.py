@@ -19,14 +19,18 @@ from library.config import config_model as cm
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specific parameter to change inside the dictionary
 
-type_decoder = 0
-parameters_map_type = 0
+# Training config to change (for more info check the function get_config_hierarchical_vEEGNet_training)
+epochs = 2
+path_to_save_model = 'model_weights_backup'
+epoch_to_save_model = 1
+project_name = "Example_project"               # Name of wandb project
+model_artifact_name = "temporary_artifacts"    # Name of the artifact used to save the model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Create synthetic data
-train_data = np.random.rand((100, 1 , 3, 1000))
-validation_data = np.random.rand((100, 1 , 3, 1000))
+train_data = np.random.rand(20, 1 , 3, 1000)
+validation_data = np.random.rand(20, 1 , 3, 1000)
 
 # Create channel lists
 ch_list = ['C3', 'C5', 'C6']
@@ -43,7 +47,7 @@ T = train_data.shape[3]
 train_config = ct.get_config_vEEGNet_training()
 
 # Get model config
-model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
+model_config = cm.get_config_hierarchical_vEEGNet(C, T)
 
 # If the model has also a classifier add the information to training config
 train_config['measure_metrics_during_training'] = model_config['use_classifier']
