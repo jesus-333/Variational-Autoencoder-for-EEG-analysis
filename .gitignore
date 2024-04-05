@@ -6,6 +6,7 @@
 *.pth
 *.npy
 *.pickle
+.venv
 wandb/
 Saved Model/
 Saved Results/
