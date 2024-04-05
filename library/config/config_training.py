@@ -37,8 +37,9 @@ def get_config_classifier():
         project_name = "ICT4AWE_Extension",
         model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
         log_freq = 1,                           # How often log gradients and parameters of the tracked model. Ignore and left to 1.
+        name_training_run = None,               # Name of the training run. If None wandb will assign a random name.
         notes = "",                             # If you want to add specific note for a specific training run modify this field.
-        debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
+        debug = True,                           # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
 
     return config
@@ -62,7 +63,8 @@ def get_config_vEEGNet_training() -> dict:
         device = "cuda" if torch.cuda.is_available() else "cpu",
         epoch_to_save_model = 5,                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
         path_to_save_model = 'TMP_Folder',          # Folder where the weights of the model will be saved during training
-        measure_metrics_during_training = True,     # If True measuere accuracy and other metrics during the training. Works only if the model is a classifier
+        use_classifier = False,                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
+        measure_metrics_during_training = True,     # Ignore. If True measuere accuracy and other metrics during the training. Works only if the model has a classifier
         print_var = True,
 
         # (OPTIONAL) wandb settings
@@ -70,6 +72,7 @@ def get_config_vEEGNet_training() -> dict:
         project_name = "TMP_Project",       # Name of wandb project
         model_artifact_name = "TMP_NAME",   # Name of the artifact used to save the model
         log_freq = 1,                       # How often log gradients and parameters of the tracked model. Ignore and left to 1.
+        name_training_run = None,           # Name of the training run. If None wandb will assign a random name.
         notes = "",                         # If you want to add specific note for a specific training run modify this field.
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )

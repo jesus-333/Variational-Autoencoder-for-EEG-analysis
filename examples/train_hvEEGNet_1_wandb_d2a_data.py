@@ -1,6 +1,6 @@
 """ 
 Example of training script for hvEEGNet with dataset 2a of BCI Competition IV and use of wandb to log results
-The dataset is automatically downloaded through the library.
+The dataset is automatically downloaded through the functions inside the library.
 
 @author : Alberto (Jesus) Zancanaro
 @organization : University of Padua
@@ -16,17 +16,18 @@ from library.config import config_model as cm
 from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Specific parameter to change inside the dictionary
+# Specific parameters to change inside the dictionary
 
 # Subject of dataset 2a to use during training
 subj_list = [3]
 
-# Training config to change (for more info check the function get_config_hierarchical_vEEGNet_training)
+# Training parameters to change (for more info check the function get_config_hierarchical_vEEGNet_training)
 epochs = 2
 path_to_save_model = 'model_weights_backup'
 epoch_to_save_model = 1
-project_name = "Example_project"               # Name of wandb project
-model_artifact_name = "temporary_artifacts"    # Name of the artifact used to save the model
+project_name = "Example_project"                # Name of wandb project
+name_training_run = "first_test_wandb"          # Name of the training run
+model_artifact_name = "temporary_artifacts"     # Name of the artifact used to save the model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,11 +51,12 @@ train_config['epoch_to_save_model'] = epoch_to_save_model
 
 # Update training config (wandb)
 train_config['project_name'] = project_name
+train_config['name_training_run'] = name_training_run
 train_config['model_artifact_name'] = model_artifact_name
 
 # If the model has also a classifier add the information to training config
 train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
 
-# Train the model
+# Train the model. 
 model = wt.train_wandb_V1('hvEEGNet_shallow', dataset_config, train_config, model_config)

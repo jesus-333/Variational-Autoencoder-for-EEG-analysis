@@ -15,8 +15,8 @@ from library.config import config_dataset as cd
 # Get config for the dataset
 
 # Dataset 2a contains motor imagery for 9 subjects (indentified with number from 1 to 9). You can decide to download the data for one or for multiple subjects
-# subj_list = [3]       # If you want the data of a single subject create a list with a single element
-subj_list = [2, 4, 9]   # If you want the data for multiple subjects create a list with the number of all the subjects you want
+subj_list = [3]       # If you want the data of a single subject create a list with a single element
+# subj_list = [2, 4, 9]   # If you want the data for multiple subjects create a list with the number of all the subjects you want
 
 # Get the dataset config. Check inside the functions for all the details about the various parameters
 dataset_config = cd.get_moabb_dataset_config(subj_list)
