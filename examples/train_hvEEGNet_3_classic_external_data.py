@@ -19,7 +19,7 @@ from library.config import config_training as ct
 from library.config import config_model as cm
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Specific parameter to change inside the dictionary
+# Specific parameters to change inside the dictionary
 
 epochs = 2
 path_to_save_model = 'model_weights_backup'
@@ -95,9 +95,5 @@ else:
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-from library.training import train_generic
-
 model = train_generic.train(model, loss_function, optimizer,
                             loader_list, train_config, lr_scheduler, model_artifact = None)
-
-
