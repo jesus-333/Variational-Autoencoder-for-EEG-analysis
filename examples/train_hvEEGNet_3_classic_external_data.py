@@ -92,6 +92,9 @@ if train_config['use_scheduler'] :
     lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = train_config['lr_decay_rate'])
 else:
     lr_scheduler = None
+    
+# Move the model to training device (CPU/GPU)
+model.to(train_config['device'])
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
