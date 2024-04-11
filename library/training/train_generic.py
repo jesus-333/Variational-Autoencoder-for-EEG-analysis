@@ -117,6 +117,9 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
     
     # Variable to track best losses
     best_loss_val = sys.maxsize # Best total loss for the validation data
+
+    # Move the model to training device
+    model.to(train_config['device'])
     
     # (OPTIONAL) Dictionary used to saved information during training and load them on wandb
     log_dict = {}

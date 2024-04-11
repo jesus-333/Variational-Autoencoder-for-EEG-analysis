@@ -49,7 +49,7 @@ T = train_data.shape[3]
 model_config = cm.get_config_hierarchical_vEEGNet(C, T)
 
 # Get training config
-train_config = ct.get_config_vEEGNet_training()
+train_config = ct.get_config_hierarchical_vEEGNet_training()
 
 # Update training config
 train_config['epochs'] = epochs
