@@ -5,19 +5,17 @@
 Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarchical VAE)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 import torch
 from torch import nn
 import numpy as np
-from scipy.spatial.distance import euclidean
-# from fastdtw import fastdtw
 
 from . import vEEGNet, hierarchical_VAE
 from ..training.soft_dtw_cuda import SoftDTW
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class hvEEGNet_shallow(nn.Module):
     def __init__(self, config : dict):
@@ -44,7 +42,7 @@ class hvEEGNet_shallow(nn.Module):
         output = self.h_vae(x)
         x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = output
 
-        if self.use_classifier: 
+        if self.use_classifier:
             z = torch.cat([mu_list[0], log_var_list[0]], dim = 1).flatten(1)
             label = self.clf(z)
             return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list, label
@@ -72,6 +70,21 @@ class hvEEGNet_shallow(nn.Module):
 
         return self.h_vae.reconstruct(x, no_grad)
 
+    def reconstruct_ignoring_latent_spaces(self, x : torch.tensor, latent_space_to_ignore: list):
+        """
+        Reconstruct the input x but ignore the contribution from some of the latent space
+
+        @param x:  (torch.tensor) Input to reconstruct. The shape must be B x 1 x C x T.
+        @param laten_space_to_ignore: (list of bool) List with a bool for each cell of the decoder. If True ignore the corresponding latent space. The list must have length 3.
+
+        @return x_r: (torch.tensor) Reconstructed version of x
+        """
+        
+        if len(latent_space_to_ignore) != 3 :
+            raise ValueError("Since hvEEGNet has 3 latent spaces the list of latent space to ignore MUST have length 3. Current length of the list : {}".format(len(latent_space_to_ignore)))
+
+        return self.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore)
+
     def encode(self, x : torch.tensor, return_distribution : bool = True) :
         z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
         return z, mu, log_var
@@ -91,7 +104,7 @@ class hvEEGNet_shallow(nn.Module):
         encoder_cell_list.append(tmp_encoder.spatial_filter)
         encoder_cell_list.append(tmp_encoder.separable_convolution)
 
-        # Extract cells from DECODER 
+        # Extract cells from DECODER
         decoder_cell_list.append(tmp_decoder.separable_convolution_transpose)
         decoder_cell_list.append(tmp_decoder.spatial_convolution_transpose)
         decoder_cell_list.append(tmp_decoder.temporal_convolution_transpose)

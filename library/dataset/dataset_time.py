@@ -43,10 +43,10 @@ class EEG_Dataset(Dataset):
         elif normalize == 2:
             self.normalize_channel_by_channel(-1, 1)
             
-    def __getitem__(self, idx : int):
+    def __getitem__(self, idx : int) -> tuple[torch.tensor, torch.tensor] :
         return self.data[idx], self.labels[idx]
     
-    def __len__(self):
+    def __len__(self) -> int :
         return len(self.labels)
 
     def minmax_normalize_all_dataset(self, a, b):

@@ -2,7 +2,7 @@
 Contains support functions to download the dataset and create the models
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import torch
@@ -11,13 +11,12 @@ import numpy as np
 import scipy.fft as fft
 import scipy.signal as signal
 
-from ..config import config_dataset as cd
 from ..config import config_model as cm
 from ..dataset import preprocess as pp
 from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_dataset_and_model(dataset_config, model_name):
     C = 22
@@ -37,7 +36,7 @@ def get_dataset_and_model(dataset_config, model_name):
         model_config['encoder_config']['p_kernel_2'] = (1, 10)
         model_config['use_classifier'] = False
         model_config['parameters_map_type'] = 0
-        # Hidden space is set to -1 because with parameter map type = 0 with do the parametrization trick through convolution doubling the number of depth map
+        # Hidden space is set to -1 because with parameter map type = 0 do the parametrization trick through convolution (doubling the number of depth map)
     else:
         raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
 

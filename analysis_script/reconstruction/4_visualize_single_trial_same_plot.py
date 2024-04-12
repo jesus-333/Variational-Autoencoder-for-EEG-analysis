@@ -2,7 +2,7 @@
 Visualize (in time of frequency domain) the reconstruction of a single channel of a single eeg trial in the same plot
 """
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys
 import os
 
@@ -16,9 +16,9 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.analysis import support
-from library.config import config_dataset as cd 
+from library.config import config_dataset as cd
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
 tot_epoch_training = 80
