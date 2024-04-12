@@ -8,7 +8,7 @@
 *.pickle
 .venv
 !examples/
-!examples/example_trained_weigths.pth!
+!examples/example_trained_weigths.pth
 wandb/
 Saved Model/
 Saved Results/
