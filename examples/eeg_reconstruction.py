@@ -32,7 +32,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Get dataset
 dataset_config = cd.get_moabb_dataset_config([2])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
+train_dataset, _, test_dataset = pp.get_dataset_d2a(dataset_config)
 
 # Get number of channels and number of time samples
 C = train_dataset[0][0].shape[1]

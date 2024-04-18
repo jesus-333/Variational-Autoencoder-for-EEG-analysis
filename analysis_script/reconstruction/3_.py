@@ -54,16 +54,16 @@ train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset
 
 for repetition in repetition_list:
     print("\tRep: ", repetition)
-    if use_test_set == False:
+    if use_test_set is False:
         if subj == 4 and (repetition == 4 or repetition == 6): continue
         if subj == 5 and repetition == 19: continue
         if subj == 8 and repetition == 12: continue
     
     for epoch in epoch_list:
-        if use_test_set: 
+        if use_test_set:
             dataset = test_dataset
             string_dataset = 'test'
-        else: 
+        else:
             dataset = train_dataset
             string_dataset = 'train'
 

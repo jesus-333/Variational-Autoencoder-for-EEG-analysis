@@ -181,7 +181,7 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                     # recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
                     recon_loss_results_mean[subj][epoch] += tmp_recon_error
 
-                    if method_std_computation == 1:             
+                    if method_std_computation == 1:
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
                     elif method_std_computation == 2:
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.mean(1)

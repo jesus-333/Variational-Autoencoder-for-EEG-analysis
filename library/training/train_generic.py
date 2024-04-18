@@ -240,6 +240,6 @@ def get_train_and_validation_function(model):
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     else:
-        raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
+        raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

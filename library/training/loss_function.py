@@ -31,7 +31,30 @@ def recon_loss_function(x, x_r):
 def recon_loss_frequency_function(x, x_r):
     pass
 
-def compute_dtw_loss_along_channels(x, x_r, dtw_loss_function, average_channels = False):
+def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, average_channels : True = False):
+    """
+    Compute the dtw between two tensor x and x_r using the softDTW (implemented through https://github.com/Maghoumi/pytorch-softdtw-cuda).
+    The two tensors (x and x_r) must both have shape B x 1 x C x T. The dtw will be computed element by element and channel by channel.
+    An element is an EEG signal of shape C x T and the number of element is B (i.e. the first dimension).
+    For each EEG signal the dtw is computed independently channel by channel, sum together and, eventually, averaged along channels if average_channels is True.
+
+    Example :
+    If your input x has shape 4 x 1 x 22 x 1000 it means that the tensor contains 4 EEG signals, and each signal has 22 channels and 1000 temporal samples.
+    The tensor x_r must have the same shape. The dtw is computed element by element in the sense that the first element of x_1 is compared with the first element of x_2 etc.
+    Then given a pair of EEG signal of shape 22 x 1000, inside the signal the dtw is computed channel by channel (because the dtw compute the difference between 1d signal).
+    So for a pair of EEG signal of shape 22 x 1000 the dtw ouput are 22 values, 1 for each channel. This 22 values are sum together to obtain the final dtw value for the pair of EEG signal.
+    If average_channels is True instead of the sum the final dtw value will be the average of the 22 values
+
+    @param x: (torch.tensor) First input tensor of shape B x 1 x C x T
+    @param x_r: (torch.tensor) Second input tensor of shape B x 1 x C x T
+    @param average_channels : (bool) If True compute the average of the reconstruction error along the channels
+
+    @return recon_error: (torch.tensor) Tensor of shape B
+    """
+
+    if x.shape != x_r.shape :
+        raise ValueError("x_1 and x_2 must have the same shape. Current shape x_1 : {}, x_2 : {}".format(x.shape, x_r.shape))
+
     recon_loss = 0
     for i in range(x.shape[2]): # Iterate through EEG Channels
         x_ch = x[:, :, i, :].swapaxes(1, 2)
