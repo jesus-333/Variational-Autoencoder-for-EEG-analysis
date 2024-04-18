@@ -69,9 +69,8 @@ class EEGNet(nn.Module):
             nn.BatchNorm2d(config['filter_2']),
             activation,
             nn.AvgPool2d(config['p_kernel_2']) if config['p_kernel_2'] is not None else nn.Identity(),
-            dropout 
+            dropout
         )
-        
         
         if 'flatten_output' not in config: config['flatten_output'] = False
         self.flatten_output = config['flatten_output']
@@ -86,8 +85,7 @@ class EEGNet(nn.Module):
             print("\tNumber of trainable parameters (Block 2)            = {}\n".format(support_function.count_trainable_parameters(self.separable_convolution)))
             if 'input_size' in config: self.debug_shape(config['input_size'])
 
-
-    def forward(self, x):
+    def forward(self, x : torch.tensor) -> torch.tensor :
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Block 1 (temporal + spatial filters)
         x = self.temporal_filter(x)

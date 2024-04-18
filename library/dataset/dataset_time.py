@@ -25,10 +25,14 @@ class EEG_Dataset(Dataset):
     def __init__(self, data, labels, ch_list, normalize = -1):
         """
         data = data used for the dataset. Must have shape [Trials x 1 x channels x time samples]
-        Note that if you use normale EEG data depth dimension (the second axis) has value 1. 
+        Note that if you use normale EEG data depth dimension (the second axis) has value 1.
         """
+
+        if len(data.shape) != 4 or data.shape[1] != 1 :
+            raise ValueError("The input shape of data must be [Trials x 1 x channels x time samples]. Current shape {}".format(data.shape))
+
         # Transform data in torch array
-        self.data = torch.from_numpy(data).unsqueeze(1).float()
+        self.data = torch.from_numpy(data).float()
         self.labels = torch.from_numpy(labels).long()
         
         self.ch_list = ch_list
@@ -39,18 +43,17 @@ class EEG_Dataset(Dataset):
         elif normalize == 2:
             self.normalize_channel_by_channel(-1, 1)
             
-    def __getitem__(self, idx : int):
-        return self.data[idx], self.labels[idx]    
+    def __getitem__(self, idx : int) -> tuple[torch.tensor, torch.tensor] :
+        return self.data[idx], self.labels[idx]
     
-    def __len__(self):
+    def __len__(self) -> int :
         return len(self.labels)
 
     def minmax_normalize_all_dataset(self, a, b):
         """
         Normalize the entire dataset between a and b.
         """
-        self.data = ((self.data - self.data.min()) / (self.data.max() - self.data.min())) * (b - a) + a 
-
+        self.data = ((self.data - self.data.min()) / (self.data.max() - self.data.min())) * (b - a) + a
 
     def normalize_channel_by_channel(self, a, b):
         """

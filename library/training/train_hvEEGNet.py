@@ -115,8 +115,8 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
                 predict_label = None
             
             # Loss evaluation
-            batch_validation_loss = loss_function.compute_loss(x, x_r, 
-                                                            mu_list, log_var_list, 
+            batch_validation_loss = loss_function.compute_loss(x, x_r,
+                                                            mu_list, log_var_list,
                                                             delta_mu_list, delta_log_var_list,
                                                             predict_label, true_label)
             # Accumulate loss
@@ -138,16 +138,11 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
         # for i in range(len(validation_loss[3])):
         #     kl_loss = validation_loss[3][i]
         #     log_dict['validation_loss_recon_{}'.format(i+1)] = validation_loss
-        if train_config['use_classifier']:  log_dict['validation_loss_clf'] = float(clf_loss)
+        if train_config['use_classifier'] : log_dict['validation_loss_clf'] = float(clf_loss)
         print("VALIDATION LOSS")
         pprint.pprint(log_dict)
     
     return validation_loss
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()

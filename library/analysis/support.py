@@ -1,17 +1,22 @@
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+"""
+Contains support functions to download the dataset and create the models
+"""
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import scipy.fft as fft
+import scipy.signal as signal
 
-from ..config import config_dataset as cd
 from ..config import config_model as cm
 from ..dataset import preprocess as pp
 from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_dataset_and_model(dataset_config, model_name):
     C = 22
@@ -31,7 +36,7 @@ def get_dataset_and_model(dataset_config, model_name):
         model_config['encoder_config']['p_kernel_2'] = (1, 10)
         model_config['use_classifier'] = False
         model_config['parameters_map_type'] = 0
-        # Hidden space is set to -1 because with parameter map type = 0 with do the parametrization trick through convolution doubling the number of depth map
+        # Hidden space is set to -1 because with parameter map type = 0 do the parametrization trick through convolution (doubling the number of depth map)
     else:
         raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
 
@@ -60,8 +65,8 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
             # Compute the DTW channel by channels
             tmp_recon_loss = np.zeros((x_batch.shape[0], len(dataset.ch_list)))
             for j in range(x.shape[2]): # Iterate through EEG Channels
-                x_ch = x[:, :, j, :].swapaxes(1,2)
-                x_r_ch = x_r[:, :, j, :].swapaxes(1,2)
+                x_ch = x[:, :, j, :].swapaxes(1, 2)
+                x_r_ch = x_r[:, :, j, :].swapaxes(1, 2)
                 # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
                 # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
                 
@@ -196,7 +201,7 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                     # recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
                     recon_loss_results_mean[subj][epoch] += tmp_recon_error
 
-                    if method_std_computation == 1:             
+                    if method_std_computation == 1:
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
                     elif method_std_computation == 2:
                         recon_loss_results_std[subj][epoch] += tmp_recon_error.mean(1)
@@ -220,3 +225,24 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
                 recon_loss_to_plot_std[subj].append(recon_loss_results_std[subj][epoch])
 
     return recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std
+
+
+def compute_average_spectra(data, nperseg, fs, idx_ch):
+    # Create a variable to saved the average spectra for the various channels
+
+    _, tmp_spectra = signal.welch(data.squeeze()[0][0][:], fs = fs, nperseg = nperseg)
+    computed_spectra = np.zeros((len(data), len(tmp_spectra)))
+
+    # Compute the average spectra
+    for idx_trial in range(len(data)): # Cycle through eeg trials
+        x = data[idx_trial]
+        
+        # Compute PSD
+        f, x_psd = signal.welch(x.squeeze()[idx_ch, :].squeeze(), fs = fs, nperseg = nperseg)
+
+        computed_spectra[idx_trial, :] = x_psd
+    
+    average_spectra = computed_spectra.mean(0)
+    std_spectra = computed_spectra.std(0)
+
+    return average_spectra, std_spectra, f

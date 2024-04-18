@@ -52,9 +52,9 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
         
     # Select train/test data
     if type_dataset == 'train':
-        idx_type = info['session'].to_numpy() == 'session_T'
+        idx_type = info['session'].to_numpy() == '0train'
     elif type_dataset == 'test':
-        idx_type = info['session'].to_numpy() == 'session_E'
+        idx_type = info['session'].to_numpy() == '1test'
 
     raw_data = raw_data[idx_type]
     raw_labels = raw_labels[idx_type]
@@ -82,14 +82,14 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         raw_data = raw_dataset[subject]
         
         # For each subject the data are divided in train and test. Here I extract train or test data 
-        if type_dataset == 'train': raw_data = raw_data['session_T']
-        elif type_dataset == 'test': raw_data = raw_data['session_E']
+        if type_dataset == 'train': raw_data = raw_data['0train']
+        elif type_dataset == 'test': raw_data = raw_data['1test']
         else: raise ValueError("type_dataset must have value train or test")
 
         trials_matrix, labels, ch_list = get_trial_handmade(raw_data, config)
 
         # Select only the data channels
-        if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+        if 'BNCI2014_001' in str(type(dataset)): # Dataset 2a BCI Competition IV
             if 'channels_list' in config: idx_ch = get_idx_ch(ch_list, config)
             else: idx_ch = np.arange(22)
             
@@ -155,15 +155,17 @@ def filter_RawArray(raw_array_mne, config):
     filter_method = config['filter_method']
     iir_params = config['iir_params']
     if config['filter_type'] == 0: # Bandpass
-         raw_array_mne.filter(l_freq = config['fmin'], h_freq = config['fmax'],
-                                   method = filter_method, iir_params = iir_params)
+        raw_array_mne.filter(l_freq = config['fmin'], h_freq = config['fmax'],
+                          method = filter_method, iir_params = iir_params)
     if config['filter_type'] == 1: # Lowpass
-        raw_array_mne.filter( l_freq = None, h_freq = config['fmax'], 
-                                   method = filter_method, iir_params = iir_params)
-    if config['filter_type'] == 2: # Highpass 
-        raw_array_mne.filter( l_freq = config['fmin'], h_freq = None, 
-                                   method = filter_method, iir_params = iir_params)
-
+        raw_array_mne.filter(l_freq = None, h_freq = config['fmax'],
+                             method = filter_method, iir_params = iir_params)
+    if config['filter_type'] == 2: # Highpass
+        raw_array_mne.filter(l_freq = config['fmin'], h_freq = None,
+                             method = filter_method, iir_params = iir_params)
+    if config['filter_type'] == 3: # Notch Filter
+        raw_array_mne.filter(freqs = config['notch_freq'],
+                             method = filter_method, iir_params = iir_params)
     return raw_array_mne
 
 def divide_by_event(raw_run, events, config):
@@ -208,19 +210,20 @@ def get_data_subjects_train(subjecs_list : list):
     The data are return in a numpy array of size N_subject x N_trial x C x T
     """
     dataset_config = cd.get_moabb_dataset_config(subjecs_list)
-    dataset = mb.BNCI2014001()
+    dataset = mb.BNCI2014_001()
     trials_per_subject, labels_per_subject, ch_list = get_moabb_data_handmade(dataset, dataset_config, 'train')
 
     return trials_per_subject, labels_per_subject, ch_list
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Dataset 2A BCI Competition IV
 
 def get_D2a_data(config, type_dataset):
     check_config.check_config_dataset(config)
+    mne.set_log_level(False)
     
     # Select the dataset
-    dataset = mb.BNCI2014001()
+    dataset = mb.BNCI2014_001()
 
     # Select the paradigm (i.e. the object to download the dataset)
     paradigm = mp.MotorImagery()
@@ -254,8 +257,8 @@ def get_dataset_channels(dataset):
     Get the list of channels for the specific dataset
     """
 
-    if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
-        raw_data = dataset.get_data(subjects=[1])[1]['session_T']['run_0']
+    if 'BNCI2014_001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+        raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
         ch_list = raw_data.ch_names
     else:
         raise ValueError("Function not implemented for this type of dataset")
