@@ -150,3 +150,37 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
 
     return config
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_config_classifier_v1(use_only_mu_for_classification = True) -> dict:
+    """
+    Used for classifier in classifier_model_v1
+    """
+
+    config = dict(
+        use_only_mu_for_classification = use_only_mu_for_classification,  # If False use concatenate the mu and logvar output of the decoder in a single vector and used as input for the classifier. Otherwise use only mu output
+        neurons_list = [256, 4],
+        activation = 'elu',
+        prob_dropout = 0.2,
+        use_bias = False,       # If True use bias in the ff layer
+    )
+
+    return config
+
+def get_config_classifier_model_v1(C : int, T : int, type_decoder : int, parameters_map_type : int, path_weights_hvEEGNet : str, 
+                                   use_only_mu_for_classification = True, freeze_encoder = True) -> dict:
+    """
+    Used for classifier in classifier_model_v1 (encoder + classifier network)
+    """
+    
+    hvEEGNet_config = get_config_hierarchical_vEEGNet(C, T, type_decoder, parameters_map_type)
+    classifier_config = get_config_classifier_v1(use_only_mu_for_classification)
+
+    model_config = dict(
+        config_clf = classifier_config,
+        config_hvEEGNet = hvEEGNet_config,
+        path_weights = path_weights_hvEEGNet,
+        freeze_encoder = freeze_encoder   # If True freeze the encoder weights
+    )
+    
+    return model_config

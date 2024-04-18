@@ -1,5 +1,6 @@
 # Variational Autoencoder for EEG analysis
- Variational Autoencoder for EEG analysis
+Codes and results for the hvEEGNet extension.
+
 This repository contains the code used for different pubblications. Different branch corresponds to the code used for specific articles or/and up to a specific moment in time. Below there is a list of branches with a short description for each one. The complete list of articles is at the bottom of the readme.
 Index of the README.
 * [List of branches](#list-of-branches)
@@ -36,7 +37,6 @@ The complete list of subpackages is :
   - [[3]][hvEEGNet_preprint]  Cisotto, G., Zancanaro, A., Zoppis, I., & Manzoni, S. (2023). hvEEGNet: exploiting hierarchical VAEs on EEG data for neuroscience applications (under review) ([preprint][hvEEGNet_preprint] on ResearchGate)
   
 </details>
-
 
 [vEEGNet_ver1]: https://www.scitepress.org/Papers/2023/119908/119908.pdf
 [vEEGNet_ver2_preprint]: https://www.researchgate.net/publication/375867809_vEEGNet_learning_latent_representations_to_reconstruct_EEG_raw_data_via_variational_autoencoders

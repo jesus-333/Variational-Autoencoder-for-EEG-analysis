@@ -4,8 +4,8 @@
 
 Function related to download the data
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#%% Imports
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Imports
 
 import numpy as np
 import mne
@@ -21,7 +21,8 @@ from .. import check_config
 
 import download
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Download and automatic segmentation (moabb)
 
 def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
@@ -45,9 +46,6 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
     
     paradigm.n_classes = config['n_classes']
 
-    # paradigm.tmin = -1
-    # paradigm.tmax = 7.5
-
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
     print(info)
@@ -63,7 +61,7 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
 
     return raw_data, raw_labels
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Download and  segmentation through mne 
 
 def get_moabb_data_handmade(dataset, config, type_dataset):

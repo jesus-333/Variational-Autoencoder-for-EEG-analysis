@@ -14,13 +14,16 @@ import torch
 #%%
 
 def get_config_classifier():
+    """
+    Used to train EEGNet and MBEEGNet model
+    """
     config = dict(
         # Training settings
         batch_size = 20,
         lr = 1e-3,                          # Learning rate (lr)
         epochs = 300,                        # Number of epochs to train the model
         use_scheduler = False,              # Use the lr scheduler
-        lr_decay_rate = 0.995,              # Parameter of the lr exponential scheduler
+        lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
 
         # Support stuff (device, log frequency etc)
@@ -30,12 +33,13 @@ def get_config_classifier():
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,
         repetition = 1,                     # Number of time to repeat the training 
+        use_classifier = True,              # Do NOT CHANGE and keep True. Needed for metric computation in the train function (train_generic.py) 
         print_var = True,
 
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "ICT4AWE_Extension",
-        model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
+        project_name = "hvEEGNet_extension",
+        model_artifact_name = "artifact_name",    # Name of the artifact used to save the models
         log_freq = 1,                           # How often log gradients and parameters of the tracked model. Ignore and left to 1.
         name_training_run = None,               # Name of the training run. If None wandb will assign a random name.
         notes = "",                             # If you want to add specific note for a specific training run modify this field.

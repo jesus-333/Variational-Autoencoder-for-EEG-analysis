@@ -77,6 +77,26 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
 
     return recon_loss_matrix
 
+
+def compute_dtw_between_two_batch(batch_1, batch_2, use_cuda = True):
+    """
+    Given two batch of data compute the DTW between them.
+    Batch must have shape B x 1 x C x T with B = Batch size, 1 = Depth size, C = EEG channels, T = Time samples
+    """
+    recon_loss_function = SoftDTW(use_cuda = use_cuda, normalize = False)
+
+    # Compute the DTW channel by channels
+    tmp_recon_loss = np.zeros((batch_1.shape[0], batch_1.shape[2]))
+    for j in range(batch_1.shape[2]): # Iterate through EEG Channels
+        x_1 = batch_1[:, :, j, :].swapaxes(1,2)
+        x_2 = batch_2[:, :, j, :].swapaxes(1,2)
+        # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
+        # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+        
+        tmp_recon_loss[:, j] = recon_loss_function(x_1, x_2).cpu()
+
+    return tmp_recon_loss
+
 def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):
     """
     Select a single channel according to idx_ch and crop it according to t_min and t_max provided in config

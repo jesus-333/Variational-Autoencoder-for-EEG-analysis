@@ -33,11 +33,13 @@ from ..model import EEGNet
 from ..model import MBEEGNet
 from ..model import vEEGNet
 from ..model import hvEEGNet
+from ..model import classifier
 
 # Training functions for specific model
 from . import train_EEGNet
 from . import train_vEEGNet
 from . import train_hvEEGNet
+from . import train_classifier
     
 """
 %load_ext autoreload
@@ -217,6 +219,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return vEEGNet.vEEGNet(model_config)
     elif model_name == 'hvEEGNet_shallow':
         return hvEEGNet.hvEEGNet_shallow(model_config)
+    elif model_name == 'classifier_v1':
+        return classifier.classifier_model_v1(model_config)
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
@@ -227,6 +231,8 @@ def get_loss_function(model_name, config = None):
         return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
         return loss_function.hvEEGNet_loss(config)
+    elif model_name == 'classifier_v1':
+        return torch.nn.NLLLoss()
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
@@ -239,6 +245,8 @@ def get_train_and_validation_function(model):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
+    elif 'classifier' in str(type(model)):
+        return train_classifier.train_epoch, train_classifier.validation_epoch
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow")
 

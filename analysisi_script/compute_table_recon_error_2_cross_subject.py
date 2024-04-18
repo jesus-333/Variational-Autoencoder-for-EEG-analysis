@@ -1,3 +1,10 @@
+"""
+For each subject load the results obtained with reconstruction_7_cross_subject.py and compute the average reconstruction error and the standard deviation
+
+@author: Alberto Zancanaro (Jesus)
+@organization: University of Padua (Italy)
+"""
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 import sys
@@ -15,11 +22,11 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 tot_epoch_training = 80
-subj_to_use = 9
-subj_list = np.delete(np.arange(9) + 1, np.where(np.arange(9) + 1 == subj_to_use))
+subj_to_use = 8
+subject_to_test_list = np.delete(np.arange(9) + 1, np.where(np.arange(9) + 1 == subj_to_use))
 repetition_list = np.arange(19) + 1
 epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
-epoch_list = [80]
+epoch_list = [10, 15, 20, 40]
 model_name = 'hvEEGNet_shallow'
 # model_name = 'vEEGNet'
 
@@ -58,7 +65,7 @@ if use_test_set:
 else: 
     string_dataset = 'train'
 
-for subj in subj_list:
+for subj in subject_to_test_list:
     recon_loss_results_mean[subj] = dict()
     recon_loss_results_std[subj] = dict()
     recon_loss_average_mean[subj] = list()
@@ -75,33 +82,44 @@ for subj in subj_list:
             if support.skip_training_run(subj, repetition) and skip_run:
                 print("Skip run {} subj {}".format(repetition, subj))
                 continue
-            
             try:
                 if model_name == 'hvEEGNet_shallow':
-                    path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
-                elif model_name == 'vEEGNet':
-                    path_load = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj, epoch, repetition)
+                    path_load = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj_to_use, 
+                                                                                                                                             subj_to_use, subj, epoch, repetition)
+                elif model_name == 'vEEGNet': 
+                    path_load = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_rep_{}.npy'.format(tot_epoch_training, string_dataset, subj_to_use, 
+                                                                                                                                             subj_to_use, subj, epoch, repetition)
                 else:
                     raise ValueError("Model name must be hvEEGNet_shallow or vEEGNet")
                 tmp_recon_error = np.load(path_load)
                 
+                # Compute and add mean reconstruction error for the repetition
                 recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
+
+                # Compute and add std reconstruction error for the repetition
                 if method_std_computation == 1:             
                     recon_loss_results_std[subj][epoch] += tmp_recon_error.std(1)
                 elif method_std_computation == 2:
                     recon_loss_results_std[subj][epoch] += tmp_recon_error.mean(1)
                 elif method_std_computation == 3:
                     recon_loss_results_std[subj][epoch] += tmp_recon_error.std()
+
+                # Note the += symbol, i.e. the results of the various repetition are added together
                 
                 valid_repetition += 1
             except:
                 print("File not found for subj {} - epoch {} - repetition {}".format(subj, epoch, repetition))
-
+        
+        # Divide for the number of valid repetition
         recon_loss_results_mean[subj][epoch] /= valid_repetition
         recon_loss_results_std[subj][epoch] /= valid_repetition
-        # Note that inside recon_loss_results_std[subj][epoch] there are vector of size n_trials
-        
+
+        # N.b. Note that inside recon_loss_results_std[subj][epoch] there are vector of size n_trials if method_std_computation is equal to 1 or 2
+
+        # Complete mean computation
         recon_loss_average_mean[subj].append(recon_loss_results_mean[subj][epoch].mean())
+
+        # Complete std computation
         if method_std_computation == 1:
             recon_loss_average_std[subj].append(recon_loss_results_std[subj][epoch].mean())
         elif method_std_computation == 2:
@@ -109,25 +127,27 @@ for subj in subj_list:
         elif method_std_computation == 3:
             recon_loss_average_std[subj].append(recon_loss_results_std[subj][epoch])
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Create array for the table
 
-mean_vector = np.zeros((len(subj_list), len(epoch_list)))
-std_vector = np.zeros((len(subj_list), len(epoch_list)))
+mean_vector = np.zeros((len(subject_to_test_list), len(epoch_list)))
+std_vector = np.zeros((len(subject_to_test_list), len(epoch_list)))
 
-for i in range(len(subj_list)):
-    subj = subj_list[i]
+for i in range(len(subject_to_test_list)):
+    subj = subject_to_test_list[i]
     for j in range(len(epoch_list)):
         epoch = epoch_list[j]
         
         mean_vector[i, j] = recon_loss_average_mean[subj][j]
         std_vector[i, j] = recon_loss_average_std[subj][j]
-        
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
 #%% Create list only for the last epoch
 
 list_to_copy = []
 epoch = epoch_list[-1]
-for i in range(len(subj_list)):
-    subj = subj_list[i]
+for i in range(len(subject_to_test_list)):
+    subj = subject_to_test_list[i]
     
     tmp_string = "{}±{}".format(round(recon_loss_average_mean[subj][-1], 2), round(recon_loss_average_std[subj][-1], 2))
     list_to_copy.append(tmp_string)
