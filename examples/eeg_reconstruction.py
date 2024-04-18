@@ -47,7 +47,7 @@ model = hvEEGNet.hvEEGNet_shallow(model_config)
 # Load the weights
 model.load_state_dict(torch.load('./examples/example_trained_weigths.pth', map_location = torch.device('cpu')))
 # P.s. this line here can throw you an error, depending on how you run the code.
-# You could find the error that python doesn't find the weights file. 
+# You could see the error that python doesn't find the weights file. 
 # This because the path to this specific weights file is defined relative to the root folder of the repository. So it is valid only if you run the script from that folder
 
 # Note on device and weights
@@ -117,5 +117,3 @@ model.to(device)
 
 # Reconstruct multiple EEG signal
 x_r_eeg_multi = model.reconstruct(x_eeg_multi)
-
-

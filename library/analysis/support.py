@@ -65,8 +65,8 @@ def compute_loss_dataset(dataset, model, device, batch_size = 32):
             # Compute the DTW channel by channels
             tmp_recon_loss = np.zeros((x_batch.shape[0], len(dataset.ch_list)))
             for j in range(x.shape[2]): # Iterate through EEG Channels
-                x_ch = x[:, :, j, :].swapaxes(1,2)
-                x_r_ch = x_r[:, :, j, :].swapaxes(1,2)
+                x_ch = x[:, :, j, :].swapaxes(1, 2)
+                x_r_ch = x_r[:, :, j, :].swapaxes(1, 2)
                 # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
                 # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
                 

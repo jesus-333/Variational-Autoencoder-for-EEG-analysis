@@ -6,7 +6,7 @@ List of loss function used during training.
 
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 from .soft_dtw_cuda import SoftDTW
@@ -14,7 +14,7 @@ from .soft_dtw_cuda import SoftDTW
 import torch
 import torch.nn.functional as F
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Losses declaration
 
 # Classifier loss
@@ -22,7 +22,7 @@ import torch.nn.functional as F
 def classifier_loss(predicted_label, true_label):
     return F.nll_loss(predicted_label, true_label)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reconstruction loss
 
 def recon_loss_function(x, x_r):
@@ -34,8 +34,8 @@ def recon_loss_frequency_function(x, x_r):
 def compute_dtw_loss_along_channels(x, x_r, dtw_loss_function, average_channels = False):
     recon_loss = 0
     for i in range(x.shape[2]): # Iterate through EEG Channels
-        x_ch = x[:, :, i, :].swapaxes(1,2)
-        x_r_ch = x_r[:, :, i, :].swapaxes(1,2)
+        x_ch = x[:, :, i, :].swapaxes(1, 2)
+        x_r_ch = x_r[:, :, i, :].swapaxes(1, 2)
         # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
         # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
         
@@ -47,7 +47,7 @@ def compute_dtw_loss_along_channels(x, x_r, dtw_loss_function, average_channels 
 
     return recon_loss
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Kullback loss
 
 def kl_loss_normal_function(mu, log_var, delta_mu = None, delta_log_var = None):
@@ -57,7 +57,7 @@ def kl_loss_normal_function(mu, log_var, delta_mu = None, delta_log_var = None):
 
     # If mu is a matrix it will have shape [B x D x H x W] so len(shape) = 4 > 2
     # If mu is a vector it will have shape [B x N] so len(shape)
-    if len(mu.shape) > 2: dim_sum = [1,2,3]
+    if len(mu.shape) > 2: dim_sum = [1, 2, 3]
     else: dim_sum = 1
 
     if delta_mu is None and delta_log_var is None: # Classic KL
