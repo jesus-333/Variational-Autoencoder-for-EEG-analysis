@@ -131,7 +131,7 @@ class hvae_encoder(nn.Module):
 
         return z, mu, sigma, cell_outputs
 
-    def encode(self, x, return_distribution = True, return_shape = False):
+    def encode(self, x : torch.tensor, return_distribution : bool = True, return_shape : bool = False):
         """
         Encode the input tensor x.
         If return_distribution == True the return list will contain the sample from the latent space, the mean and the logvars. Otherwise the method will return the output of the last cell
@@ -143,7 +143,7 @@ class hvae_encoder(nn.Module):
         # List with the output of each cell of the encoder
         cell_outputs = []
         output_shape = []
-        for cell in self.encoder_modules: 
+        for cell in self.encoder_modules:
             x = cell(x)
             cell_outputs.append(x)
             if return_shape: output_shape.append(x.shape)

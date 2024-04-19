@@ -86,8 +86,8 @@ class hvEEGNet_shallow(nn.Module):
         return self.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore)
 
     def encode(self, x : torch.tensor, return_distribution : bool = True) :
-        z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
-        return z, mu, log_var
+        return_list = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
+        return return_list
 
     def build_cell_list(self, config : dict):
         # List to save the cell of the encoder
