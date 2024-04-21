@@ -17,11 +17,11 @@ subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # Used the results obtained with the specifi training repetition at the specific epoch
 epoch = 80
-repetition = 5 # If negative use the average between all repetition
+repetition = 6 # If negative use the average between all repetition
 
 # If True the distance is computed between array of sampled data (i.e. obtained sampling from the distribution)
 # Otherwise the array of means will be used as representative of the data
-sample_from_latent_space = False
+sample_from_latent_space =True 
 
 plot_config = dict(
 	figsize = (12, 8),
@@ -78,8 +78,8 @@ for subj_train in subj_train_list :
                 path_recon_error_session_1 = 'Saved Results/repetition_hvEEGNet_80/train/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_rep_{}.npy'.format(subj_train, subj_train, subj_list[i], epoch, repetition)
                 path_recon_error_session_2 = 'Saved Results/repetition_hvEEGNet_80/test/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_rep_{}.npy'.format(subj_train, subj_train, subj_list[i], epoch, repetition)
             else :
-                path_recon_error_session_1 = 'Saved Results/repetition_hvEEGNet_80/train/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_average.npy'.format(subj_train, subj_train, subj_list[i], epoch)
-                path_recon_error_session_2 = 'Saved Results/repetition_hvEEGNet_80/test/subj {}/cross_subject/recon_error_cross_subj_{}_to_{}_epoch_{}_average.npy'.format(subj_train, subj_train, subj_list[i], epoch)
+                path_recon_error_session_1 = 'Saved Results/repetition_hvEEGNet_80/train/subj {}/cross_subject/recon_error_subj_{}_to_{}_epoch_{}_average.npy'.format(subj_train, subj_train, subj_list[i], epoch)
+                path_recon_error_session_2 = 'Saved Results/repetition_hvEEGNet_80/test/subj {}/cross_subject/recon_error_subj_{}_to_{}_epoch_{}_average.npy'.format(subj_train, subj_train, subj_list[i], epoch)
         
         # Load reconstruction error
         tmp_recon_error_1 = np.load(path_recon_error_session_1)

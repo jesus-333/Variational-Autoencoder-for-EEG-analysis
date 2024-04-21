@@ -26,10 +26,6 @@ from library.config import config_dataset as cd
 subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_train_list = [3, 9]
 
-# Training repetition and epoch of the weights
-repetition = 1
-epoch = 80
-
 # The wesserstein distance will be computed respect this subjects
 subj_for_distance_computation_list  = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_for_distance_computation_list  = [1]
@@ -48,24 +44,11 @@ force_computation = False
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load the precomputed matrix (if exist) otherwise created an empty matrix
 
-path_save = 'Saved Results/wasserstein/'
-
-if sample_from_latent_space :
-    path_save += '/latent_space_samples/'
-else :
-    path_save += '/_mu_tensor/'
+path_save = 'Saved Results/wasserstein/raw_data/'
 
 # Path to save/load the computed distances
-path_save_session_1 = path_save + 'distance_train_session_1_epoch_{}_rep_{}'.format(epoch, repetition)
-path_save_session_2 = path_save + 'distance_train_session_2_epoch_{}_rep_{}'.format(epoch, repetition)
-
-# Add suffix to indicate if computation is between latent space samples or mu tensor
-if sample_from_latent_space :
-    path_save_session_1 += '_latent_space_samples.npy'
-    path_save_session_2 += '_latent_space_samples.npy'
-else :
-    path_save_session_1 += '_mu_tensor.npy'
-    path_save_session_2 += '_mu_tensor.npy'
+path_save_session_1 = path_save + 'distance_session_1_to_session_1_raw_data.npy'
+path_save_session_2 = path_save + 'distance_session_1_to_session_2_raw_data.npy'
 
 # Check if the file exist otherwise creates it
 if os.path.isfile(path_save_session_1) :
@@ -86,31 +69,12 @@ for i in range(len(subj_train_list)) :
     subj_train = subj_train_list[i]
     dataset_config_train = cd.get_moabb_dataset_config([subj_train])
     dataset_config_train['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_dataset, _, _, model_hv = support.get_dataset_and_model(dataset_config_train, 'hvEEGNet_shallow')
+    train_dataset, _, _, _ = support.get_dataset_and_model(dataset_config_train, 'hvEEGNet_shallow')
     print("Subj train {}".format(subj_train))
-    
-    # Set model to evaluation mode
-    model_hv.eval()
-
-    # Load weights
-    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(80, subj_train, repetition, epoch)
     
     # Get tensor with all training data
     x_train, _ = train_dataset[:]
-    
-    # Encode train data
-    model_output_train_data = model_hv.encode(x_train)
-
-    # Note on the encode function. By default the parameter return_distribution of the function is set to True.
-    # This allow the function encode to return the sample from the latent space but also the mean and the variance of the latent space.
-    # If it is set to False the output is tensor just before passing through the layer that map data in the mean and variance of latent space.
-    # Note that model output is a list where the first element contains the tensor with the z samples from the latent space, the seond element the tensor of mean and the third element the tensor of variance
-    
-    # Get the sample or the array of mean
-    if sample_from_latent_space :
-        u_samples = model_output_train_data[0].flatten(1)
-    else :
-        u_samples = model_output_train_data[1].flatten(1)
+    u_samples = x_train[:].squeeze().flatten(1)
 
     for j in range(len(subj_for_distance_computation_list)) :
         # Get subj number
@@ -127,13 +91,8 @@ for i in range(len(subj_train_list)) :
             x_test_session_1, _ = dataset_session_1[:]
             x_test_session_2, _ = dataset_session_2[:]
             
-            # Get the sample or the array of mean
-            if sample_from_latent_space :
-                v_samples_1 = model_hv.encode(x_test_session_1)[0].flatten(1)
-                v_samples_2 = model_hv.encode(x_test_session_2)[0].flatten(1)
-            else :
-                v_samples_1 = model_hv.encode(x_test_session_1)[1].flatten(1)
-                v_samples_2 = model_hv.encode(x_test_session_2)[1].flatten(1)
+            v_samples_1 = x_test_session_1[:].squeeze().flatten(1)
+            v_samples_2 = x_test_session_2[:].squeeze().flatten(1)
         
             # Compute distance between distribution
             distance_train_session_1 = wasserstein_distance_nd(u_samples, v_samples_1)
@@ -151,6 +110,3 @@ for i in range(len(subj_train_list)) :
             np.save(path_save_session_2, distance_matrix_2)
         else : # If I already computed the distance skip this iteration and directly load the precomputed data
             continue
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-

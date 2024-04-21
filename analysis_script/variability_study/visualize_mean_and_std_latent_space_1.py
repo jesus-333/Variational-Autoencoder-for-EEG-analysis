@@ -103,7 +103,7 @@ for i in range(len(subj_train_list)) :
     for ax in axs :
         ax.grid(True)
         # ax.set_xticks(ticks = xticks, labels = xticks_values)
-        # ax.set_xlim([300, 400])
+        ax.set_xlim([350, 550])
 
     fig.tight_layout()
     fig.show()
