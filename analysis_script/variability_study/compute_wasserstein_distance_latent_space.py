@@ -13,7 +13,7 @@ import os
 from scipy.stats import wasserstein_distance_nd
 import numpy as np
 
-from library.analysis import dtw_analysis, support
+from library.analysis import support
 from library.dataset import preprocess as pp
 
 from library.config import config_dataset as cd
@@ -27,7 +27,7 @@ subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_train_list = [3, 9]
 
 # Training repetition and epoch of the weights
-repetition = 5
+repetition = 4
 epoch = 80
 
 # The wesserstein distance will be computed respect this subjects
@@ -51,8 +51,8 @@ force_computation = False
 path_save = 'Saved Results/wasserstein/'
 
 # Path to save/load the computed distances
-path_save_session_1 = path_save + 'distance_train_session_1'
-path_save_session_2 = path_save + 'distance_train_session_2'
+path_save_session_1 = path_save + 'distance_train_session_1_epoch_{}_rep_{}'.format(epoch, repetition)
+path_save_session_2 = path_save + 'distance_train_session_2_epoch_{}_rep_{}'.format(epoch, repetition)
 
 # Add suffix to indicate if computation is between latent space samples or mu tensor
 if sample_from_latent_space :
@@ -66,12 +66,12 @@ else :
 if os.path.isfile(path_save_session_1) :
     distance_matrix_1 = np.load(path_save_session_1)
 else :
-    distance_matrix_1 = np.ones((9, 9)) * -1
+    distance_matrix_1 = np.ones((9, 9)) * -10
 
 if os.path.isfile(path_save_session_2) :
     distance_matrix_2 = np.load(path_save_session_2)
 else :
-    distance_matrix_2 = np.ones((9, 9)) * -1
+    distance_matrix_2 = np.ones((9, 9)) * -10
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Compute wasserstein distance between train data and other subjects data
@@ -111,7 +111,7 @@ for i in range(len(subj_train_list)) :
         # Get subj number
         subj_test = subj_for_distance_computation_list[j]
 
-        if force_computation or distance_matrix_1[subj_train - 1, subj_test - 1] < 0 or distance_matrix_2[subj_train - 1, subj_test - 1] < 0 : # If I haven't computed the distance for this pair train data-other subj data then I computed it
+        if force_computation or distance_matrix_1[subj_train - 1, subj_test - 1] < -1 or distance_matrix_2[subj_train - 1, subj_test - 1] < -1 : # If I haven't computed the distance for this pair train data-other subj data then I computed it
             # Get the data to used for distance computation
             dataset_config_other_subj = cd.get_moabb_dataset_config([subj_test])
             dataset_config_other_subj['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
