@@ -24,7 +24,7 @@ from library.config import config_dataset as cd
 # Subject to use for the weights of trained network.
 # E.g. if subj_train = 3 the script load in hvEEGNet the weights obtained after the traiing with data from subject 3
 subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_train_list = [3]
+# subj_train_list = [3, 9]
 
 # Training repetition and epoch of the weights
 repetition = 5
@@ -69,14 +69,12 @@ else :
     distance_matrix_1 = np.ones((9, 9)) * -1
 
 if os.path.isfile(path_save_session_2) :
-    distance_matrix_1 = np.load(path_save_session_2)
+    distance_matrix_2 = np.load(path_save_session_2)
 else :
-    distance_matrix_1 = np.ones((9, 9)) * -1
+    distance_matrix_2 = np.ones((9, 9)) * -1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Compute wasserstein distance between train data and other subjects data
-
-distance_matrix_2 = np.ones((len(subj_train_list), len(subj_for_distance_computation_list)))
 
 for i in range(len(subj_train_list)) :
     # Get model
@@ -108,18 +106,14 @@ for i in range(len(subj_train_list)) :
         u_samples = model_output_train_data[0].flatten(1)
     else :
         u_samples = model_output_train_data[1].flatten(1)
-    
-    # Lists to save the wasserstein distance
-    distance_list_session_1 = np.zeros(len(subj_for_distance_computation_list))
-    distance_list_session_2 = np.zeros(len(subj_for_distance_computation_list))
 
     for j in range(len(subj_for_distance_computation_list)) :
         # Get subj number
         subj_test = subj_for_distance_computation_list[j]
 
-        if force_computation or distance_matrix_1[i, j] < 0 or distance_matrix_2[i, j] < 0 : # If I haven't computed the distance for this pair train data-other subj data then I computed it
+        if force_computation or distance_matrix_1[subj_train - 1, subj_test - 1] < 0 or distance_matrix_2[subj_train - 1, subj_test - 1] < 0 : # If I haven't computed the distance for this pair train data-other subj data then I computed it
             # Get the data to used for distance computation
-            dataset_config_other_subj = cd.get_moabb_dataset_config([subj_train])
+            dataset_config_other_subj = cd.get_moabb_dataset_config([subj_test])
             dataset_config_other_subj['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
             dataset_session_1, _, dataset_session_2 = pp.get_dataset_d2a(dataset_config_other_subj)
             print("Subj test {}".format(subj_test))
@@ -141,8 +135,8 @@ for i in range(len(subj_train_list)) :
             distance_train_session_2 = wasserstein_distance_nd(u_samples, v_samples_2)
         
             # Saved values
-            distance_list_session_1[j] = distance_train_session_1
-            distance_list_session_2[j] = distance_train_session_2
+            distance_matrix_1[subj_train - 1, subj_test - 1] = distance_train_session_1
+            distance_matrix_2[subj_train - 1, subj_test - 1] = distance_train_session_2
             
             # Folder to save results
             os.makedirs(path_save, exist_ok = True)
@@ -151,15 +145,7 @@ for i in range(len(subj_train_list)) :
             np.save(path_save_session_1, distance_matrix_1)
             np.save(path_save_session_2, distance_matrix_2)
         else : # If I already computed the distance skip this iteration and directly load the precomputed data
-            # Load the data
-            distance_list_session_1 = np.load(path_save_session_1)
-            distance_list_session_2 = np.load(path_save_session_2)
-
-        # P.s. I know that I overwrite the list (or load it) a bunch of time
-
-    # Saved the distances for plot
-    distance_matrix_1[i, :] = distance_list_session_1
-    distance_matrix_2[i, :] = distance_list_session_2
+            continue
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
