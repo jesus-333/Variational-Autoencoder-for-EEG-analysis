@@ -30,14 +30,6 @@ subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 subj_for_distance_computation_list  = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_for_distance_computation_list  = [1]
 
-# If True the distance is computed between array of sampled data (i.e. obtained sampling from the distribution)
-# Otherwise the array of means will be used as representative of the data
-sample_from_latent_space = True
-
-# If True the distance is computed separately for each class
-# TODO implement in a new version of the script
-# divide_by_class = False
-
 # If True compute again the distance even if it was already computed in past
 force_computation = False
 
