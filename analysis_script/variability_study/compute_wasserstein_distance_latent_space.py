@@ -25,26 +25,26 @@ from library.config import config_dataset as cd
 # Subject to use for the weights of trained network.
 # E.g. if subj_train = 3 the script load in hvEEGNet the weights obtained after the training with data from subject 3
 subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_train_list = [3, 9]
+# subj_train_list = [5,6,7,8,9]
 
 # Training repetition and epoch of the weights
-repetition = 1
+repetition = 5
 epoch = 80
 
 # The wesserstein distance will be computed respect this subjects
 subj_for_distance_computation_list  = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_for_distance_computation_list  = [1]
+# subj_for_distance_computation_list  = [1, 2]
 
 # If True the distance is computed between array of sampled data (i.e. obtained sampling from the distribution)
 # Otherwise the array of means will be used as representative of the data
-sample_from_latent_space = True
+sample_from_latent_space = False
 
 # If True the distance is computed separately for each class
 # TODO implement in a new version of the script
 # divide_by_class = False
 
 # If True compute again the distance even if it was already computed in past
-force_computation = False
+force_computation = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load the precomputed matrix (if exist) otherwise created an empty matrix
@@ -54,7 +54,7 @@ path_save = 'Saved Results/wasserstein/'
 if sample_from_latent_space :
     path_save += '/latent_space_samples/'
 else :
-    path_save += '/_mu_tensor/'
+    path_save += '/mu_tensor/'
 
 # Path to save/load the computed distances
 path_save_session_1 = path_save + 'distance_train_session_1_epoch_{}_rep_{}'.format(epoch, repetition)

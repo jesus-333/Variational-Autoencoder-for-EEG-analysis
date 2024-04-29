@@ -19,11 +19,11 @@ subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 epoch = 80
 repetition = -1 # If negative use the average between all repetition
 
-use_raw_data = True
+use_raw_data = False
 
 # If True the distance is computed between array of sampled data (i.e. obtained sampling from the distribution)
 # Otherwise the array of means will be used as representative of the data
-sample_from_latent_space = True
+sample_from_latent_space = False
 
 plot_config = dict(
 	figsize = (12, 8),
@@ -42,21 +42,18 @@ for subj_train in subj_train_list :
         path_wasserstrain_distance_session_1 = 'Saved Results/wasserstein/raw_data/distance_session_1_to_session_1_raw_data.npy'
         path_wasserstrain_distance_session_2 = 'Saved Results/wasserstein/raw_data/distance_session_1_to_session_2_raw_data.npy'
     else :
+
+        if sample_from_latent_space :
+            path_string = 'latent_space_samples'
+        else :
+            path_string = 'mu_tensor'
         # Load wasserstein distance
         if repetition > 0 :
-            path_wasserstrain_distance_session_1 = 'Saved Results/wasserstein/distance_train_session_1_epoch_{}_rep_{}'.format(epoch, repetition)
-            path_wasserstrain_distance_session_2  = 'Saved Results/wasserstein/distance_train_session_2_epoch_{}_rep_{}'.format(epoch, repetition)
+            path_wasserstrain_distance_session_1 = 'Saved Results/wasserstein/{}/distance_train_session_1_epoch_{}_rep_{}_{}.npy'.format(path_string, epoch, repetition, path_string)
+            path_wasserstrain_distance_session_2 = 'Saved Results/wasserstein/{}/distance_train_session_2_epoch_{}_rep_{}_{}.npy'.format(path_string, epoch, repetition, path_string)
         else :
-            path_wasserstrain_distance_session_1 = 'Saved Results/wasserstein/distance_train_session_1_epoch_{}_average'.format(epoch)
-            path_wasserstrain_distance_session_2  = 'Saved Results/wasserstein/distance_train_session_2_epoch_{}_average'.format(epoch)
-
-        # Add suffix to indicate if computation is between latent space samples or mu tensor
-        if sample_from_latent_space :
-            path_wasserstrain_distance_session_1 += '_latent_space_samples.npy'
-            path_wasserstrain_distance_session_2 += '_latent_space_samples.npy'
-        else :
-            path_wasserstrain_distance_session_1 += '_mu_tensor.npy'
-            path_wasserstrain_distance_session_2 += '_mu_tensor.npy'
+            path_wasserstrain_distance_session_1 = 'Saved Results/wasserstein/{}/distance_train_session_1_epoch_{}_average.npy'.format(path_string, epoch)
+            path_wasserstrain_distance_session_2  = 'Saved Results/wasserstein/{}/distance_train_session_2_epoch_{}_average.npy'.format(path_string, epoch)
 
     distance_matrix_1 = np.load(path_wasserstrain_distance_session_1)
     distance_matrix_2 = np.load(path_wasserstrain_distance_session_2)
@@ -130,10 +127,7 @@ for subj_train in subj_train_list :
         if use_raw_data :
             path_save += 'raw_data/plot/'
         else :
-            if sample_from_latent_space :
-                path_save += 'latent_space_samples/plot/'
-            else :
-                path_save += 'mu_tensor/plot/'
+            path_save += path_string + '/plot/'
         os.makedirs(path_save, exist_ok = True)
     
         path_save += 'wass_vs_recon_error_S{}'.format(subj_train)

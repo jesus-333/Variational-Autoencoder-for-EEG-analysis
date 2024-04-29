@@ -33,6 +33,13 @@ subj_for_distance_computation_list  = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # If True compute again the distance even if it was already computed in past
 force_computation = False
 
+normalization_type = -1
+# -1: No normalization
+# 1 : z-score all subject data (using only training data)
+# 2 : z-score trial per trial
+# 3 : z-score trial per trial and channel per channel
+# 4 : z-score channel per channel considering all the trials (using only training data). This means that to normalize a channel I take for all 288 repetitions the specific channel.
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load the precomputed matrix (if exist) otherwise created an empty matrix
 
