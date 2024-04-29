@@ -12,6 +12,7 @@ import os
 
 from scipy.stats import wasserstein_distance_nd
 import numpy as np
+import torch
 
 from library.analysis import support
 from library.dataset import preprocess as pp
@@ -22,7 +23,7 @@ from library.config import config_dataset as cd
 # Settings
 
 # Subject to use for the weights of trained network.
-# E.g. if subj_train = 3 the script load in hvEEGNet the weights obtained after the traiing with data from subject 3
+# E.g. if subj_train = 3 the script load in hvEEGNet the weights obtained after the training with data from subject 3
 subj_train_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 # subj_train_list = [3, 9]
 
@@ -88,12 +89,13 @@ for i in range(len(subj_train_list)) :
     dataset_config_train['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
     train_dataset, _, _, model_hv = support.get_dataset_and_model(dataset_config_train, 'hvEEGNet_shallow')
     print("Subj train {}".format(subj_train))
-    
-    # Set model to evaluation mode
-    model_hv.eval()
 
     # Load weights
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(80, subj_train, repetition, epoch)
+    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+    
+    # Set model to evaluation mode
+    model_hv.eval()
     
     # Get tensor with all training data
     x_train, _ = train_dataset[:]
@@ -124,16 +126,16 @@ for i in range(len(subj_train_list)) :
             print("Subj test {}".format(subj_test))
             
             # Get data for the two sessions
-            x_test_session_1, _ = dataset_session_1[:]
-            x_test_session_2, _ = dataset_session_2[:]
+            x_eeg_session_1, _ = dataset_session_1[:]
+            x_eeg_session_2, _ = dataset_session_2[:]
             
             # Get the sample or the array of mean
             if sample_from_latent_space :
-                v_samples_1 = model_hv.encode(x_test_session_1)[0].flatten(1)
-                v_samples_2 = model_hv.encode(x_test_session_2)[0].flatten(1)
+                v_samples_1 = model_hv.encode(x_eeg_session_1)[0].flatten(1)
+                v_samples_2 = model_hv.encode(x_eeg_session_2)[0].flatten(1)
             else :
-                v_samples_1 = model_hv.encode(x_test_session_1)[1].flatten(1)
-                v_samples_2 = model_hv.encode(x_test_session_2)[1].flatten(1)
+                v_samples_1 = model_hv.encode(x_eeg_session_1)[1].flatten(1)
+                v_samples_2 = model_hv.encode(x_eeg_session_2)[1].flatten(1)
         
             # Compute distance between distribution
             distance_train_session_1 = wasserstein_distance_nd(u_samples, v_samples_1)
