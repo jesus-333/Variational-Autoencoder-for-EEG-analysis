@@ -55,8 +55,12 @@ elif normalization_type == 4 : path_save += 'z_score_trial_by_trial_ch_by_ch/'
 else : path_save += 'no_normalization/'
 
 # Path to save/load the computed distances
-path_save_session_1 = path_save + 'distance_session_1_to_session_1_raw_data.npy'
-path_save_session_2 = path_save + 'distance_session_1_to_session_2_raw_data.npy'
+if concatenate_channels :
+    path_save_session_1 = path_save + 'distance_session_1_to_session_1_raw_data_concatenate_channels.npy'
+    path_save_session_2 = path_save + 'distance_session_1_to_session_2_raw_data_concatenate_channels.npy'
+else :
+    path_save_session_1 = path_save + 'distance_session_1_to_session_1_raw_data.npy'
+    path_save_session_2 = path_save + 'distance_session_1_to_session_2_raw_data.npy'
 
 # Check if the file exist otherwise creates it
 if os.path.isfile(path_save_session_1) :
