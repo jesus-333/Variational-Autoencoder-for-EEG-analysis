@@ -28,13 +28,16 @@ sample_from_latent_space = False
 normalization_type = 3
 
 plot_config = dict(
-	figsize = (12, 8),
+	figsize = (20, 20),
 	fontsize = 15,
 	save_fig = True,
 )
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+fig, axs = plt.subplots(3, 3, figsize = plot_config['figsize'])
+idx_axs = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]]
 
 if normalization_type == 1 : norm_string = 'z_score'
 elif normalization_type == 2 : norm_string = 'z_score_trial_by_trial'
@@ -105,7 +108,7 @@ for subj_train in subj_train_list :
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     # Plot the average
-    fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
+    ax = axs[*idx_axs[subj_train - 1]]
     for i in range(len(reconstruction_error_1)) :
         ax.plot(distance_to_plot_1[i], reconstruction_error_1[i],
                 marker = '$S{}$'.format(subj_list[i]), color = 'green', markersize = 15
@@ -132,19 +135,22 @@ for subj_train in subj_train_list :
     fig.tight_layout()
     fig.show()
 
-    if plot_config['save_fig']:
-        path_save = 'Saved Results/wasserstein/'
+if plot_config['save_fig']:
+    path_save = 'Saved Results/wasserstein/'
 
-        if use_raw_data :
-            path_save += 'raw_data/{}/plot/'.format(norm_string)
-        else :
-            path_save += path_string + '/plot/'
-        os.makedirs(path_save, exist_ok = True)
-    
-        path_save += 'wass_vs_recon_error_S{}'.format(subj_train)
+    if use_raw_data :
+        path_save += 'raw_data/{}/plot/'.format(norm_string)
+    else :
+        path_save += path_string + '/plot/'
+    os.makedirs(path_save, exist_ok = True)
 
-        if not use_raw_data :
-            path_save += '_epoch_{}'.format(epoch)
+    path_save += 'wass_vs_recon_error'
 
-        fig.savefig(path_save + ".png", format = 'png')
-        # fig_freq.savefig(path_save + ".pdf", format = 'pdf')
+    if not use_raw_data :
+        path_save += '_epoch_{}'.format(epoch)
+    else :
+        path_save += '_{}'.format(norm_string)
+
+    path_save += '_grid'
+    fig.savefig(path_save + ".png", format = 'png')
+    # fig_freq.savefig(path_save + ".pdf", format = 'pdf')
