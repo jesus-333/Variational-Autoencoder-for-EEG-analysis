@@ -45,7 +45,7 @@ class ChWi_module_encoder(nn.Module) :
             pooling,
         )
 
-    def forward(self, x) :
+    def forward(self, x : torch.tensor) :
         return self.chwi_module(x)
 
     def check_config(self, module_config : dict) :
@@ -70,11 +70,11 @@ class ChWi_module_encoder(nn.Module) :
         if 'p_kernel' not in module_config :
             module_config['p_kernel'] = None
 
-class ChWi_encoder_v1(nn.Module) : 
+class ChWi_encoder_v1(nn.Module) :
 
-    def __init__(self, config_list : list):
+    def __init__(self, config_list : list) :
         """
-        First version of the channel wise network. The model is composed of multiple chwi_module
+        First version of the channel wise network. The model is composed of multiple chwi_module istances
         """
         super().__init__()
         
@@ -85,18 +85,18 @@ class ChWi_encoder_v1(nn.Module) :
         for module_config in config_list:
             self.module_list.append(ChWi_module_encoder(module_config))
 
-    def forward(self, x): 
+    def forward(self, x : torch.tensor) :
         """
-        x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
+        @param x : (torch.tensor) EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
         N.B. There must must be no EEG channel dimension
         """
         return self.module_list(x)
     
-    def check_input(self, x):
+    def check_input(self, x : torch.tensor):
         # TODO
         pass
 
-    def reconstruct_multichannel_EEG(self, x, flatten : bool = False):
+    def reconstruct_multichannel_EEG(self, x : torch.tensor, flatten : bool = False):
         """
         Compute, channel wise, the encoding through the ChWi modules.
         x : input x of shape "B x 1 x C x T" with B = batch size, 1 = depth dimension, C = Number of EEG channels, T = Time samples
@@ -126,23 +126,23 @@ class ChWi_encoder_v1(nn.Module) :
 class ChWi_module_decoder(nn.Module) :
     def __init__(self, module_config : dict) :
         """
-        Module for the Channel Wise network
+        Module for the Channel Wise network decoder
         """
         super().__init__()
 
+        # Create pooling
+        upsample = nn.Upsample(scale_factor = module_config['scale_factor']) if module_config['scale_factor'] is not None else nn.Identity()
+
         # Create the convolutional layer
         conv_layer = nn.ConvTranspose1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
-                               kernel_size = module_config['c_kernel'], padding = module_config['padding'], group = module_config['group']
-                               )
+                                       kernel_size = module_config['c_kernel'], padding = module_config['padding'], group = module_config['group']
+                                       )
         
         # Batch normalization
         batch_normalizer = nn.BatchNorm1d(module_config['out_channels']) if module_config['use_batch_normalization'] else nn.Identity()
 
-        # Create activation
+        # Activation function
         activation = sf.get_activation(module_config['activation']) if module_config['activation'] is not None else nn.Identity()
-
-        # Create pooling
-        upsample = nn.Upsample(scale_factor = module_config['scale_factor']) if module_config['scale_factor'] is not None else nn.Identity()
 
         self.chwi_module = nn.Sequential(
             upsample,
@@ -154,7 +154,7 @@ class ChWi_module_decoder(nn.Module) :
     def forward(self, x) :
         return self.chwi_module(x)
 
-class ChWi_decoder_v1(nn.Module) : 
+class ChWi_decoder_v1(nn.Module) :
 
     def __init__(self, config_list : list):
         super().__init__()
@@ -166,18 +166,23 @@ class ChWi_decoder_v1(nn.Module) :
         for module_config in config_list :
             self.module_list.append(ChWi_module_decoder(module_config))
 
-    def forward(self, x): 
+    def forward(self, x : torch.tensor):
         """
-        x : encode of a EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = length of temporal axis after encoding 
+        @param x : (torch.tensor) Encoded EEG signal. The shape of x must be "B x N x T" with B = batch size, N = depth dimension, T = length of temporal axis after encoding
         N.B. There must must be no EEG channel dimension
         """
         return self.module_list(x)
     
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class ChWi_autoencoder(nn.Module) : 
+class ChWi_autoencoder(nn.Module) :
 
     def __init__(self, config : dict) :
+        """
+        ChWi autoencder composed by a v1 encoder and a v1 decoder. Create from the config dictionary used as input
+
+        @param config: (dict) Dictionary that must contains other two dictionary called 'encoder_config' and 'decoder_config'. This other two dictionaries, as the name suggests, should contain the config for the encoder and decoder.
+        """
         super().__init__()
         
         # Create encoder and decoder

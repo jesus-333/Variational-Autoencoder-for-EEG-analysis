@@ -108,9 +108,9 @@ class sample_layer(nn.Module):
     def __init__(self, input_shape, config : dict, hidden_space_dimension : int = -1):
         """
         PyTorch module used to implement the reparametrization trick and the sampling from the laten space in the hierarchical VAE (hVAE)
-        input_shape = shape of the input tensor
-        config = dictionary with parameters for the sampling layer. Check the README for more information.
-        hidden_space_dimension = int with the dimension of the laten/hidden space. Used only if we have a vector latent space
+        @param input_shape: Shape of the input tensor. Used if parameters_map_type == 1 or parameters_map_type == 0 and input_depth is not inside the config
+        @param config: Dictionary with parameters for the sampling layer. Check the README for more information.
+        @param hidden_space_dimension: int with the dimension of the laten/hidden space. Used only if we have a vector latent space
         """
         super().__init__()
 

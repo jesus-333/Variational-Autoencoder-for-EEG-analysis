@@ -33,11 +33,13 @@ from ..model import EEGNet
 from ..model import MBEEGNet
 from ..model import vEEGNet
 from ..model import hvEEGNet
+from ..model import ChWi
 
 # Training functions for specific model
 from . import train_EEGNet
 from . import train_vEEGNet
 from . import train_hvEEGNet
+from . import train_ChWi
     
 """
 %load_ext autoreload
@@ -216,6 +218,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return vEEGNet.vEEGNet(model_config)
     elif model_name == 'hvEEGNet_shallow':
         return hvEEGNet.hvEEGNet_shallow(model_config)
+    elif model_name == 'ChWi_autoencoder':
+        return ChWi.ChWi_autoencoder(model_config)
     else:
         raise ValueError("Type of the model not recognized")
 
@@ -225,6 +229,8 @@ def get_loss_function(model_name, config = None):
     elif model_name == 'vEEGNet':
         return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
+        return loss_function.hvEEGNet_loss(config)
+    elif model_name == 'ChWi_autoencoder':
         return loss_function.hvEEGNet_loss(config)
     else:
         raise ValueError("Type of the model not recognized")
@@ -238,6 +244,8 @@ def get_train_and_validation_function(model):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
+    elif 'ChWi.ChWi_autoencoder' in str(type(model)):
+        return train_ChWi.train_epoch, train_ChWi.validation_epoch
     else:
         raise ValueError("Type of the model not recognized")
 
