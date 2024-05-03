@@ -5,14 +5,14 @@
 Train function of the Channel Wise Network
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 # Python library
 import torch
 import pprint
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def train_epoch(model, loss_function, optimizer, train_loader, train_config, log_dict = None):
     # Set the model in training mode
