@@ -2,7 +2,8 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Contain the config for the various models
+Contain the config for the various models.
+Note that the specific parameters present are intended as examples only.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -152,17 +153,31 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_config_classifier_v1(use_only_mu_for_classification = True) -> dict:
-    """
-    Used for classifier in classifier_model_v1
-    """
+def get_config_ChWiAutoencoder() -> dict:
 
     config = dict(
-        use_only_mu_for_classification = use_only_mu_for_classification,  # If False use concatenate the mu and logvar output of the decoder in a single vector and used as input for the classifier. Otherwise use only mu output
-        neurons_list = [256, 4],
+        encoder_config = None,
+        decoder_config = None,
+        sample_layer_config = None
+    )
+
+    return config
+
+def get_config_ChWi_encoder() -> dict:
+    config = dict()
+
+    return config
+
+def get_config_ChWi_module_encoder() -> dict : 
+    config = dict(
+        in_channels = 1,
+        out_channels = 1,
+        c_kernel = 1,
+        padding = 'same',
+        group = None,
+        use_batch_normalization = True,
         activation = 'elu',
-        prob_dropout = 0.2,
-        use_bias = False,       # If True use bias in the ff layer
+        p_kernel = 1
     )
 
     return config
@@ -184,3 +199,36 @@ def get_config_classifier_model_v1(C : int, T : int, type_decoder : int, paramet
     )
     
     return model_config
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Config for aEEGNet
+
+def get_config_aEEGNet(C : int, T : int, n_external_query : int = 0) -> dict :
+    config = dict(
+        eegnet_config = get_config_EEGNet(C, T),
+        use_channels_self_attention = True, # Compute the attention along the EEG channels
+        channels_self_attention_config = get_config_attention_module(),
+        channels_n_external_query = n_external_query, # Number of external query array to use in the computation of attention in channel attention
+        channels_external_attention_config_list = [], # Containts the config for each attention module used to compute the attention with the external query
+        use_depthwise_attention = False, # Compute the attention along the depth map after the spatial filters. STILL TO IMPLEMENTS
+    )
+
+    for i in range(n_external_query) : config['external_attention_config_list'].append(get_config_attention_module())
+
+    print("Note that the attention_module config (both for self-attention and external-attention) must be complted with the values of qk_head_output_length, v_head_output_length and external_query_input_length")
+    print("The external_query_input_length is needed only for the external-attention module.")
+
+    return config
+
+def get_config_attention_module() -> dict :
+    config = dict(
+        use_head_for_q = True,
+        use_head_for_k = True,
+        use_head_for_v = True,
+        qk_head_output_length = -1, # To set outside the function
+        v_head_output_length = -1, # To set outside the function
+        normalize_qk = True,
+        external_query_input_length = -1, # Used only for external attention_module
+    )
+
+    return config

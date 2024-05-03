@@ -58,7 +58,8 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
         run.log_artifact(model_artifact)
 
         return model
-
+      
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, train_dataset, validation_dataset):
     """

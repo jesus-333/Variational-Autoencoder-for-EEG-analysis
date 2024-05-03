@@ -34,12 +34,14 @@ from ..model import MBEEGNet
 from ..model import vEEGNet
 from ..model import hvEEGNet
 from ..model import classifier
+from ..model import ChWi
 
 # Training functions for specific model
 from . import train_EEGNet
 from . import train_vEEGNet
 from . import train_hvEEGNet
 from . import train_classifier
+from . import train_ChWi
     
 """
 %load_ext autoreload
@@ -191,6 +193,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
                 wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
             
             wandb.log(log_dict)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         
         # End training cycle
     
@@ -221,6 +225,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return hvEEGNet.hvEEGNet_shallow(model_config)
     elif model_name == 'classifier_v1':
         return classifier.classifier_model_v1(model_config)
+    elif model_name == 'ChWi_autoencoder':
+        return ChWi.ChWi_autoencoder(model_config)
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
@@ -233,6 +239,8 @@ def get_loss_function(model_name, config = None):
         return loss_function.hvEEGNet_loss(config)
     elif model_name == 'classifier_v1':
         return torch.nn.NLLLoss()
+    elif model_name == 'ChWi_autoencoder':
+        return loss_function.hvEEGNet_loss(config)
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 
@@ -247,6 +255,8 @@ def get_train_and_validation_function(model):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     elif 'classifier' in str(type(model)):
         return train_classifier.train_epoch, train_classifier.validation_epoch
+    elif 'ChWi.ChWi_autoencoder' in str(type(model)):
+        return train_ChWi.train_epoch, train_ChWi.validation_epoch
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow")
 

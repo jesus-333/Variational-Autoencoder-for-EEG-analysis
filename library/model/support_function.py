@@ -106,19 +106,20 @@ class map_to_distribution_parameters_with_vector(nn.Module):
 
 class sample_layer(nn.Module):
     def __init__(self, input_shape, config : dict, hidden_space_dimension : int = -1):
-        super().__init__()
         """
         PyTorch module used to implement the reparametrization trick and the sampling from the laten space in the hierarchical VAE (hVAE)
-        input_shape = shape of the input tensor
-        config = dictionary with some parameters
-        hidden_space_dimension = int with the dimension of the laten/hidden space. Used only if we have a vector as hidden variable
+        @param input_shape: Shape of the input tensor. Used if parameters_map_type == 1 or parameters_map_type == 0 and input_depth is not inside the config
+        @param config: Dictionary with parameters for the sampling layer. Check the README for more information.
+        @param hidden_space_dimension: int with the dimension of the laten/hidden space. Used only if we have a vector latent space
         """
+        super().__init__()
 
         self.parameters_map_type = config['parameters_map_type']
         self.input_shape = list(input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
-            self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],
+            depth = config['input_depth'] if 'input_depth' in config else input_shape[1]
+            self.parameters_map = map_to_distribution_parameters_with_convolution(depth = depth,
                                                                                use_activation = config['use_activation_in_sampling'], 
                                                                                activation = config['sampling_activation'])
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
@@ -183,3 +184,42 @@ def reparametrize(mu, log_var):
     eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
 
     return  mu + sigma * eps
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Function for aEEGNet
+
+def create_head(config : dict) :
+    """
+    Create the head (Feedforward layer) for the attention module
+    """
+
+    if config['use_head_for_q'] :
+        q_head = nn.Linear(config['input_length'], config['qk_head_output_length'])
+    else :
+        q_head = nn.Identity()
+
+    if config['use_head_for_k'] :
+        k_head = nn.Linear(config['input_length'], config['qk_head_output_length'])
+    else :
+        k_head = nn.Identity()
+
+    if config['use_head_for_v'] :
+        v_head = nn.Linear(config['input_length'], config['v_head_output_length'])
+    else :
+        v_head = nn.Identity()
+
+    return q_head, k_head, v_head
+
+def compute_attention_values(q : torch.Tensor, k : torch.Tensor, v : torch.Tensor, normalize_qk : bool) -> torch.Tensor :
+    # Transpose k arrays
+    k = torch.permute(k, (0, 2, 1))
+    
+    # Compute the score to use in the linear combination of values
+    score = torch.bmm(q, k)
+    if normalize_qk : score /= torch.sqrt(torch.tensor(q.shape[2]))
+    score = nn.functional.softmax(score, dim = 2)
+
+    z = torch.bmm(score, v)
+
+    return z
