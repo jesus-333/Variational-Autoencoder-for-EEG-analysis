@@ -1,5 +1,9 @@
+"""
+Old config for various plots in the analysis scripts.
+Not in use as of today. For a plot of plot the config are directly declared inside the analysisi script
+"""
+
 from . import config_model as cm
-from . import config_dataset as cd
 
 def get_config_plot_preprocess_random_trial():
     config = dict(
@@ -103,7 +107,7 @@ def get_config_set_of_trials():
 def get_config_visualizer():
     config = dict(
         model_name = 'vEEGNet',
-        model_config = cm.cm.get_config_vEEGNet(),
+        model_config = cm.get_config_vEEGNet(),
     )
 
     return config

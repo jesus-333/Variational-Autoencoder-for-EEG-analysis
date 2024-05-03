@@ -2,11 +2,11 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Implementation of the (deep) Hierchical VAE 
+Implementation of the (deep) Hierchical VAE
 (https://arxiv.org/abs/2007.03898)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 import torch
@@ -14,11 +14,11 @@ from torch import nn
 
 from . import support_function as sf
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class hVAE(nn.Module):
 
-    def __init__(self, encoder_cell_list : list, decoder_cell_list : list, config : dict):
+    def __init__(self, encoder_cell_list : list, decoder_cell_list : list, config : dict) :
         super().__init__()
         # Create encoder
         self.encoder = hvae_encoder(encoder_cell_list, config)
@@ -30,7 +30,7 @@ class hVAE(nn.Module):
         # Create decoder
         self.decoder = hVAE_decoder(decoder_cell_list, config)
 
-    def forward(self, x, h = None):
+    def forward(self, x : torch.tensor, h : torch.tensor = None):
         # Encoder 
         z, mu, log_var, encoder_cell_outputs = self.encoder(x)
         
@@ -44,7 +44,15 @@ class hVAE(nn.Module):
 
         return x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list
 
-    def generate(self, z = None):
+    def generate(self, z : torch.tensor = None) -> torch.tensor :
+        """
+        Generate a new sample from z.
+        If z is None a random z is created with torch.randn.
+
+        @param z: (torch.tensor)(OPTIONAL) Samples from the latent space to use as a base for the generation. Defualt = None
+        @return x: (torch.tensor) New sample generated from z
+        """
+
         # If not passed sampled the z
         if z is None: z = torch.randn(self.hidden_space_shape)
         
@@ -53,34 +61,41 @@ class hVAE(nn.Module):
 
         return x
 
-    def reconstruct(self, x, no_grad = True):
+    def reconstruct(self, x : torch.tensor, no_grad : bool = True) -> torch.tensor:
         """
-        Reconstruct the input signal
-        x = (Tensor) input 
-        no_grad = (bool) indicate if keep tracking of the gradient
+        Reconstruct the input signal x
+        @param x:  (torch.tensor) Input to reconstruct. The shape must be B x 1 x C x T
+        @return no_grad : (bool)(OPTIONAL) Indicate if keep tracking of the gradient. Deafualt = True
+
+        @return x_r: (torch.tensor) Reconstructed version of x
         """
+
         if no_grad:
             with torch.no_grad():
                 output = self.forward(x)
         else:
             output = self.forward(x)
+
         return output[0]
 
-    def reconstruct_ignoring_latent_spaces(self, x, laten_space_to_ignore: list):
+    def reconstruct_ignoring_latent_spaces(self, x : torch.tensor, latent_space_to_ignore: list):
         """
-        Reconstruct the input x but ignore the sample from some of the latent space
-        x = (Tensor) input to reconstruct
-        laten_space_to_ignore = (list of bool) list with a bool for each cell of the decoder. If True ignore the corresponding latent space
+        Reconstruct the input x but ignore the contribution from some of the latent space
+
+        @param x: (torch.tensor) Input to reconstruct
+        @param laten_space_to_ignore: (list of bool) List with a bool for each cell of the decoder. If True ignore the corresponding latent space
+
+        @return x_r: (torch.tensor) Reconstructed version of x
         """
 
         with torch.no_grad():
-            # Encoder 
+            # Encoder
             z, _, _, encoder_cell_outputs = self.encoder(x)
             
             # Set to 0 the output of the various layer
             # If a an encoder_cell_output is compose by all 0 it is ignored inside the encoder
-            for i in range(len(laten_space_to_ignore)):
-                if laten_space_to_ignore[i] == True:
+            for i in range(len(latent_space_to_ignore)):
+                if latent_space_to_ignore[i] == True:
                     encoder_cell_outputs[i] *= 0
             
             # Decoder
@@ -265,7 +280,7 @@ class hVAE_decoder(nn.Module):
                     tmp_sample_layers_z_given_x.append(sample_layer_z_given_x)
 
                     # Pass the "data" through the modules
-                    tmp_encoder_output = torch.rand(encoder_output_shape[-1-i]) # Simulate the output of the ENCODER
+                    tmp_encoder_output = torch.rand(encoder_output_shape[- 1 - i]) # Simulate the output of the ENCODER
                     tmp_z, _, _ = sample_layer_z_given_x(dec_enc_combination(tmp_x, tmp_encoder_output))
 
                 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -274,7 +289,9 @@ class hVAE_decoder(nn.Module):
                 
                 # Create the module to combine features
                 if i == 0:
-                    if config['use_h_in_decoder']: # See Fig. 2 in NVAE paper
+                    if config['use_h_in_decoder']:
+                        # See Fig. 2 in NVAE paper
+                        # h is an extra input in the deepest hidden layer of the network
                         z_dec_combination = sf.weighted_sum_tensor(tmp_x.shape[1], config['h_shape'][1], tmp_x.shape[1])
                         tmp_z = torch.rand(config['h_shape'])
                     else:

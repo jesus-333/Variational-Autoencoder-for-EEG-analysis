@@ -53,7 +53,7 @@ def compute_stft(trials_matrix, config : dict):
         for j in range(trials_matrix.shape[1]): # Iterate through channels
             x = trials_matrix[i, j]
             # Default
-            f, t, tmp_stft = signal.stft(x, fs = config['stft_parameters']['sampling_freq'], nperseg = config['stft_parameters']['nperseg'], 
+            f, t, tmp_stft = signal.stft(x, fs = config['stft_parameters']['sampling_freq'], nperseg = config['stft_parameters']['nperseg'],
                                          window = config['stft_parameters']['window'], noverlap = config['stft_parameters']['noverlap'])
             
             stft_per_channels.append(np.power(np.abs(tmp_stft), 2))
@@ -64,12 +64,12 @@ def compute_stft(trials_matrix, config : dict):
     stft_trials_matrix = np.asarray(stft_trials_matrix)
 
     # Remove the filtered frequencies
-    if config['filter_data']: 
+    if config['filter_data']:
         if config['filter_type'] == 0: # Bandpass
             idx_freq = np.logical_and(f >= config['fmin'], f <= config['fmax'])
         if config['filter_type'] == 1: # Lowpass
             idx_freq = f <= config['fmax']
-        if config['filter_type'] == 2: # Highpass 
+        if config['filter_type'] == 2: # Highpass
             idx_freq = f >= config['fmin']
     else:
         idx_freq = np.ones(len(f)) == 1
@@ -122,12 +122,16 @@ def get_dataset_d2a(config : dict):
     data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
     config['channels_list'] = ch_list
 
+    # Add dimension for the depth map
+    data_train = np.expand_dims(data_train, 1)
+    data_test = np.expand_dims(data_test, 1)
+
     if config['train_trials_to_keep'] is not None:
         data_train = data_train[config['train_trials_to_keep']]
         labels_train = labels_train[config['train_trials_to_keep']]
     
     # Transform with stft (if you want time-frequency representation)
-    if config['use_stft_representation']: 
+    if config['use_stft_representation']:
         data_train, t, f = compute_stft(data_train, config)
         data_test, t, f = compute_stft(data_test, config)
 
@@ -138,14 +142,13 @@ def get_dataset_d2a(config : dict):
         labels = np.concatenate((labels_train, labels_test), 0)
         
         # Divide in train and test set
-        idx_train, idx_test =  sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
+        idx_train, idx_test = sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
         data_train, labels_train = data[idx_train], labels[idx_train]
         data_test, labels_test = data[idx_test], labels[idx_test]
-        
     
     # Split data in train and validation set
     if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
-        idx_train, idx_validation =  sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
+        idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
         data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
         data_train, labels_train = data_train[idx_train], labels_train[idx_train]
     else:
@@ -167,19 +170,19 @@ def get_dataset_d2a(config : dict):
         train_dataset       = ds_time.EEG_Dataset(data_train, labels_train, ch_list, config['normalize'])
         test_dataset        = ds_time.EEG_Dataset(data_test, labels_test, ch_list, config['normalize'])
         if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1:
-            validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])  
+            validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])
         else:
             validation_dataset = None
 
     return train_dataset, validation_dataset, test_dataset
         
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Test preprocess function
 
 def download_preprocess_and_visualize():
     subjects_list = [1,2,3,4,5,6,7,8,9]
     subjects_list = [3]
-    show_fig = True 
+    show_fig = True
 
     # Download the dataset and divide it in trials
     dataset_config = cd.get_moabb_dataset_config(subjects_list)
@@ -187,9 +190,9 @@ def download_preprocess_and_visualize():
     trials_per_subject, labels_per_subject, ch_list = download.get_moabb_data_handmade(dataset, dataset_config, 'train')
     
     # Config for the plots
-    plot_config_random_trial = cp.get_config_plot_preprocess_random_trial() 
-    plot_config_average_band = cp.get_config_plot_preprocess_average_stft() 
-    plot_config_ERS = cp.get_config_plot_preprocess_ERS() 
+    plot_config_random_trial = cp.get_config_plot_preprocess_random_trial()
+    plot_config_average_band = cp.get_config_plot_preprocess_average_stft()
+    plot_config_ERS = cp.get_config_plot_preprocess_ERS()
     plot_config_random_trial['show_fig'] = plot_config_average_band['show_fig'] = plot_config_ERS['show_fig'] = show_fig
     plot_config_random_trial['t_end'] = plot_config_average_band['t_end'] = dataset_config['length_trial']
     
@@ -204,16 +207,16 @@ def download_preprocess_and_visualize():
         # Visualize random trial in time domain
         # plot_random_trial_time_domain(trials, ch_list, plot_config_random_trial)
         
-        # Compute the ERS 
+        # Compute the ERS
         stft_trials_matrix_ERS, t, f = baseline_removal(trials, dataset_config)
 
-        # Correct the y limit for stft visualization 
-        if dataset_config['filter_data']: 
+        # Correct the y limit for stft visualization
+        if dataset_config['filter_data']:
             if dataset_config['filter_type'] == 0: # Bandpass
                 plot_config_ERS['y_limit'] = [max(f[0], dataset_config['fmin']), min(f[-1], dataset_config['fmax'])]
             if dataset_config['filter_type'] == 1: # Lowpass
                 plot_config_ERS['y_limit'] = [f[0], min(f[-1], dataset_config['fmax'])]
-            if dataset_config['filter_type'] == 2: # Highpass 
+            if dataset_config['filter_type'] == 2: # Highpass
                 plot_config_ERS['y_limit'] = [max(f[0], dataset_config['fmin']), f[-1]]
 
         plot_config_ERS['y_limit'] = [4, 100]
@@ -221,7 +224,7 @@ def download_preprocess_and_visualize():
         # Visualize the average band
         pp_plot.plot_average_band_stft(stft_trials_matrix_ERS, ch_list, f, plot_config_average_band)
 
-        # Visualize the ERS 
+        # Visualize the ERS
         plot_config_ERS['t'] = t
         plot_config_ERS['f'] = f
         pp_plot.visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS, labels, ch_list, plot_config_ERS)

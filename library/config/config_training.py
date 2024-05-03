@@ -14,13 +14,16 @@ import torch
 #%%
 
 def get_config_classifier():
+    """
+    Used to train EEGNet and MBEEGNet model
+    """
     config = dict(
         # Training settings
-        batch_size = 20,                    
+        batch_size = 20,
         lr = 1e-3,                          # Learning rate (lr)
         epochs = 300,                        # Number of epochs to train the model
         use_scheduler = False,              # Use the lr scheduler
-        lr_decay_rate = 0.995,              # Parameter of the lr exponential scheduler
+        lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
 
         # Support stuff (device, log frequency etc)
@@ -30,53 +33,62 @@ def get_config_classifier():
         path_to_save_model = 'TMP_Folder',
         measure_metrics_during_training = True,
         repetition = 1,                     # Number of time to repeat the training 
+        use_classifier = True,              # Do NOT CHANGE and keep True. Needed for metric computation in the train function (train_generic.py) 
         print_var = True,
 
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "ICT4AWE_Extension",
-        model_artifact_name = "EEGNet_stft",    # Name of the artifact used to save the models
-        log_freq = 1,
-        notes = "",
-        debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
+        project_name = "hvEEGNet_extension",
+        model_artifact_name = "artifact_name",    # Name of the artifact used to save the models
+        log_freq = 1,                           # How often log gradients and parameters of the tracked model. Ignore and left to 1.
+        name_training_run = None,               # Name of the training run. If None wandb will assign a random name.
+        notes = "",                             # If you want to add specific note for a specific training run modify this field.
+        debug = True,                           # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
 
     return config
 
-def get_config_vEEGNet_training():
+def get_config_vEEGNet_training() -> dict:
     config = dict(
         # Training settings
-        batch_size = 30,                    
+        batch_size = 30,
         lr = 1e-2,                          # Learning rate (lr)
-        epochs = 3,                        # Number of epochs to train the model
+        epochs = 3,                         # Number of epochs to train the model
         use_scheduler = True,               # Use the lr scheduler
         lr_decay_rate = 0.999,              # Parameter of the lr exponential scheduler
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
-        alpha = 1,
-        beta = 1,
-        gamma = 1,
-        recon_loss_type = 1,               # Loss function for the reconstruction (0 = L2, 1 = SDTW)
-        edge_samples_ignored = 0,          # Ignore this number of samples during the computation of the reconstructation loss
+        alpha = 1,                          # Multiplier of the reconstruction error
+        beta = 1,                           # Multiplier of the KL
+        gamma = 1,                          # Multiplier of the classification error (if you also use a classifier)
+        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW)
+        edge_samples_ignored = 0,           # Ignore this number of samples during the computation of the reconstructation loss
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
-        # device = "cpu",
-        epoch_to_save_model = 5,
-        path_to_save_model = 'TMP_Folder',
-        measure_metrics_during_training = True,
-        repetition = 1,                     # Number of time to repeat the training 
+        epoch_to_save_model = 5,                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
+        path_to_save_model = 'TMP_Folder',          # Folder where the weights of the model will be saved during training
+        use_classifier = False,                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
+        measure_metrics_during_training = True,     # Ignore. If True measuere accuracy and other metrics during the training. Works only if the model has a classifier
         print_var = True,
 
         # (OPTIONAL) wandb settings
         wandb_training = False,             # If True track the model during the training with wandb
-        project_name = "ICT4AWE_Extension",
-        model_artifact_name = "TMP_NAME",    # Name of the artifact used to save the models
-        log_freq = 1,
-        notes = "",
+        project_name = "TMP_Project",       # Name of wandb project
+        model_artifact_name = "TMP_NAME",   # Name of the artifact used to save the model
+        log_freq = 1,                       # How often log gradients and parameters of the tracked model. Ignore and left to 1.
+        name_training_run = None,           # Name of the training run. If None wandb will assign a random name.
+        notes = "",                         # If you want to add specific note for a specific training run modify this field.
         debug = True,                       # Set True if you are debuggin the code (Used to delete debug run from wandb)
     )
 
     return config
+
+def get_config_hierarchical_vEEGNet_training() -> dict:
+    """
+    Return the config require for the hvEEGNet training.
+    Notes that the the configs required are the same of the standard vEEGNet.
+    """
+    return get_config_vEEGNet_training()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Sweep 
