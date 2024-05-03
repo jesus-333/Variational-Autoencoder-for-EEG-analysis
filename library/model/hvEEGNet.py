@@ -86,8 +86,22 @@ class hvEEGNet_shallow(nn.Module):
         return self.h_vae.reconstruct_ignoring_latent_spaces(x, latent_space_to_ignore)
 
     def encode(self, x : torch.tensor, return_distribution : bool = True) :
-        z, mu, log_var, _ = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
-        return z, mu, log_var
+        """
+        Encode the tensor x.
+        If return_distribution is True return the z sampling from latent space (i.e. p(z|x)), plus the tensor containing the mu (mean) and the sigma (variance) of the latent distribution
+        If return_distribution is False the output is the tensor just before passing through the layer that map it in mean and variance of the latent distribution.
+        
+        @param x: (torch.tensor) Tensor of shape [B x 1 x C x T] to encode
+        @param return_distribution : (bool) If True return the sampling from the latent space
+        """
+        return_list = self.h_vae.encoder.encode(x, return_distribution = return_distribution, return_shape = False)
+        if return_distribution :
+            z, mu, sigma, _ = return_list
+            return z, mu, sigma
+
+        else :
+            x, _ = return_list
+            return x
 
     def build_cell_list(self, config : dict):
         # List to save the cell of the encoder
