@@ -12,7 +12,6 @@ sys.path.insert(0, parent_directory)
 
 import numpy as np
 import torch
-import pickle
 
 from library.config import config_dataset as cd
 from library.analysis import support
@@ -68,7 +67,7 @@ for repetition in repetition_list:
             string_dataset = 'train'
 
         # Load model weight
-        try:
+        try :
             if model_name == 'hvEEGNet_shallow':
                 path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
             elif model_name == 'vEEGNet':
@@ -76,7 +75,7 @@ for repetition in repetition_list:
             model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
 
             tmp_recon_loss = support.compute_loss_dataset(dataset, model_hv, device, batch_size) / 1000
-        except:
+        except :
             print("Fail to load weight subj {} epoch {} rep {}".format(subj, epoch, repetition))
             continue
 
@@ -115,11 +114,6 @@ for epoch in epoch_list:
         path_save = 'Saved Results/repetition_hvEEGNet_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
     elif model_name == 'vEEGNet':
         path_save = 'Saved Results/repetition_vEEGNet_DTW_{}/{}/subj {}/'.format(tot_epoch_training, string_dataset, subj)
-
-    # path_save_pickle = path_save + 'recon_error_{}_average.pickle'.format(epoch)
-    # pickle_out = open(path_save, "wb")
-    # pickle.dump(recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch] , pickle_out)
-    # pickle_out.close()
 
     path_save_npy = path_save + 'recon_error_{}_average.npy'.format(epoch)
     np.save(path_save, recon_loss_results[subj][epoch] / valid_repetition_per_epoch[epoch])

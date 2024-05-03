@@ -131,36 +131,42 @@ class hvae_encoder(nn.Module):
 
         return z, mu, sigma, cell_outputs
 
-    def encode(self, x, return_distribution = True, return_shape = False):
+    def encode(self, x : torch.tensor, return_distribution : bool = True, return_shape : bool = False):
         """
         Encode the input tensor x.
         If return_distribution == True the return list will contain the sample from the latent space, the mean and the logvars. Otherwise the method will return the output of the last cell
         If return_shape == True the return list will contain also the shape of the outputs of the various cells
         """
-        # List with all the variables returned
-        return_list = []
 
-        # List with the output of each cell of the encoder
-        cell_outputs = []
-        output_shape = []
-        for cell in self.encoder_modules: 
-            x = cell(x)
-            cell_outputs.append(x)
-            if return_shape: output_shape.append(x.shape)
-        
-        # Create the return list
-        if return_distribution:
-            z, mu, sigma = self.sample_layer_z(x)
-            if self.convert_logvar_to_var: sigma = torch.exp(sigma)
-            return_list.append(z)
-            return_list.append(mu)
-            return_list.append(sigma)
-        else:
-            return_list.append(x)
-        return_list.append(cell_outputs)
-        if return_shape: return_list.append(output_shape)
+        with torch.no_grad():
+            # List with all the variables returned
+            return_list = []
 
-        return return_list
+            # List with the output of each cell of the encoder
+            cell_outputs = []
+            output_shape = []
+            for cell in self.encoder_modules:
+                x = cell(x)
+                cell_outputs.append(x)
+                if return_shape: output_shape.append(x.shape)
+
+            # Create the return list
+            if return_distribution:
+                z, mu, sigma = self.sample_layer_z(x)
+                if self.convert_logvar_to_var: sigma = torch.exp(sigma)
+                return_list.append(z)
+                return_list.append(mu)
+                return_list.append(sigma)
+            else:
+                return_list.append(x)
+            
+            # Add the output of hVAE cells to return list
+            return_list.append(cell_outputs)
+
+            # (OPTIONAL) Add the outuput shape of the various cells to the return list
+            if return_shape : return_list.append(output_shape)
+
+            return return_list
 
 
 class hVAE_decoder(nn.Module):
