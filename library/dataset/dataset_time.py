@@ -88,9 +88,13 @@ class EEG_Dataset_ChWi(Dataset):
         else :
             self.data = torch.from_numpy(data).float()
 
+        # Reshape matrix
+        self.data = self.data.reshape(-1, 1, self.data.shape[2])
+
         # Saved labels
         if labels is None :
-            self.labels = None
+            # If no labels is passed an array of ones is created. This is only used to keep dataset consistent with training functions
+            self.labels = torch.ones(self.data.shape[0])
         else :
             if 'torch' in str(type(data)) :
                 self.labels = labels.long()
@@ -99,12 +103,15 @@ class EEG_Dataset_ChWi(Dataset):
 
         # Saved channels
         self.ch_list = ch_list
+
+        # Used to return only data. False by default. It can be set to True after dataset creation in the code.
+        self.return_only_data = False
         
     def __getitem__(self, idx : int):
-        if self.labels is not None :
-            return self.data[idx], self.labels[idx]
+        if self.return_only_data :
+            return self.data[idx]
         else :
-            return self.data[idx], None
+            return self.data[idx], self.labels[idx]
     
     def __len__(self):
         return self.data.shape[0]

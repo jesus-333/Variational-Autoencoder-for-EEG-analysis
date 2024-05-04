@@ -240,7 +240,7 @@ def get_loss_function(model_name, config = None):
     elif model_name == 'classifier_v1':
         return torch.nn.NLLLoss()
     elif model_name == 'ChWi_autoencoder':
-        return loss_function.hvEEGNet_loss(config)
+        return loss_function.vEEGNet_loss(config)
     else:
         raise ValueError("The model is not recognized. The variable model_name must have one of the following values: EEGNet, MBEEGNet, vEEGNet, hvEEGNet_shallow. Current value {}".format(model_name))
 

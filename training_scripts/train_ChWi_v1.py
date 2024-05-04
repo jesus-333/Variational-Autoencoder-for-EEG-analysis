@@ -8,10 +8,12 @@ Training script (with wandb) for ChWi Version 1 (V1)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Imports
 
+import json
+
+from library.dataset import dataset_time as ds_time, preprocess as pp
 from library.training import wandb_training as wt
 
 from library.config import config_training as ct
-from library.config import config_model as cm
 from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,27 +23,41 @@ from library.config import config_dataset as cd
 subj_list = [3]
 
 # Training parameters to change (for more info check the function get_config_hierarchical_vEEGNet_training)
-epochs = 2
+epochs = 3
 path_to_save_model = 'model_weights_backup'
 epoch_to_save_model = 1
-project_name = "ChWi_Model"
+project_name = "ChWi_Model_Debug"
 name_training_run = "Debug ChWi"
 model_artifact_name = "ChWi_V1"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Get dataset
 
-# Get dataset config
+# Get and preprocess d2a data. Preprocess is based on option in dataset_config
 dataset_config = cd.get_moabb_dataset_config(subj_list)
+train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
 
+# Get tensor with data
+train_data = train_dataset.data.squeeze()
+validation_data = validation_dataset.data.squeeze()
+
+# Create train and validation ChWi dataset
+train_dataset = ds_time.EEG_Dataset_ChWi(train_data)
+validation_dataset = ds_time.EEG_Dataset_ChWi(validation_data)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get model config
-C = 22  # Number of EEG channels of dataset 2a
-if dataset_config['resample_data']: sf = dataset_config['resample_freq']
-else: sf = 250
-T = int((dataset_config['trial_end'] - dataset_config['trial_start']) * sf) # Compute number of time samples
-model_config = cm.get_config_hierarchical_vEEGNet(C, T)
+
+model_config_path = "json_config/ChWi_encoder.json"
+
+with open(model_config_path, 'r') as j:
+    model_config = json.loads(j.read())
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Get training config
 
 # Get training config
-train_config = ct.get_config_hierarchical_vEEGNet_training()
+train_config = ct.get_config_vEEGNet_training()
 
 # Update training config
 train_config['epochs'] = epochs
@@ -54,8 +70,10 @@ train_config['name_training_run'] = name_training_run
 train_config['model_artifact_name'] = model_artifact_name
 
 # If the model has also a classifier add the information to training config
-train_config['measure_metrics_during_training'] = model_config['use_classifier']
-train_config['use_classifier'] = model_config['use_classifier']
+train_config['measure_metrics_during_training'] = False
+train_config['use_classifier'] = False
 
-# Train the model. 
-model = wt.train_wandb_V1('ChWi', dataset_config, train_config, model_config)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Train the model
+
+model = wt.train_wandb_V2('ChWi_autoencoder', train_config, model_config, train_dataset, validation_dataset)

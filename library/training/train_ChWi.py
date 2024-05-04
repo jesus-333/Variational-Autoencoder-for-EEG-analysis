@@ -32,7 +32,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
         optimizer.zero_grad()
         
         # Networks forward pass
-        x_r, mu, log_var  = model(x)
+        x_r, z, mu, log_var  = model(x)
 
         # Add EEG channel dimension. It is necessary to compute the kullback, since the original function was written for batch with 4 dimensions
         # Note that ChWi use tensor of shape B x D x T. The loss function want tensor of shape B x D x C x T
@@ -43,7 +43,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
                
         # Loss evaluation
         batch_train_loss = loss_function.compute_loss(x, x_r, mu, log_var,
-                                                      predict_label = None, true_label = None
+                                                      predicted_label = None, true_label = None
                                                       )
     
         # Backward/Optimization pass

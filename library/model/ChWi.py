@@ -213,17 +213,17 @@ class ChWi_autoencoder(nn.Module) :
         x = x.unsqueeze(2)
         
         # Sample from the hidden space
-        z, mu, sigma = self.sample_layer(x)
+        z, mu, log_var = self.sample_layer(x)
     
         # Remove the extra dimension
         z = z.squeeze()
         mu = mu.squeeze()
-        sigma = sigma.squeeze()
+        log_var = log_var.squeeze()
         
         # Decode data
         x_r = self.decoder(z)
 
-        return x_r, z, mu, sigma
+        return x_r, z, mu, log_var
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

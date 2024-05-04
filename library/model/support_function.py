@@ -160,9 +160,12 @@ class sample_layer(nn.Module):
     def reparametrize(self, mu : torch.tensor, log_var : torch.tensor, return_as_tensor : bool = False) -> torch.tensor:
         """
         Execute the reparametrization trick to allow gradient backpropagation
-        mu = mean of the normal distribution 
-        log_var = logarithm of the variance of the normal distribution
-        return_as_matrix = pass z through the ff layer and return it with the dimension of the orignal tensor. Works only if self.parameters_map_type == 1
+
+        @param mu: (torch.tensor) Mean of the normal distribution
+        @param log_var: (torch.tensor) Logarithm of the variance of the normal distribution
+        @param return_as_matrix: (bool) Pass z through the ff layer and return it with the dimension of the orignal tensor. Works only if self.parameters_map_type == 1
+
+        @return z : (torch.tensor) Sample from the latent space.
         """
 
         z = reparametrize(mu, log_var)
@@ -172,18 +175,22 @@ class sample_layer(nn.Module):
         else: return z
 
 
-def reparametrize(mu, log_var):
+def reparametrize(mu : torch.tensor, log_var : torch.tensor) -> torch.tensor:
     """
     Execute the reparametrization trick to allow gradient backpropagation
-    mu = mean of the normal distribution 
-    log_var = logarithm of the variance of the normal distribution
+    
+    @param mu: (torch.tensor) Mean of the normal distribution
+    @param log_var: (torch.tensor) Logarithm of the variance of the normal distribution
+
+    @return z : (torch.tensor) Sample from the latent space.
     """
+
     sigma = torch.exp(0.5 * log_var)
 
     eps = torch.randn_like(sigma)
-    eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
+    eps = eps.type_as(mu) # Used to move output to cuda when using GPU training
 
-    return  mu + sigma * eps
+    return mu + sigma * eps
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
