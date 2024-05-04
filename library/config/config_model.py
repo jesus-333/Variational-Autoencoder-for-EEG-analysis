@@ -34,8 +34,7 @@ def get_config_EEGNet(C : int, T : int) -> dict:
         use_bias = False,       # If True add bias during convolution computation.
         prob_dropout = 0.5,     # Probability of dropout
         use_dropout_2d = True,  # If True use drouput2d instead of the classic drouput between the convolution layer. For more info about drouput and drouput2d check PyTorch documenatation.
-        flatten_output = True,  # If True flatten the tensor after the separable convolution. 
-        print_var = True,       # If set to True print some information during the creation of the network
+        flatten_output = True,  # If True flatten the tensor after the separable convolution. print_var = True,       # If set to True print some information during the creation of the network
     )
 
     return config
@@ -51,12 +50,12 @@ def get_config_EEGNet_stft_classifier(C : int, T : int, n_channels : int):
     config = get_config_EEGNet(C, T)
     config['depth_first_layer'] = n_channels
     config['c_kernel_1'] = config['c_kernel_2'] = config['c_kernel_3'] = (7, 7)
-    config['n_classes'] = 4 
+    config['n_classes'] = 4
     config['flatten_output'] = True
 
     return config
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_config_MBEEGNet(C: int, T: int) -> dict:
     config = dict(
@@ -84,14 +83,13 @@ def get_config_MBEEGNet_classifier(C: int, T: int, n_classes: int) -> dict:
 
     return config
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int, type_decoder : int) -> dict:
     # Get the config for the encoder (used also for the decoder)
     if type_encoder == 0: # EEGNet
         encoder_config = get_config_EEGNet(C, T)
-        encoder_config['flatten_output'] = False # Set to False to use the custom sample_layer 
-    elif type_encoder == 1: #MBEEGnet
+        encoder_config['flatten_output'] = False # Set to False to use the custom sample_layer elif type_encoder == 1: #MBEEGnet
         encoder_config = get_config_MBEEGNet(C, T)
         encoder_config['eegnet_config']['flatten_output'] = False
     else:
@@ -151,30 +149,44 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
 
     return config
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def get_config_ChWiAutoencoder() -> dict:
+def get_config_ChWiAutoencoder(n_modules : int) -> dict:
 
     config = dict(
-        encoder_config = None,
-        decoder_config = None,
-        sample_layer_config = None
+        encoder_config = get_config_ChWi_encoder(n_modules),
+        decoder_config = get_config_ChWi_decoder(n_modules),
+        sample_layer_config = dict(
+            parameters_map_type = 0,
+            use_activation_in_sampling = True,
+            sampling_activation = "elu"
+        )
     )
 
     return config
 
-def get_config_ChWi_encoder() -> dict:
-    config = dict()
+def get_config_ChWi_encoder(n_modules : int) -> dict:
+    """
+    Example config of ChWi encoder config. Since the network is composed by multiple modules the config dictionary is a list of modules config.
+
+    @param n_modules: (int) Numbero of modules in the ChWi encoder
+    """
+    config = {'modules' : []}
+    for i in range(n_modules) : config['modules'].append(get_config_ChWi_encoder())
 
     return config
 
-def get_config_ChWi_module_encoder() -> dict : 
+def get_config_ChWi_module_encoder() -> dict :
+    """
+    Example of paramter for a single ChWi Encoder module
+    """
+
     config = dict(
         in_channels = 1,
         out_channels = 1,
         c_kernel = 1,
         padding = 'same',
-        group = None,
+        groups = 1,
         use_batch_normalization = True,
         activation = 'elu',
         p_kernel = 1
@@ -182,7 +194,52 @@ def get_config_ChWi_module_encoder() -> dict :
 
     return config
 
-def get_config_classifier_model_v1(C : int, T : int, type_decoder : int, parameters_map_type : int, path_weights_hvEEGNet : str, 
+def get_config_ChWi_decoder(n_modules : int) -> dict:
+    """
+    Example config of ChWi decoder config. Similar to the encoder, the decoder is composed of multiple modules.
+
+    @param n_modules: (int) Numbero of modules in the ChWi decoder
+    """
+    config = {'modules' : []}
+    for i in range(n_modules) : config['modules'].append(get_config_ChWi_encoder())
+
+    return config
+
+def get_config_ChWi_module_decoder() -> dict :
+    """
+    Example of paramter for a single ChWi Decoder module
+    """
+    config = dict(
+        in_channels = 1,
+        out_channels = 1,
+        c_kernel = 1,
+        padding = 'same',
+        groups = 1,
+        use_batch_normalization = True,
+        activation = 'elu',
+        scale_factor = 1
+    )
+
+    return config
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def get_config_classifier_v1(use_only_mu_for_classification = True) -> dict:
+    """
+    Used for classifier in classifier_model_v1
+    """
+
+    config = dict(
+        use_only_mu_for_classification = use_only_mu_for_classification,  # If False use concatenate the mu and logvar output of the decoder in a single vector and used as input for the classifier. Otherwise use only mu output
+        neurons_list = [256, 4],
+        activation = 'elu',
+        prob_dropout = 0.2,
+        use_bias = False,       # If True use bias in the ff layer
+    )
+
+    return config
+
+def get_config_classifier_model_v1(C : int, T : int, type_decoder : int, parameters_map_type : int, path_weights_hvEEGNet : str,
                                    use_only_mu_for_classification = True, freeze_encoder = True) -> dict:
     """
     Used for classifier in classifier_model_v1 (encoder + classifier network)

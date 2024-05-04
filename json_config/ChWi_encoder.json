@@ -1,0 +1,77 @@
+{
+	"encoder_config" : [
+		{
+			"in_channels" : 1,
+			"out_channels" : 8,
+			"c_kernel" : 125,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"p_kernel" : 1
+		},
+
+		{
+			"in_channels" : 8,
+			"out_channels" : 16,
+			"c_kernel" : 62,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"p_kernel" : 2
+		},
+
+		{
+			"in_channels" : 16,
+			"out_channels" : 32,
+			"c_kernel" : 31,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"p_kernel" : 2
+		}
+	],
+
+	"decoder_config" : [
+		{
+			"in_channels" : 32,
+			"out_channels" : 16,
+			"c_kernel" : 31,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"scale_factor" : 2
+		},
+
+		{
+			"in_channels" : 16,
+			"out_channels" : 8,
+			"c_kernel" : 62,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"scale_factor" : 2
+		},
+
+		{
+			"in_channels" : 8,
+			"out_channels" : 1,
+			"c_kernel" : 125,
+			"padding" : "same",
+			"groups" : 1,
+			"use_batch_normalization" : true,
+			"activation" : "elu",
+			"scale_factor" : null
+		}
+	],
+
+	"sample_layer_config" : {
+		"parameters_map_type" : 0,
+        "use_activation_in_sampling" : true, 
+        "sampling_activation" : "elu"
+	}
+}

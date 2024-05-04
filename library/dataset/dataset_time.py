@@ -76,19 +76,30 @@ class EEG_Dataset_ChWi(Dataset):
     def __init__(self, data, labels = None, ch_list : list = None):
         """
         Dataset used for the ChWi autoencoder. All EEG signals are saved independently from the trial.
-        This means that an EEG matrix of shape B x 1 x C x T will be saved as a matrix of shape (B * C) x T
+        This means that an EEG matrix of shape B x C x T will be saved as a matrix of shape (B * C) x 1 x T
+        The dimension of size 1 is used for the depth map of 1d convolution.
 
-        @param data: data used for the dataset. Must have shape [Trials x 1 x C x T] with C = channels and T = time samples
+        @param data: data used for the dataset. Must have shape [Trials x C x T] with C = channels and T = time samples
         """
 
         # Get data
-        self.data = torch.from_numpy(data).unsqueeze(1).float()
+        if 'torch' in str(type(data)) :
+            self.data = data.float()
+        else :
+            self.data = torch.from_numpy(data).float()
 
-        # (OPTIONAL) Saved labels and channels
-        self.labels = torch.from_numpy(labels).long() if labels is not None else None
+        # Saved labels
+        if labels is None :
+            self.labels = None
+        else :
+            if 'torch' in str(type(data)) :
+                self.labels = labels.long()
+            else :
+                self.labels = torch.from_numpy(labels).long()
+
+        # Saved channels
         self.ch_list = ch_list
         
-            
     def __getitem__(self, idx : int):
         if self.labels is not None :
             return self.data[idx], self.labels[idx]
@@ -96,6 +107,6 @@ class EEG_Dataset_ChWi(Dataset):
             return self.data[idx], None
     
     def __len__(self):
-        return len(self.labels)
+        return self.data.shape[0]
 
 #%% End file
