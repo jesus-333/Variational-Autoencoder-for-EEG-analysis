@@ -72,7 +72,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
     return train_loss
 
 
-def validation_epoch(model, loss_function, optimizer, validation_loader, train_config, log_dict = None):
+def validation_epoch(model, loss_function, validation_loader, train_config, log_dict = None):
     # Set the model in training mode
     model.train()
 
@@ -89,7 +89,7 @@ def validation_epoch(model, loss_function, optimizer, validation_loader, train_c
             x = sample_data_batch.to(train_config['device'])
             
             # Networks forward pass
-            x_r, mu, log_var  = model(x)
+            x_r, z, mu, log_var  = model(x)
 
             # Add EEG channel dimension. It is necessary to compute the kullback, since the original function was written for batch with 4 dimensions
             # Note that ChWi use tensor of shape B x D x T. The loss function want tensor of shape B x D x C x T
@@ -100,7 +100,7 @@ def validation_epoch(model, loss_function, optimizer, validation_loader, train_c
                    
             # Loss evaluation
             batch_validation_loss = loss_function.compute_loss(x, x_r, mu, log_var,
-                                                          predict_label = None, true_label = None
+                                                          predicted_label = None, true_label = None
                                                           )
 
             # Accumulate the loss
@@ -119,7 +119,7 @@ def validation_epoch(model, loss_function, optimizer, validation_loader, train_c
             log_dict['train_loss_recon'] = float(recon_loss)
             log_dict['train_kl_loss'] = float(kl_loss)
 
-            print("TRAIN LOSS")
+            print("VALIDATION LOSS")
             pprint.pprint(log_dict)
         
         return validation_loss
