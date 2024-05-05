@@ -4,14 +4,14 @@
 
 Prototype of a (Ch)annel (Wi)se network
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import torch
 from torch import nn
 
 from . import support_function as sf
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Encoder
 
 class ChWi_module_encoder(nn.Module) :
@@ -26,7 +26,7 @@ class ChWi_module_encoder(nn.Module) :
         
         # Create the convolutional layer
         conv_layer = nn.Conv1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
-                               kernel_size = module_config['c_kernel'], padding = module_config['padding'], group = module_config['group']
+                               kernel_size = module_config['c_kernel'], padding = module_config['padding'], groups = module_config['groups']
                                )
         
         # Batch normalization
@@ -55,8 +55,8 @@ class ChWi_module_encoder(nn.Module) :
         if 'out_channels' not in module_config : raise ValueError('out_channels must be in module_config')
         if 'c_kernel' not in module_config : raise ValueError('c_kernel (convolution kernel) must be in module_config')
 
-        if 'group' not in module_config:
-            module_config['group'] == 1
+        if 'groups' not in module_config:
+            module_config['groups'] == 1
 
         if 'padding' not in module_config:
             module_config['padding'] == 0
@@ -99,7 +99,8 @@ class ChWi_encoder_v1(nn.Module) :
     def reconstruct_multichannel_EEG(self, x : torch.tensor, flatten : bool = False):
         """
         Compute, channel wise, the encoding through the ChWi modules.
-        x : input x of shape "B x 1 x C x T" with B = batch size, 1 = depth dimension, C = Number of EEG channels, T = Time samples
+
+        @param x : input x of shape "B x 1 x C x T" with B = batch size, 1 = depth dimension, C = Number of EEG channels, T = Time samples
         """
         
         # Compute the encode of a single channel to obtain the depth and temporal dimension
@@ -120,7 +121,7 @@ class ChWi_encoder_v1(nn.Module) :
         else :
             return x_encode
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Decoder
 
 class ChWi_module_decoder(nn.Module) :
@@ -134,9 +135,12 @@ class ChWi_module_decoder(nn.Module) :
         upsample = nn.Upsample(scale_factor = module_config['scale_factor']) if module_config['scale_factor'] is not None else nn.Identity()
 
         # Create the convolutional layer
-        conv_layer = nn.ConvTranspose1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
-                                       kernel_size = module_config['c_kernel'], padding = module_config['padding'], group = module_config['group']
-                                       )
+        # conv_layer = nn.ConvTranspose1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
+        #                                 kernel_size = module_config['c_kernel'], padding = module_config['padding'], groups = module_config['groups']
+        #                                 )
+        conv_layer = nn.Conv1d(in_channels = module_config['in_channels'], out_channels = module_config['out_channels'],
+                               kernel_size = module_config['c_kernel'], padding = module_config['padding'], groups = module_config['groups']
+                               )
         
         # Batch normalization
         batch_normalizer = nn.BatchNorm1d(module_config['out_channels']) if module_config['use_batch_normalization'] else nn.Identity()
@@ -168,7 +172,7 @@ class ChWi_decoder_v1(nn.Module) :
 
     def forward(self, x : torch.tensor):
         """
-        @param x : (torch.tensor) Encoded EEG signal. The shape of x must be "B x N x T" with B = batch size, N = depth dimension, T = length of temporal axis after encoding
+        @param x : (torch.tensor) Encoded EEG signal. The shape of x must be "B x D x T" with B = batch size, D = depth dimension, T = length of temporal axis after encoding
         N.B. There must must be no EEG channel dimension
         """
         return self.module_list(x)
@@ -196,23 +200,34 @@ class ChWi_autoencoder(nn.Module) :
     def forward(self, x) :
         """
         Encode and reconstruct a single EEG channel.
-        x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
+
+        @param x : EEG signal. The shape of x must be "B x 1 x T" with B = batch size, 1 = depth dimension, T = Time samples
+
         N.B. There must must be no EEG channel dimension
         """
         
         # Encode the data
         x = self.encoder(x)
+
+        # Add dimension of size 1. It is added because the sample layer is the one used for hvEEGNet and use conv2d.
+        x = x.unsqueeze(2)
         
         # Sample from the hidden space
-        z, mu, sigma = self.sample_layer(x)
-
+        z, mu, log_var = self.sample_layer(x)
+    
+        # Remove the extra dimension
+        z = z.squeeze()
+        mu = mu.squeeze()
+        log_var = log_var.squeeze()
+        
+        # Decode data
         x_r = self.decoder(z)
 
-        return x_r, z, mu, sigma
+        return x_r, z, mu, log_var
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class domain_predictor(nn.Module) : 
+class domain_predictor(nn.Module) :
 
     def __init__(self, config : dict) :
         super().__init__()
@@ -233,3 +248,4 @@ class domain_predictor(nn.Module) :
 
     def forward(self, x) :
         return self.predictor(x)
+

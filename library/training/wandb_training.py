@@ -35,7 +35,8 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
     """
 
     notes = train_config['notes']
-    name = train_config['name_training_run'] if 'name' in train_config else None
+    name = train_config['name_training_run'] if 'name_training_run' in train_config else None
+    train_config['wandb_training'] = True
 
     wandb_config = dict(
         dataset = dataset_config,
@@ -74,11 +75,13 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     """
 
     notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
-    name = train_config['name_training_run'] if 'name' in train_config else None
+    name = train_config['name_training_run'] if 'name_training_run' in train_config else None
+    train_config['wandb_training'] = True
 
     wandb_config = dict(
         train = train_config,
-        model = model_config
+        model = model_config,
+        name = name,
     )
     
     # Create dataloader

@@ -115,17 +115,17 @@ class sample_layer(nn.Module):
         super().__init__()
 
         self.parameters_map_type = config['parameters_map_type']
-        self.input_shape = list(input_shape)
 
         if self.parameters_map_type == 0: # Convolution (i.e. matrix latent space)
             depth = config['input_depth'] if 'input_depth' in config else input_shape[1]
             self.parameters_map = map_to_distribution_parameters_with_convolution(depth = depth,
-                                                                               use_activation = config['use_activation_in_sampling'], 
+                                                                               use_activation = config['use_activation_in_sampling'],
                                                                                activation = config['sampling_activation'])
         elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
+            self.input_shape = list(input_shape)
             self.parameters_map = map_to_distribution_parameters_with_vector(hidden_space_dimension = hidden_space_dimension,
                                                                           input_shape = input_shape,
-                                                                          use_activation = config['use_activation_in_sampling'], 
+                                                                          use_activation = config['use_activation_in_sampling'],
                                                                           activation = config['sampling_activation'])
             n_neurons_input = hidden_space_dimension
             n_neurons_output = input_shape[1] * input_shape[2] * input_shape[3]
@@ -139,7 +139,7 @@ class sample_layer(nn.Module):
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
 
-    def forward(self, x):
+    def forward(self, x : torch.tensor):
         if self.parameters_map_type == 1: # Feedforward
             x = x.flatten(1)
         
@@ -157,33 +157,40 @@ class sample_layer(nn.Module):
 
         return x, mean, log_var
 
-    def reparametrize(self, mu, log_var, return_as_tensor = False):
+    def reparametrize(self, mu : torch.tensor, log_var : torch.tensor, return_as_tensor : bool = False) -> torch.tensor:
         """
         Execute the reparametrization trick to allow gradient backpropagation
-        mu = mean of the normal distribution 
-        log_var = logarithm of the variance of the normal distribution
-        return_as_matrix = pass z through the ff layer and return it with the dimension of the orignal tensor. Works only if self.parameters_map_type == 1
+
+        @param mu: (torch.tensor) Mean of the normal distribution
+        @param log_var: (torch.tensor) Logarithm of the variance of the normal distribution
+        @param return_as_matrix: (bool) Pass z through the ff layer and return it with the dimension of the orignal tensor. Works only if self.parameters_map_type == 1
+
+        @return z : (torch.tensor) Sample from the latent space.
         """
 
         z = reparametrize(mu, log_var)
 
-        if return_as_tensor and self.parameters_map_type == 1: 
+        if return_as_tensor and self.parameters_map_type == 1:
             return self.ff_layer(z).reshape(self.input_shape)
         else: return z
 
 
-def reparametrize(mu, log_var):
+def reparametrize(mu : torch.tensor, log_var : torch.tensor) -> torch.tensor:
     """
     Execute the reparametrization trick to allow gradient backpropagation
-    mu = mean of the normal distribution 
-    log_var = logarithm of the variance of the normal distribution
+    
+    @param mu: (torch.tensor) Mean of the normal distribution
+    @param log_var: (torch.tensor) Logarithm of the variance of the normal distribution
+
+    @return z : (torch.tensor) Sample from the latent space.
     """
+
     sigma = torch.exp(0.5 * log_var)
 
     eps = torch.randn_like(sigma)
-    eps = eps.type_as(mu) # Setting z to be cuda when using GPU training 
+    eps = eps.type_as(mu) # Used to move output to cuda when using GPU training
 
-    return  mu + sigma * eps
+    return mu + sigma * eps
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
