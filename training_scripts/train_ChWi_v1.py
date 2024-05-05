@@ -20,14 +20,14 @@ from library.config import config_dataset as cd
 # Specific parameters to change inside the dictionary
 
 # Subject of dataset 2a to use during training
-subj_list = [3]
+subj_list = [3, 8, 9]
 
 # Training parameters to change (for more info check the function get_config_hierarchical_vEEGNet_training)
-epochs = 3
+epochs = 80
 path_to_save_model = 'model_weights_backup'
-epoch_to_save_model = 1
-project_name = "ChWi_Model_Debug"
-name_training_run = "Debug ChWi"
+epoch_to_save_model = 2
+project_name = "ChWi_Model"
+name_training_run = "ChWi_v1_S3_S8_S9_training_run_1"
 model_artifact_name = "ChWi_V1"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -77,3 +77,10 @@ train_config['use_classifier'] = False
 # Train the model
 
 model = wt.train_wandb_V2('ChWi_autoencoder', train_config, model_config, train_dataset, validation_dataset)
+
+
+plt.figure(figsize = (15, 10))
+plt.plot(a[0].squeeze())
+plt.plot(a_r[0].detach().squeeze())
+plt.grid(True)
+plt.show()
