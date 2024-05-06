@@ -64,7 +64,7 @@
 			"padding" : "same",
 			"groups" : 1,
 			"use_batch_normalization" : true,
-			"activation" : "elu",
+			"activation" : null,
 			"scale_factor" : null
 		}
 	],
