@@ -216,9 +216,9 @@ class ChWi_autoencoder(nn.Module) :
         z, mu, log_var = self.sample_layer(x)
     
         # Remove the extra dimension
-        z = z.squeeze()
-        mu = mu.squeeze()
-        log_var = log_var.squeeze()
+        z = z.squeeze(2)
+        mu = mu.squeeze(2)
+        log_var = log_var.squeeze(2)
         
         # Decode data
         x_r = self.decoder(z)
