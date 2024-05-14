@@ -53,4 +53,3 @@ for i in range(n_samples) :
 # Compute distance between distribution
 distance_between_distribution = wasserstein_distance_nd(u_samples, v_samples)
 print("The distance between distribution is {}".format(distance_between_distribution))
-

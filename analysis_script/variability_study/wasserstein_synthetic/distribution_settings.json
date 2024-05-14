@@ -1,0 +1,59 @@
+{
+	"gauss_1" : {
+		"mean" : 0,
+		"std" : 1
+	},
+
+	"gauss_2" : {
+		"mean" : 0,
+		"std" : 2
+	},
+
+	"gauss_3" : {
+		"mean" : 0,
+		"std" : 4
+	},
+
+	"gauss_4" : {
+		"mean" : 1,
+		"std" : 1
+	},
+
+	"gauss_5" : {
+		"mean" : 4,
+		"std" : 1
+	},
+
+
+	"exponential_1" : {
+		"mean" : 1
+	},
+
+	"exponential_2" : {
+		"mean" : 2
+	},
+
+	"exponential_3" : {
+		"mean" : 4
+	},
+
+	"exponential_4" : {
+		"mean" : 6
+	},
+
+	"uniform_1" : {
+		"low" : -1,
+		"high" : 1
+	},
+
+	"uniform_2" : {
+		"low" : -2,
+		"high" : 2
+	},
+
+	"uniform_3" : {
+		"low" : 3,
+		"high" : 5
+	}
+
+}
