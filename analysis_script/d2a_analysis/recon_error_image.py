@@ -15,13 +15,13 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [1]
+subj_list = [2, 5]
 
 plot_config = dict(
-    figsize = (12, 8),
+    figsize = (10, 5),
     min_value = 0,
     max_value = 75,
-    fontsize = 20,
+    fontsize = 15.5,
     # colormap = 'RdYlGn_r',
     colormap = 'Reds',
     add_title = False,
@@ -70,24 +70,24 @@ for subj in subj_list:
         ax = ax_list[i]
         # Plot image
         ax.imshow(image_to_plot_list[i], cmap = plot_config['colormap'],
-                  aspect = 'auto', 
+                  aspect = 'auto',
                   vmin = plot_config['min_value'], vmax = plot_config['max_value'])
     
         # Add labels to axis
         if invert_column_and_row:
-            ax.set_xlabel('Trials')
-            ax.set_ylabel('Channels')
+            ax.set_xlabel('Trials', fontsize = plot_config['fontsize'])
+            ax.set_ylabel('Channels', fontsize = plot_config['fontsize'])
         else:
-            ax.set_ylabel('Trials')
-            ax.set_xlabel('Channels')
+            ax.set_ylabel('Trials', fontsize = plot_config['fontsize'])
+            ax.set_xlabel('Channels', fontsize = plot_config['fontsize'])
 
         if plot_config['add_title'] : ax.set_title('Subject {}'.format(subj))
 
-        xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48 
+        xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48
         yticks = np.arange(22)
-        ax.set_xticks(xticks - 0.5, labels = xticks)
+        ax.set_xticks(xticks - 0.5, labels = xticks, fontsize = plot_config['fontsize'])
         ax.set_yticks(yticks - 0.5, labels = [])
-        ax.set_yticks(yticks, labels = channel_list, minor = True)
+        ax.set_yticks(yticks, labels = channel_list, minor = True, fontsize = plot_config['fontsize'])
         ax.grid(True, color = 'black')
 
     fig_train.tight_layout()
@@ -107,5 +107,8 @@ for subj in subj_list:
         fig_train.savefig(path_save + "_TRAIN.png", format = 'png')
         fig_test.savefig(path_save + "_TEST.png", format = 'png')
 
-        fig_train.savefig(path_save + "_TRAIN.eps", format = 'eps')
-        fig_test.savefig(path_save + "_TEST.eps", format = 'eps')
+        # fig_train.savefig(path_save + "_TRAIN.eps", format = 'eps')
+        # fig_test.savefig(path_save + "_TEST.eps", format = 'eps')
+
+        fig_train.savefig(path_save + "_TRAIN.pdf", format = 'pdf')
+        fig_test.savefig(path_save + "_TEST.pdf", format = 'pdf')

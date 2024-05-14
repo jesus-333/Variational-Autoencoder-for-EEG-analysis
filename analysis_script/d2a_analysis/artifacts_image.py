@@ -16,8 +16,8 @@ import os
 threshold = 20
 
 plot_config = dict(
-    figsize = (12, 8),
-    fontsize = 24,
+    figsize = (10, 5),
+    fontsize = 18,
     colormap = 'Reds',
     # colormap = 'Greys',
     save_fig = True,
@@ -56,13 +56,13 @@ def plot_image(image_to_plot, plot_config : dict, title = None):
 
     xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48 
     yticks = np.arange(9)
-    ax.set_xticks(xticks - 0.5, labels = xticks)
+    ax.set_xticks(xticks - 0.5, labels = xticks, fontsize = plot_config['fontsize'])
     ax.set_yticks(yticks - 0.51, labels = [])
-    ax.set_yticks(yticks, labels = yticks + 1, minor = True)
+    ax.set_yticks(yticks, labels = yticks + 1, minor = True, fontsize = plot_config['fontsize'])
     ax.grid(True, color = 'black')
     
-    ax.set_xlabel('Trials')
-    ax.set_ylabel('Subjects')
+    ax.set_xlabel('Trials', fontsize = plot_config['fontsize'])
+    ax.set_ylabel('Subjects', fontsize = plot_config['fontsize'])
     
     if title is not None : ax.set_title(title)
 

@@ -25,16 +25,16 @@ from library.analysis import support
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [4]
+subj_list = [2, 5]
 ch = 'C3'
 
-use_test_set = True
+use_test_set =False 
 
 nperseg = 500
 
 plot_config = dict(
-    figsize = (10, 8),
-    fontsize = 24, 
+    figsize = (10, 5),
+    fontsize = 18,
     capsize = 3,
     alpha = 0.25,
     color = 'black',
@@ -92,9 +92,9 @@ for subj in subj_list:
     if subj == 1:
         ax_freq.set_ylim([-10, 50])
     elif subj == 2:
-        ax_freq.set_ylim([-5, 23])
+        ax_freq.set_ylim([-5, 17])
     elif subj == 5:
-        ax_freq.set_ylim([-10, 23])
+        ax_freq.set_ylim([-5, 17])
         
     ax_freq.set_ylim(bottom = -1)
 

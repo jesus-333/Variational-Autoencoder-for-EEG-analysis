@@ -23,8 +23,8 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 9
-use_test_set = False
+subj = 1
+use_test_set = True
 
 t_min = 2
 t_max = 6
@@ -37,21 +37,21 @@ rand_trial_sample = False
 plot_to_create = 10
 
 repetition = 19
-n_trial = 250
-channel = 'C1'
+n_trial = 122
+channel = 'CP4'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
     
 
 plot_config = dict(
-    figsize_time = (12, 8),
-    figsize_freq = (12, 8),
+    figsize_time = (10, 5),
+    figsize_freq = (10, 5),
     fontsize = 24,
     linewidth_original = 1,
     linewidth_reconstructed = 1,
     color_original = 'black',
-    color_reconstructed = 'red',
+    color_reconstructed = 'grey',
     add_title = False,
     save_fig = True,
     format_so_save = ['png', 'pdf', 'eps']
