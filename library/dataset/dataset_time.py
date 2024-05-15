@@ -73,7 +73,7 @@ class EEG_Dataset(Dataset):
 
 class EEG_Dataset_ChWi(Dataset):
 
-    def __init__(self, data, labels = None, ch_list : list = None):
+    def __init__(self, data, labels = None, ch_list : list = None, norm_type : int = -1):
         """
         Dataset used for the ChWi autoencoder. All EEG signals are saved independently from the trial.
         This means that an EEG matrix of shape B x C x T will be saved as a matrix of shape (B * C) x 1 x T
@@ -90,6 +90,9 @@ class EEG_Dataset_ChWi(Dataset):
 
         # Reshape matrix
         self.data = self.data.reshape(-1, 1, self.data.shape[2])
+
+        # (OPTIONAL) Normalize the data
+        if norm_type > 0 : self.__normalize(norm_type)
 
         # Saved labels
         if labels is None :
@@ -113,7 +116,24 @@ class EEG_Dataset_ChWi(Dataset):
         else :
             return self.data[idx], self.labels[idx]
     
-    def __len__(self):
+    def __len__(self) -> int :
         return self.data.shape[0]
+
+    def __normalize(self, norm_type : int) :
+        """
+        Normalize every EEG signal. The type of normalization is decided by the norm_type parameter.
+
+        @param norm_type : (int) Decide the type of normalization. 1 = Minmax (everything between 0 and 1). 2 = Standardization (mean 0 and std 1)
+        """
+        for i in range(self.data.shape[0]) :
+            tmp_eeg = self.data[i, 0]
+
+            if norm_type == 1 : # Minmax
+                self.data[i, 0] = (tmp_eeg - tmp_eeg.min()) / (tmp_eeg.max() - tmp_eeg.min())
+            elif norm_type == 2 : # Standardization
+                self.data[i, 0] = (tmp_eeg - tmp_eeg.mean()) / tmp_eeg.std()
+            else :
+                raise ValueError("norm_type must have values 1 (minmax), 2 (standardization). Current value is {}".format(norm_type))
+
 
 #%% End file
