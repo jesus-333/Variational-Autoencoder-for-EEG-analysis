@@ -148,3 +148,16 @@ if plot_config['save_fig']:
     path_save += 'artifacts_map_session_2_orig'
     fig_session_2_orig.savefig(path_save + ".png", format = 'png')
     fig_session_2_orig.savefig(path_save + ".eps", format = 'eps')
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Count artifacts (expert)
+
+n_artifacts_per_subject_train = np.sum(image_to_plot_train_original, 1)
+n_artifacts_per_subject_test = np.sum(image_to_plot_test_original, 1)
+
+string_to_copy = "N. artifacts\n     Train\tTest\n"
+
+for i in range(9) : 
+    string_to_copy += "S{}   {}\t\t{}\n".format(i + 1, int(n_artifacts_per_subject_train[i]), n_artifacts_per_subject_test[i])
+
+print(string_to_copy)
