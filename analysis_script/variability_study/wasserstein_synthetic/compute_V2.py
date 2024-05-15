@@ -23,7 +23,7 @@ with open(path_distribution_settings, 'r') as j:
 distance_values = np.zeros((len(distribution_settings), len(distribution_settings)))
 
 n_samples = 300
-dist_dimension = 100
+dist_dimension = 22000
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function to generate samples
@@ -41,13 +41,12 @@ def generate_samples(n_samples : int, dist_dimension : int, dist_type : str, par
         else :
             raise ValueError("dist_type must be gauss, exponential or uniform")
 
-    dist_description = '{} - '.format(dist_type)
     if dist_type == 'gauss' :
-        dist_description += 'mean = {} - std = {}'.format(parameters['mean'], parameters['std'])
+        dist_description = 'mean = {}, std = {}'.format(parameters['mean'], parameters['std'])
     elif dist_type == 'exponential' :
-        dist_description += 'mean = {}'.format(parameters['mean'])
+        dist_description = 'mean = {}'.format(parameters['mean'])
     elif dist_type == 'uniform' :
-        dist_description += 'low = {} - high = {}'.format(parameters['low'], parameters['high'])
+        dist_description = 'low = {}, high = {}'.format(parameters['low'], parameters['high'])
 
     return samples, dist_description
 
@@ -62,7 +61,7 @@ for dist_1 in distribution_settings :
     print(dist_1)
 
     u_samples, dist_description = generate_samples(n_samples, dist_dimension, dist_1[0:-2], distribution_settings[dist_1])
-    dist_description.append(dist_description)
+    dist_description_list.append(dist_description)
     
     j = 0
     for dist_2 in distribution_settings :
