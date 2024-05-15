@@ -1,0 +1,31 @@
+{
+	"gauss_1" : {
+		"mean" : 0,
+		"std" : 8
+	},
+
+	"gauss_2" : {
+		"mean" : 0,
+		"std" : 9
+	},
+
+	"gauss_3" : {
+		"mean" : 0,
+		"std" : 10
+	},
+
+	"gauss_4" : {
+		"mean" : 0,
+		"std" : 11
+	},
+
+	"gauss_5" : {
+		"mean" : 0,
+		"std" : 12
+	},
+
+	"gauss_6" : {
+		"mean" : 0,
+		"std" : 13
+	}
+}
