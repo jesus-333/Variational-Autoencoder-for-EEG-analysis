@@ -15,13 +15,13 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2, 5]
+subj_list = [4]
 
 plot_config = dict(
     figsize = (10, 5),
     min_value = 0,
     max_value = 75,
-    fontsize = 15.5,
+    fontsize = 16,
     # colormap = 'RdYlGn_r',
     colormap = 'Reds',
     add_title = False,
@@ -75,10 +75,10 @@ for subj in subj_list:
     
         # Add labels to axis
         if invert_column_and_row:
-            ax.set_xlabel('Trials', fontsize = plot_config['fontsize'])
+            ax.set_xlabel('Repetitions', fontsize = plot_config['fontsize'])
             ax.set_ylabel('Channels', fontsize = plot_config['fontsize'])
         else:
-            ax.set_ylabel('Trials', fontsize = plot_config['fontsize'])
+            ax.set_ylabel('Repetitions', fontsize = plot_config['fontsize'])
             ax.set_xlabel('Channels', fontsize = plot_config['fontsize'])
 
         if plot_config['add_title'] : ax.set_title('Subject {}'.format(subj))

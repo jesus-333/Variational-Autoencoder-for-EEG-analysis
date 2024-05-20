@@ -19,7 +19,7 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [3]
+subj_list = [2, 5]
 
 channel_to_plot = None
 
@@ -27,12 +27,12 @@ distribution_type = 1 # 1 means normalize automatically through matplotlib. Crea
 distribution_type = 2 # 2 means the creation of a discrete PDF ( i.e. the hights of the bins is divided by the total number of the samples )
 
 plot_config = dict(
-    figsize = (10, 8),
-    bins = 100,
+    figsize = (10, 5),
+    bins = 200,
     linewidth = 1.5,
     use_log_scale_x = False, # If True use log scale for x axis
     use_log_scale_y = False, # If True use log scale for y axis
-    fontsize = 24,
+    fontsize = 18,
     save_fig = True,
 )
 
@@ -87,18 +87,19 @@ for i in range(len(subj_list)):
                 label = 'Test', color = 'red', linewidth = plot_config['linewidth']
                 )
 
-        ax.set_ylabel("Discrete PDF")
+        ax.set_ylabel("Discrete PDF", fontsize = plot_config['fontsize'])
     else:
         ax.hist(train_data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
         ax.hist(test_data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
 
     ax.grid(True)
     ax.legend()
-    ax.set_xlabel(r"Amplitude [$\mu$V]")
-    ax.set_title("S{} - Hist ALL samples".format(subj))
-    ax.set_title("S{}".format(subj))
+    ax.set_xlabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
+    # ax.set_title("S{} - Hist ALL samples".format(subj))
+    # ax.set_title("S{}".format(subj))
     ax.set_xlim([-50, 50])
     # ax.set_ylim([0, 650])
+    ax.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
     
     if plot_config['use_log_scale_x']: ax.set_xscale('log')
     if plot_config['use_log_scale_y']: ax.set_yscale('log')
@@ -116,4 +117,4 @@ for i in range(len(subj_list)):
         if plot_config['use_log_scale_x']: path_save += '_LOGSCALE_X'
         if plot_config['use_log_scale_y']: path_save += '_LOGSCALE_Y'
         fig.savefig(path_save + ".png", format = 'png')
-        # fig.savefig(path_save + ".eps", format = 'eps')
+        fig.savefig(path_save + ".pdf", format = 'pdf')

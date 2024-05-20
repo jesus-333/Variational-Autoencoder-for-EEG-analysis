@@ -1,6 +1,5 @@
 """
 Plot the average spectra for the artifacts and NON artifacts for dataset 2a.
-artifacts and non artifacts are selected based on the the expert classification
 """
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
