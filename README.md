@@ -29,15 +29,19 @@ The complete list of subpackages is :
 - *dataset*: contains functions used to download dataset and to perform some basic preprocess. More info in the [dataset README](library/README/README_dataset.md)
 
 ## List of papers
+If you use this repository cite [[3]][hvEEGNet_SSRNN]
+
 <details>
   <summary>Click to expand!</summary>
  
   - [[1]][vEEGNet_ver1] Zancanaro, A., Zoppis, I., Manzoni, S., & Cisotto, G. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG. In Proceedings of the 9th International Conference on Information and Communication Technologies for Ageing Well and e-Health, ICT4AWE 2023, Prague, Czech Republic, April 22-24, 2023 (Vol. 2023, pp. 245-252). Science and Technology Publications.
   - [[2]][vEEGNet_ver2_preprint] Zancanaro, A., Cisotto, G. Zoppis, I., & Manzoni, S. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG., vEEGNet: learning latent representations to reconstruct EEG raw data via variational autoencoders (under review) ([preprint][vEEGNet_ver2_preprint] on ResearchGate)
-  - [[3]][hvEEGNet_preprint]  Cisotto, G., Zancanaro, A., Zoppis, I., & Manzoni, S. (2023). hvEEGNet: exploiting hierarchical VAEs on EEG data for neuroscience applications (under review) ([preprint][hvEEGNet_preprint] on ResearchGate)
+  - [[3]][hvEEGNet_SSRNN]  Cisotto, Giulia and Zancanaro, Alberto and Zoppis, Italo and Manzoni, Sara, HvEEGNet: A New Deep Learning Model for High-Fidelity EEG Reconstruction. Available at SSRN: https://ssrn.com/abstract=4725025 or http://dx.doi.org/10.2139/ssrn.4725025
+ (under review) ([preprint][hvEEGNet_SSRNN] on SSRN)
   
 </details>
 
 [vEEGNet_ver1]: https://www.scitepress.org/Papers/2023/119908/119908.pdf
 [vEEGNet_ver2_preprint]: https://www.researchgate.net/publication/375867809_vEEGNet_learning_latent_representations_to_reconstruct_EEG_raw_data_via_variational_autoencoders
-[hvEEGNet_preprint]: https://www.researchgate.net/publication/375868326_hvEEGNet_exploiting_hierarchical_VAEs_on_EEG_data_for_neuroscience_applications
+[hvEEGNet_preprint_researchgate]: https://www.researchgate.net/publication/375868326_hvEEGNet_exploiting_hierarchical_VAEs_on_EEG_data_for_neuroscience_applications
+[hvEEGNet_SSRNN]: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4725025
