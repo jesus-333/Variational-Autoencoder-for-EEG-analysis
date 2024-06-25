@@ -81,3 +81,12 @@ def get_artifact_dataset_config(type_dataset, folder_to_save = 'v2'):
     )
 
     return dataset_config
+
+def get_TUAR_dataset_config() :
+    dataset_config = dict(
+        force_download = False,
+        path_file = 'data/TUAR_dataset/aaaaaaju_s007_t000.edf',
+        channels_to_set = ['EEG FP1-REF', 'EEG FP2-REF', 'EEG F3-REF', 'EEG F4-REF', 'EEG C3-REF', 'EEG C4-REF', 'EEG P3-REF', 'EEG P4-REF', 'EEG O1-REF', 'EEG O2-REF', 'EEG F7-REF', 'EEG T3-REF', 'EEG T4-REF', 'EEG T5-REF', 'EEG T6-REF', 'EEG A1-REF', 'EEG A2-REF', 'EEG FZ-REF', 'EEG CZ-REF', 'EEG PZ-REF', 'EEG T1-REF', 'EEG T2-REF'],
+    )
+
+    return dataset_config

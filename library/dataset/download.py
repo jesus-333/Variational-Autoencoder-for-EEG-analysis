@@ -9,6 +9,7 @@ Function related to download the data
 
 import numpy as np
 import mne
+import os
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
@@ -22,7 +23,7 @@ from .. import check_config
 import download
 """
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Download and automatic segmentation (moabb)
 
 def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
@@ -61,14 +62,15 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
 
     return raw_data, raw_labels
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Download and  segmentation through mne 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Download and  segmentation through mne
 
 def get_moabb_data_handmade(dataset, config, type_dataset):
     """
     Download and preprocess dataset from moabb.
-    The division in trials is not handle by the moabb library but by functions that I wrote 
+    The division in trials is not handle by the moabb library but by functions that I wrote
     """
+
     # Get the raw dataset for the specified list of subject
     raw_dataset = dataset.get_data(subjects = config['subjects_list'])
     
@@ -81,7 +83,7 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         # Extract the data for the subject
         raw_data = raw_dataset[subject]
         
-        # For each subject the data are divided in train and test. Here I extract train or test data 
+        # For each subject the data are divided in train and test. Here I extract train or test data
         if type_dataset == 'train': raw_data = raw_data['0train']
         elif type_dataset == 'test': raw_data = raw_data['1test']
         else: raise ValueError("type_dataset must have value train or test")
@@ -104,7 +106,7 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
     trials_per_subject = np.asarray(trials_per_subject)
     labels_per_subject = np.asarray(labels_per_subject)
 
-    return trials_per_subject, labels_per_subject, np.asarray(ch_list) 
+    return trials_per_subject, labels_per_subject, np.asarray(ch_list)
 
 def get_trial_handmade(raw_data, config):
     trials_matrix_list = []
@@ -246,7 +248,7 @@ def get_D2a_data(config, type_dataset):
         data = data.reshape(-1, data.shape[2], data.shape[3])
         labels = labels.reshape(-1)
         
-        # By default the labels obtained through the moabb have value between 1 and 4. 
+        # By default the labels obtained through the moabb have value between 1 and 4.
         # But Pytorch for 4 classes want values between 0 and 3
         labels -= 1
 
@@ -257,13 +259,15 @@ def get_dataset_channels(dataset):
     Get the list of channels for the specific dataset
     """
 
-    if 'BNCI2014_001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+    if 'BNCI2014_001' in str(type(dataset)) : # Dataset 2a BCI Competition IV
         raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
         ch_list = raw_data.ch_names
+    elif 'RawEDF' in str(type(dataset)) :
+        ch_list = dataset.ch_names
     else:
         raise ValueError("Function not implemented for this type of dataset")
 
-    return np.asarray(ch_list) 
+    return np.asarray(ch_list)
 
 def convert_label(raw_labels, use_BCI_D2a_label = True):
     """
@@ -290,7 +294,7 @@ def convert_label(raw_labels, use_BCI_D2a_label = True):
         for label in labels_list:
             print("Label {} get the value {}".format(label, labels_list[label]))
             idx_label = raw_labels == label
-            new_labels[idx_label] = int(labels_list[label]) 
+            new_labels[idx_label] = int(labels_list[label])
     else:
         for i in range(len(labels_list)):
             print("Label {} get the value {}".format(labels_list[i], i))
@@ -303,3 +307,46 @@ def convert_label(raw_labels, use_BCI_D2a_label = True):
             new_labels[idx_label] = int(i)
 
     return new_labels
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# TUAR Dataset (Note that this is not the entire dataset but a subsection hosted on google drive)
+
+def get_TUAR_data(config : dict) :
+    # Check if the data are already downloaded
+    if os.path.exists('data/TUAR_dataset') :
+        if 'force_download' not in config : config['force_download'] = False
+        
+        # If force_download is set to True download the dataset anyway
+        if config['force_download'] :
+            print('Download TUAR dataset')
+            download_TUAR()
+        else :
+            print('The dataset is already downloaded.')
+
+    data_raw = mne.io.read_raw_edf(config['path_file'])
+    ch_list = get_dataset_channels(data_raw)
+
+    return data_raw, ch_list
+
+def download_TUAR() :
+    # Link to shared file in google drive and path to save the data
+    link_drive = 'https://drive.google.com/drive/folders/10JmpvbkcMVc20EJt0caAqBDxYOkZth31?usp=sharing'
+    path_save = 'data/'
+
+    download_from_google_drive(link_drive, path_save)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def download_from_google_drive(link_drive : str, path_save : str) :
+    try :
+        # Import the package to download stuff from gooogle drive
+        # The import is here to avoid people to force install googledriver if they will not use TUAR data
+        from googledriver import download_folder
+        
+        # Check that the folder to save the data exist, otherwise create it
+        os.makedirs(path_save, exist_ok = True)
+
+        # Download the folder with the TUAR dataset
+        download_folder(link_drive, path_save)
+    except :
+        raise ImportError("To download the TUAR dataset you need the googledriver package. You can download it from https://pypi.org/project/googledriver/")
