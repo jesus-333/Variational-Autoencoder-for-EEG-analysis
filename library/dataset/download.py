@@ -323,10 +323,26 @@ def get_TUAR_data(config : dict) :
         else :
             print('The dataset is already downloaded.')
 
+    # Check the config
+    check_config.check_config_dataset(config)
+    mne.set_log_level(False)
+    
+    # Read data
     data_raw = mne.io.read_raw_edf(config['path_file'])
+    
+    # Preprocess data
+    if 'channels_to_use' in config : data_raw.pick_channels(config['channels_to_use'], ordered = True)  # Reorders the channels and drop the ones not contained in channels_to_use
+    if config['resample_data'] : data_raw.resample(config['resample_freq'])                             # Resample data
+    if config['filter_data']   : data_raw = filter_RawArray(data_raw, config)                           # (OPTIONAL) Filter the data
+    
+    # Segmentation
+    data_segmented = mne.make_fixed_length_epochs(data_raw, duration = config['segment_duration'], preload = False, overlap = config['segment_overlap_duration'])
+    data_segmented = data_segmented.get_data()
+
+    # Get channels list
     ch_list = get_dataset_channels(data_raw)
 
-    return data_raw, ch_list
+    return data_segmented, data_raw, ch_list
 
 def download_TUAR() :
     # Link to shared file in google drive and path to save the data

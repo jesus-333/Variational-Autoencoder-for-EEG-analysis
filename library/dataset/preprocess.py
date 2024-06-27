@@ -175,6 +175,42 @@ def get_dataset_d2a(config : dict):
             validation_dataset = None
 
     return train_dataset, validation_dataset, test_dataset
+
+def get_dataset_TUAR(config : dict):
+    # Get the original train and test data
+    data, _, ch_list = download.get_TUAR_data(config)
+    config['channels_list'] = ch_list
+
+    # Add dimension for the depth map
+    data = np.expand_dims(data, 1)
+
+    # Split data in train and test set
+    if config['percentage_split_train_test'] > 0 and config['percentage_split_train_test'] < 1 :
+        idx_train, idx_test = sf.get_idx_to_split_data(data.shape[0], config['percentage_split_train_test'], config['seed_split'])
+        data_train = data[idx_train]
+        data_test = data[idx_test]
+    else :
+        raise ValueError('The value of percentage_split_train_test in the config is not valid. The value should be between 0 and 1 (both excluded). The current value is {}'.format(config['percentage_split_train_test']))
+    
+    # Split train data in actual train data and validation set
+    if config['percentage_split_train_validation'] > 0 and config['percentage_split_train_validation'] < 1 :
+        idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], config['percentage_split_train_validation'], config['seed_split'])
+        data_validation = data_train[idx_validation]
+        data_train  = data_train[idx_train]
+    else :
+        raise ValueError('The value of percentage_split_train_validation in the config is not valid. The value should be between 0 and 1 (both excluded). The current value is {}'.format(config['percentage_split_train_validation']))
+
+    # Create random label array (only for compatibility)
+    labels_train = np.random.randint(0, 4, data_train.shape[0])
+    labels_test = np.random.randint(0, 4, data_test.shape[0])
+    labels_validation = np.random.randint(0, 4, data_validation.shape[0])
+    
+    # Create PyTorch dataset
+    train_dataset       = ds_time.EEG_Dataset(data_train, labels_train, ch_list, config['normalize'])
+    test_dataset        = ds_time.EEG_Dataset(data_test, labels_test, ch_list, config['normalize'])
+    validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])
+
+    return train_dataset, validation_dataset, test_dataset
         
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Test preprocess function
@@ -321,9 +357,9 @@ def show_filter_effect_on_ERS():
         pp_plot.visualize_single_subject_average_channel_ERS(stft_trials_matrix_ERS_filter, labels, ch_list, plot_config_ERS)
 
 def show_after_before_ERS():
-    subjects_list = [1,2,3,4,5,6,7,8,9]
+    subjects_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     subjects_list = [2]
-    show_fig = True 
+    show_fig = True
 
     plot_config = cp.get_config_plot_preprocess_random_trial() # The config for the plot are the same
     plot_config['cmap'] = 'Blues_r'

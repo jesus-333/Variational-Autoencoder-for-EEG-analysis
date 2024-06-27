@@ -86,7 +86,29 @@ def get_TUAR_dataset_config() :
     dataset_config = dict(
         force_download = False,
         path_file = 'data/TUAR_dataset/aaaaaaju_s007_t000.edf',
-        channels_to_set = ['EEG FP1-REF', 'EEG FP2-REF', 'EEG F3-REF', 'EEG F4-REF', 'EEG C3-REF', 'EEG C4-REF', 'EEG P3-REF', 'EEG P4-REF', 'EEG O1-REF', 'EEG O2-REF', 'EEG F7-REF', 'EEG T3-REF', 'EEG T4-REF', 'EEG T5-REF', 'EEG T6-REF', 'EEG A1-REF', 'EEG A2-REF', 'EEG FZ-REF', 'EEG CZ-REF', 'EEG PZ-REF', 'EEG T1-REF', 'EEG T2-REF'],
+
+        # channels_to_use = ['EEG FP1-REF', 'EEG FP2-REF', 'EEG F3-REF', 'EEG F4-REF', 'EEG C3-REF', 'EEG C4-REF', 'EEG P3-REF', 'EEG P4-REF', 'EEG O1-REF', 'EEG O2-REF', 'EEG F7-REF', 'EEG T3-REF', 'EEG T4-REF', 'EEG T5-REF', 'EEG T6-REF', 'EEG A1-REF', 'EEG A2-REF', 'EEG FZ-REF', 'EEG CZ-REF', 'EEG PZ-REF', 'EEG T1-REF', 'EEG T2-REF'],
+
+        # Frequency filtering settings
+        filter_data = False,    # If True filter the data
+        filter_type = 0,        # 0 Bandpass, 1 lowpass, 2 highpass (used only if filter_data is True)
+        fmin = 0.5,             # Used in bandpass and highpass (used only if filter_data is True)
+        fmax = 50,              # Used in bandpass and lowpass (used only if filter_data is True)
+        filter_method = 'iir',  # Filter settings (used only if filter_data is True)
+        iir_params = dict(ftype = 'cheby2', order = 20, rs = 30), # Filter settings (used only if filter_data is True and filter_method is iir)
+
+        # Resampling settings
+        resample_data = True,  # If true resample the data
+        resample_freq = 250,    # New sampling frequency (used only if resample_data is True)
+        
+        # Segmentation settings
+        segment_duration = 4,
+        segment_overlap_duration = 3,
+
+        # Split in train/test/validation
+        seed_split = 42,                         # Seed for the random function used for split the dataset. Used for reproducibility
+        percentage_split_train_test = 0.7,       # For ALL the data select the percentage for training and for test. 
+        percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
     )
 
     return dataset_config
