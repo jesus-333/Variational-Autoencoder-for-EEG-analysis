@@ -216,7 +216,7 @@ def get_dataset_TUAR(config : dict):
 #%% Test preprocess function
 
 def download_preprocess_and_visualize():
-    subjects_list = [1,2,3,4,5,6,7,8,9]
+    subjects_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     subjects_list = [3]
     show_fig = True
 

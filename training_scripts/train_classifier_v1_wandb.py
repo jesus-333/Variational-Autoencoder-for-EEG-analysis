@@ -1,12 +1,12 @@
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% Imports 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Imports
 
 from library.training import wandb_training as wt
 
 from library.config import config_model    as cm
 from library.config import config_training as ct
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Settings
 
 subj_data = 6
@@ -22,7 +22,7 @@ hvEEGNet_training_repetition = 1 # Since for each subject we train hvEEGNet 20 t
 
 path_weights_hvEEGNet = 'Saved Model/repetition_hvEEGNet_80/subj {}/rep {}/model_{}.pth'.format(subj_weights, hvEEGNet_training_repetition, epoch_trained)
     
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 dataset_config, _, hvEEGNet_config = wt.get_config_dict_for_hvEEGNet_shallow([subj_data])
 classifier_config = cm.get_config_classifier_v1(use_only_mu_for_classification)
