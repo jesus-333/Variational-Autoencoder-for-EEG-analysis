@@ -30,6 +30,8 @@ project_name = "TUAR_train_hvEEGNet"                # Name of wandb project
 name_training_run = "TUAR"          # Name of the training run
 model_artifact_name = "hvEEGNet_TUAR"     # Name of the artifact used to save the model
 
+device = 'cpu'
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Get dataset config
@@ -63,5 +65,7 @@ train_config['model_artifact_name'] = model_artifact_name
 train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
 
+train_config['device'] = device
+
 # Train the model
-# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)
+model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)

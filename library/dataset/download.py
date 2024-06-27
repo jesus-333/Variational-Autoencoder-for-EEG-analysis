@@ -343,6 +343,9 @@ def get_TUAR_data(config : dict) :
 
     # Get channels list
     ch_list = get_dataset_channels(data_raw)
+    
+    # TODO (?)
+    if 'samples_to_use' in config : data_segmented = data_segmented[0:config['samples_to_use']]
 
     return data_segmented, data_raw, ch_list
 
