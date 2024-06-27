@@ -19,8 +19,8 @@ from library.config import config_dataset as cd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specific parameters to change inside the dictionary
 
-path_file = 'data/TUAR_dataset/aaaaaaju_s007_t000.edf',
-force_download = True
+path_file = 'data/TUAR_dataset/aaaaaaju_s007_t000.edf'
+force_download = False
 
 # Training parameters to change (for more info check the function get_config_hierarchical_vEEGNet_training)
 epochs = 2
@@ -64,4 +64,4 @@ train_config['measure_metrics_during_training'] = model_config['use_classifier']
 train_config['use_classifier'] = model_config['use_classifier']
 
 # Train the model
-model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)
+# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)

@@ -322,6 +322,8 @@ def get_TUAR_data(config : dict) :
             download_TUAR()
         else :
             print('The dataset is already downloaded.')
+    else :
+        download_TUAR()
 
     # Check the config
     check_config.check_config_dataset(config)
