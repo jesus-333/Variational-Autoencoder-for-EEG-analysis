@@ -16,7 +16,7 @@ def check_config_dataset(config):
         config['filter_data'] = False
         print('filter_data not specified. Set to False')
 
-    if config['filter_data'] == True:
+    if config['filter_data'] is True:
         if 'fmin' not in config or 'fmax' not in config: raise ValueError('If you want to filter the data you must specify the lower (fmin) and upper (fmax) frequency bands  of the filter')
     
     # Check the resampling settings
@@ -28,9 +28,11 @@ def check_config_dataset(config):
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
 
+    if 'use_moabb_segmentation' not in config : config['use_moabb_segmentation'] = False
+
     if config['use_moabb_segmentation']:
         config['use_moabb_segmentation'] = False
-        print('use_moabb_segmentation not specified. Set to False')
+        print('use_moabb_segmentation not specified. Set to False. Ignore if you are not using moabb')
 
     # if 'normalization_type not in config:
     #     config['normalization_type'] = 0
@@ -41,7 +43,7 @@ def check_config_dataset(config):
             raise ValueError("To transform the input through stft you must add dictionary with the parameters for the stft inside the dataset config")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check config train 
+# Check config train
 
 def check_train_config(train_config : dict, model_artifact = None):
     # Parameter used to save the model every x epoch
@@ -49,7 +51,7 @@ def check_train_config(train_config : dict, model_artifact = None):
     
     # Check if wandb is used during training
     if 'wandb_training' not in train_config: train_config['wandb_training'] = False
-    if train_config['wandb_training'] == True and model_artifact is None :
+    if train_config['wandb_training'] is True and model_artifact is None :
         raise ValueError("If you want to train the model and load the data on wandb you must also pass an artifact to save the network")
     
     # Path where save the network during training

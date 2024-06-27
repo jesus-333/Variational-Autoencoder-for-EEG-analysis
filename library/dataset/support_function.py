@@ -9,7 +9,6 @@ Minor support function used in the various script
 #%% Imports
 
 import torch
-from torch import nn
 import numpy as np
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -23,17 +22,17 @@ def get_idx_to_split_data(n_elements : int, percentage_split : float, seed = -1)
     
     # Create idx vector
     idx = np.random.permutation(n_elements)
-    size_1 = int(n_elements * percentage_split) 
+    size_1 = int(n_elements * percentage_split)
     
     return idx[0:size_1], idx[size_1:]
 
 # NOT USED
 def split_dataset(full_dataset, percentage_split : float):
     """
-    Split a dataset in 2 
+    Split a dataset in 2
     """
 
-    size_1 = int(len(full_dataset) * percentage_split) 
+    size_1 = int(len(full_dataset) * percentage_split)
     size_2 = len(full_dataset) - size_1
     dataset_1, dataset_2 = torch.utils.data.random_split(full_dataset, [size_1, size_2])
     
@@ -52,4 +51,4 @@ def get_sweep_path(sweep_id):
 
     return weight_path[sweep_id]
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
