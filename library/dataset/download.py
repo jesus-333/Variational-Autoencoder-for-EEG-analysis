@@ -84,14 +84,20 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         raw_data = raw_dataset[subject]
         
         # For each subject the data are divided in train and test. Here I extract train or test data 
-        if type_dataset == 'train': raw_data = raw_data['session_T']
-        elif type_dataset == 'test': raw_data = raw_data['session_E']
+        if 'session_T' in raw_data :
+            if type_dataset == 'train': raw_data = raw_data['session_T']
+            elif type_dataset == 'test': raw_data = raw_data['session_E']
+            else: raise ValueError("type_dataset must have value train or test")
+        elif '0train' in raw_data :
+            if type_dataset == 'train': raw_data = raw_data['0train']
+            elif type_dataset == 'test': raw_data = raw_data['1test']
+            else: raise ValueError("type_dataset must have value train or test")
         else: raise ValueError("type_dataset must have value train or test")
 
         trials_matrix, labels, ch_list = get_trial_handmade(raw_data, config)
 
         # Select only the data channels
-        if 'BNCI2014001' in str(type(dataset)): # Dataset 2a BCI Competition IV
+        if 'BNCI2014001' in str(type(dataset)) or 'BNCI2014_001' in str(type(dataset)): # Dataset 2a BCI Competition IV
             if 'channels_list' in config: idx_ch = get_idx_ch(ch_list, config)
             else: idx_ch = np.arange(22)
             

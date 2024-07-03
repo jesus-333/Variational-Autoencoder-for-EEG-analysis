@@ -39,10 +39,10 @@ nperseg = 500
 
 plot_config = dict(
     figsize = (12, 8),
-    fontsize = 16, 
+    fontsize = 16,
     capsize = 3,
     cmap = 'plasma',
-    save_fig = True
+    save_fig = False
 )
 
 # Prendere c3 per la mano destra e c4 per la mano sinistra

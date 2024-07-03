@@ -1,0 +1,185 @@
+"""
+Combine compute_outliers_2.py and compute_outliers_3.py and execute the stuff subject by subjcet.
+I.e. It creates 9 plot and in each plot there is the average error of the outliers and the number of outliers
+"""
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+import sys
+import os
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import NearestNeighbors as knn
+from sklearn.preprocessing import RobustScaler
+
+try:
+    from kneed import KneeLocator
+except ImportError as e:
+    print("Error -> ", e)
+    raise ImportError("To run this script you need the kneed package")
+
+from library.analysis import support
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Parameters
+
+tot_epoch_training = 80
+# subj_list = [2]
+epoch_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80]
+repetition_list = np.arange(19) + 1
+
+use_test_set = False
+save_outliers = True
+
+method_std_computation = 2
+normalize_recon_error = False
+neighborhood_order_list = [15]
+knn_algorithm = 'auto'
+s_knee = 1
+
+plot_config = dict(
+    figsize = (30, 30),
+    fontsize = 24,
+    save_fig = True,
+    color_1 = 'darkcyan', # Average error outliers
+    color_2 = 'black',    # Average error all dataset 
+    color_3 = 'red'       # N. outliers
+)
+
+xticks = [0, 20, 40, 60, 80]
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+if normalize_recon_error:
+    norm_string = "NORMALIZED"
+else:
+    norm_string = "NOT_NORMALIZED"
+
+output = support.compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, epoch_list, repetition_list, 
+                                                              method_std_computation = method_std_computation, skip_run = True, use_test_set = use_test_set)
+recon_loss_results_mean, recon_loss_results_std, recon_loss_to_plot_mean, recon_loss_to_plot_std = output
+
+fig, axs = plt.subplots(3, 3, figsize = plot_config['figsize'])
+axs = axs.flatten()
+
+for neighborhood_order in neighborhood_order_list:
+    plt.rcParams.update({'font.size': plot_config['fontsize']})
+
+    for i in range(len(subj_list)):
+        subj = subj_list[i]
+        print(subj)
+        
+        ax_error_outliers = axs[i]
+        ax_n_outliers = ax_error_outliers.twinx()
+        
+        idx_outliers_list = []
+        average_error_outliers_list = []
+        n_outliers_list = []
+        
+        average_error_subject_list = []
+        std_error_subject_list = []
+
+        for epoch in epoch_list:
+
+            # Load the reconstruction error
+            # path_recon_error = './Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_average.npy'.format(tot_epoch_training, subj, epoch)
+            # recon_error = np.load(path_recon_error)
+            recon_error = recon_loss_results_mean[subj][epoch]
+
+            # Apply the scaling to data
+            if normalize_recon_error:
+                scaler = RobustScaler()
+                recon_error = scaler.fit_transform(recon_error)
+
+            #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # Outlier identifications (NORMALIZED)
+
+            # Compute the KNN
+            neighborhood_set   = knn(n_neighbors = neighborhood_order, algorithm = knn_algorithm).fit(recon_error)
+            distances, indices = neighborhood_set.kneighbors(recon_error)
+
+            # compute distances from nth nearest neighbors (given by neighborhood_order) and sort them
+            dk_sorted     = np.sort(distances[:,-1])
+            dk_sorted_ind = np.argsort(distances[:,-1])
+
+            knee = KneeLocator(np.arange(len(distances)), dk_sorted, S = s_knee, curve = 'convex', direction = 'increasing', interp_method = 'interp1d', online = True)
+            knee_x = knee.knee
+            knee_y = knee.knee_y    # OR: distances[knee.knee]
+
+            # Get outliers
+            n_outliers = recon_error.shape[0] - knee_x
+            idx_outliers = dk_sorted_ind[-(n_outliers + 1) : -1]
+            idx_outliers_list.append(idx_outliers)
+            n_outliers_list.append(n_outliers)
+
+            # Get average error outliers
+            average_error_outliers = recon_error[idx_outliers].mean()
+            average_error_outliers_list.append(average_error_outliers)
+            
+            # Get the average error per subject
+            average_error_subject = recon_error.mean()
+            average_error_subject_list.append(average_error_subject)
+            std_error_subject = recon_error.mean(1).std()
+            std_error_subject_list.append(std_error_subject)
+
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        #%% Plot n. outliers vs epoch
+        line_1 = ax_error_outliers.plot(epoch_list, average_error_outliers_list, label = "outliers average error",
+                                        color = plot_config['color_1'], linestyle = 'dashed',
+                                        marker = 'o', markersize = 9
+                                        )
+        
+        line_2 = ax_error_outliers.errorbar(epoch_list, average_error_subject_list, yerr = std_error_subject_list,
+                                            label = "global average error", capsize = 3,
+                                            color = plot_config['color_2'], linestyle = 'dashed',
+                                            marker = "s", markerfacecolor = 'none', markeredgecolor = 'black', markersize = 17, markeredgewidth = 2
+                                            )
+    
+        ax_error_outliers.set_xlabel("Epoch no.", fontsize = plot_config['fontsize'])
+        ax_error_outliers.set_xticks(xticks, labels = xticks, fontsize = plot_config['fontsize'])
+        ax_error_outliers.set_ylabel("Reconstruction error S{}".format(subj),
+                                     color = plot_config['color_1'], fontweight='bold', fontsize = plot_config['fontsize']
+                                     )
+        plt.setp(ax_error_outliers.get_yticklabels(), color = plot_config['color_1'])
+        ax_error_outliers.tick_params(axis = 'both', which = 'major', labelsize = plot_config['fontsize'])
+        ax_error_outliers.tick_params(axis = 'both', which = 'minor', labelsize = plot_config['fontsize'])
+
+        line_3 = ax_n_outliers.plot(epoch_list, n_outliers_list, label = "no. of outliers",
+                                    color = plot_config['color_3'], linestyle = 'solid',
+                                    marker = '^', markersize = 13)
+        ax_n_outliers.set_xlabel("Epoch no.", fontsize = plot_config['fontsize'])
+        ax_n_outliers.set_xticks(xticks, labels = xticks, fontsize = plot_config['fontsize'])
+        ax_n_outliers.set_ylabel("No. of outliers", color = plot_config['color_3'], fontsize = plot_config['fontsize'])
+        if epoch == 80 and neighborhood_order == 15:
+            if subj in [1, 4, 6, 9]: ax_n_outliers.set_ylim([9, 35])
+            # if subj == 2: ax_n_outliers.set_ylim([10, 80])
+        plt.setp(ax_n_outliers.get_yticklabels(), color = plot_config['color_3'])
+        ax_n_outliers.tick_params(axis = 'both', which = 'major', labelsize = plot_config['fontsize'])
+        ax_n_outliers.tick_params(axis = 'both', which = 'minor', labelsize = plot_config['fontsize'])
+
+        # Grid
+        ax_n_outliers.grid(True, axis = 'both', linestyle = 'solid')
+        ax_error_outliers.grid(True, which = 'both', axis = 'both', linestyle = 'dashed')
+        
+        # Add legend
+        if subj == 3:
+            lns = [line_1[0], line_2, line_3[0]]
+            labs = [l.get_label() for l in lns]
+            ax_error_outliers.legend(lns, labs, loc = 0, fontsize = plot_config['fontsize'] - 3)
+    
+fig.tight_layout()
+fig.show()
+
+if plot_config['save_fig']:
+    path_save = "Saved Results/figure_paper_frontiers/"
+    os.makedirs(path_save, exist_ok = True)
+    path_save += "FIG_9_outliers_{}_neighborhood_order_{}".format(norm_string, neighborhood_order)
+    fig.savefig(path_save + ".png", format = 'png')
+    fig.savefig(path_save + ".jpeg", format = 'jpeg')
+    fig.savefig(path_save + ".eps", format = 'eps')

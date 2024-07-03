@@ -49,7 +49,7 @@ plot_config = dict(
     add_std = False,
     add_original = True, # Only in the 3 x 3
     alpha = 0.33,
-    save_fig = True,
+    save_fig = False,
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -187,7 +187,6 @@ if len(subj_list) == 9:
 
             subj = subj_list[k]
             color = subj_to_color[k]
-fig.savefig("Only_deep_{}.png".format(channel))
 
             x_avg_orig = x_avg_orig_list[i]
             x_avg_r = x_avg_r_list[i]

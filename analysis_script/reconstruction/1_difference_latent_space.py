@@ -2,7 +2,7 @@
 Analysis of the reconstruction of the various layer of the hvEEGNet
 (i.e. reconstruct using only the deepest latent space, the deepest and the middle or all three)
 """
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys
 import os
 
@@ -16,12 +16,9 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.config import config_dataset as cd
-from library.config import config_model as cm
-from library.dataset import preprocess as pp
-from library.training import train_generic
 from library.analysis import support
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
 subj = 3
@@ -34,7 +31,7 @@ tot_epoch_training = 80
 idx_trial = 206
 channel = 'C3'
 
-compute_psd = False 
+compute_psd = False
 use_test_set = True
 
 config = dict(
@@ -52,7 +49,7 @@ plot_config = dict(
     save_fig = True,
 )
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function
 
 def crop_signal(x, idx_ch, t_start, t_end, t_min, t_max):

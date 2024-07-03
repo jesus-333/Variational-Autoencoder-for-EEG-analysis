@@ -35,7 +35,7 @@ plot_config = dict(
     fontsize = 16, 
     capsize = 3,
     use_log_scale = False,
-    save_fig = True
+    save_fig = False
 )
 
 method_std_computation = 2
@@ -75,7 +75,7 @@ for subj in subj_list:
                 continue
             
             try:
-                path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
+                path_load = 'Saved Results/repetition_hvEEGNet_{}/subj {}/train/recon_error_{}_rep_{}.npy'.format(tot_epoch_training, subj, epoch, repetition)
                 tmp_recon_error = np.load(path_load)
                 
                 recon_loss_results_mean[subj][epoch] += tmp_recon_error.mean(1)
