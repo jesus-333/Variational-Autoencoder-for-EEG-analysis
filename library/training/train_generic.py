@@ -6,7 +6,7 @@
 Script with generic function to train a model in PyTorch. Contains the function that iterate through epochs, that is the same for each model.
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 # Python library

@@ -68,7 +68,7 @@ def compute_metrics_from_labels(true_label, predict_label):
 
 def compute_specificity_multiclass(true_label, predict_label, weight_sum = True):
     """
-    Compute the average specificity 
+    Compute the average specificity
     """
 
     binary_specificity_list = []
