@@ -14,7 +14,7 @@ import torch
 import numpy as np
 import time
 
-from library.training import train_generic
+from library.model import hvEEGNet
 from library.config import config_model as cm
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,7 +62,7 @@ for i in range(len(n_elements_list)) :
 
     model_config['input_size'] = (1, 1, C, T)
     model_config['use_classifier'] = False
-    model_hv = train_generic.get_untrained_model('hvEEGNet_shallow', model_config)
+    model_hv = hvEEGNet.hvEEGNet_shallow(model_config)
 
     x = torch.rand(n_elements, 1, C, T)
 
