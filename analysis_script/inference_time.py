@@ -1,7 +1,7 @@
 """
 Compute inference time of hvEEGNet for various settings
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 import sys
 import os
@@ -14,15 +14,14 @@ import torch
 import numpy as np
 
 from library.analysis import support
-from library.config import config_dataset as cd 
+from library.config import config_dataset as cd
 import time
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
     model.to(device)
     x = x.to(device)
-    tot_time = 0
     time_list = []
     if no_grad:
         with torch.no_grad():
@@ -37,7 +36,7 @@ def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
             time_list.append(time.time() - start)
     
     return np.mean(time_list), np.std(time_list)
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 subj = 3
 dataset_config = cd.get_moabb_dataset_config([subj])
