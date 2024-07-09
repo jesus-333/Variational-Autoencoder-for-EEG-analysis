@@ -6,6 +6,7 @@
 *.pth
 *.npy
 *.pickle
+*.edf
 wandb/
 .venv/
 Saved Model/
