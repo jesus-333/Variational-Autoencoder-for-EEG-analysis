@@ -138,35 +138,36 @@ class hvae_encoder(nn.Module):
         If return_shape == True the return list will contain also the shape of the outputs of the various cells
         """
 
-        with torch.no_grad():
-            # List with all the variables returned
-            return_list = []
+        # with torch.no_grad(): # TODO check why I put here a torch.no_grad
 
-            # List with the output of each cell of the encoder
-            cell_outputs = []
-            output_shape = []
-            for cell in self.encoder_modules:
-                x = cell(x)
-                cell_outputs.append(x)
-                if return_shape: output_shape.append(x.shape)
+        # List with all the variables returned
+        return_list = []
 
-            # Create the return list
-            if return_distribution:
-                z, mu, sigma = self.sample_layer_z(x)
-                if self.convert_logvar_to_var: sigma = torch.exp(sigma)
-                return_list.append(z)
-                return_list.append(mu)
-                return_list.append(sigma)
-            else:
-                return_list.append(x)
-            
-            # Add the output of hVAE cells to return list
-            return_list.append(cell_outputs)
+        # List with the output of each cell of the encoder
+        cell_outputs = []
+        output_shape = []
+        for cell in self.encoder_modules:
+            x = cell(x)
+            cell_outputs.append(x)
+            if return_shape: output_shape.append(x.shape)
 
-            # (OPTIONAL) Add the outuput shape of the various cells to the return list
-            if return_shape : return_list.append(output_shape)
+        # Create the return list
+        if return_distribution:
+            z, mu, sigma = self.sample_layer_z(x)
+            if self.convert_logvar_to_var: sigma = torch.exp(sigma)
+            return_list.append(z)
+            return_list.append(mu)
+            return_list.append(sigma)
+        else:
+            return_list.append(x)
+        
+        # Add the output of hVAE cells to return list
+        return_list.append(cell_outputs)
 
-            return return_list
+        # (OPTIONAL) Add the outuput shape of the various cells to the return list
+        if return_shape : return_list.append(output_shape)
+
+        return return_list
 
 
 class hVAE_decoder(nn.Module):
