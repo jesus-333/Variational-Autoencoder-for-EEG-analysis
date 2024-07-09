@@ -7,6 +7,7 @@
 *.npy
 *.pickle
 wandb/
+.venv/
 Saved Model/
 Saved Results/
 TMP_File/
