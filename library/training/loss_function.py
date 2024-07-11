@@ -31,9 +31,9 @@ def recon_loss_function(x, x_r):
 def recon_loss_frequency_function(x, x_r):
     pass
 
-def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, average_channels : True = False):
+def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, soft_DTW_type : int = 1, average_channels : True = False):
     """
-    Compute the dtw between two tensor x and x_r using the softDTW (implemented through https://github.com/Maghoumi/pytorch-softdtw-cuda).
+    Compute the dtw between two tensor x and x_r using the softDTW .
     The two tensors (x and x_r) must both have shape B x 1 x C x T. The dtw will be computed element by element and channel by channel.
     An element is an EEG signal of shape C x T and the number of element is B (i.e. the first dimension).
     For each EEG signal the dtw is computed independently channel by channel, sum together and, eventually, averaged along channels if average_channels is True.
@@ -47,6 +47,8 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
 
     @param x: (torch.tensor) First input tensor of shape B x 1 x C x T
     @param x_r: (torch.tensor) Second input tensor of shape B x 1 x C x T
+    @param dtw_loss_function: (function) The dtw implementation to use. Actually during the training I use the one provided by https://github.com/Maghoumi/pytorch-softdtw-cuda. This parameter exist to allow the use of other implementation
+    @param soft_DTW_type : (int). Default to 1. Specify the type of soft-DTW to use. 1 = classical soft-DTW. 2 = soft-dtw divergence. For more info https://arxiv.org/pdf/2010.08354
     @param average_channels : (bool) If True compute the average of the reconstruction error along the channels
 
     @return recon_error: (torch.tensor) Tensor of shape B
@@ -62,7 +64,12 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
         # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
         # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
         
-        tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
+        if soft_DTW_type == 1 :
+            tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
+        elif soft_DTW_type == 2 :
+            tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch) - 0.5 (dtw_loss_function(x_ch, x_ch) + dtw_loss_function(x_r_ch, x_r_ch))
+        else :
+            raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
         
         recon_loss += tmp_recon_loss.mean()
 
@@ -212,13 +219,12 @@ class vEEGNet_loss():
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
-        elif self.recon_loss_type == 1: # SDTW
-            recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function)
+        elif self.recon_loss_type == 1 or self.recon_loss_type == 2: # SDTW or SDTW-Divergene
+            recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function, self.recon_loss_type)
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
 
         return recon_loss
-            
         
 class hvEEGNet_loss(vEEGNet_loss):
     
