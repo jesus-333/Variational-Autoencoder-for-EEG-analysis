@@ -59,9 +59,10 @@ def get_config_vEEGNet_training() -> dict:
         optimizer_weight_decay = 1e-2,      # Weight decay of the optimizer
         alpha = 1,                          # Multiplier of the reconstruction error
         beta = 1,                           # Multiplier of the KL
-        gamma = 1,                          # Multiplier of the classification error (if you also use a classifier)
-        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW)
+        gamma = 1,                          # Multiplier of the classification error (if you also use a classifier). It's completely independent from the gamma_dtw, they simply share a similar name.
+        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW, 2 = SDTW-Divergence)
         edge_samples_ignored = 0,           # Ignore this number of samples during the computation of the reconstructation loss
+        gamma_dtw = 1,                      # Hyperparameter of the SDTW. Control the steepness of the soft-min inside the SDTW. The closer to 0 the closer the soft-min approximate the real min
 
         # Support stuff (device, log frequency etc)
         device = "cuda" if torch.cuda.is_available() else "cpu",
