@@ -180,10 +180,12 @@ class vEEGNet_loss():
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
             self.recon_loss_function = recon_loss_function
-        elif config['recon_loss_type'] == 1: # Soft-DTW
+        elif config['recon_loss_type'] == 1 or config['recon_loss_type'] == 2: # Soft-DTW or soft-DTW divergence
             gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
             use_cuda = True if config['device'] == 'cuda' else False
             self.recon_loss_function = SoftDTW(use_cuda = use_cuda, gamma = gamma_dtw)
+        else :
+            raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(config['recon_loss_type']))
         self.recon_loss_type = config['recon_loss_type']
         
         self.edge_samples_ignored = config['edge_samples_ignored'] if 'edge_samples_ignored' in config else 0
