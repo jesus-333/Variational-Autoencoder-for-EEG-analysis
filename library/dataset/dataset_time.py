@@ -41,7 +41,9 @@ class EEG_Dataset(Dataset):
         if normalize == 1:
             self.minmax_normalize_all_dataset(-1, 1)
         elif normalize == 2:
-            self.normalize_channel_by_channel(-1, 1)
+            self. normalize_trial_by_trial_channel_by_channel(-1, 1)
+        elif normalize == 3:
+            self. normalize_trial_by_trial(-1, 1)
             
     def __getitem__(self, idx : int) -> tuple[torch.tensor, torch.tensor] :
         return self.data[idx], self.labels[idx]
@@ -55,20 +57,35 @@ class EEG_Dataset(Dataset):
         """
         self.data = ((self.data - self.data.min()) / (self.data.max() - self.data.min())) * (b - a) + a
 
-    def normalize_channel_by_channel(self, a, b):
+    def normalize_trial_by_trial_channel_by_channel(self, a, b):
         """
-        Normalize each channel so the value are between a and b
+        Normalize each channel of each trial so the value are between a and b
         """
         
         # N.b. self.data.shape = [trials, 1 , channels, eeg samples]
         # The dimension with the 1 is needed because the conv2d require a 3d tensor input
         
-        for i in range(self.data.shape[0]): # Cycle over samples
+        for i in range(self.data.shape[0]): # Cycle over EEG trials
             for j in range(self.data.shape[2]): # Cycle over channels
                 tmp_ch = self.data[i, 0, j]
                 
                 normalize_ch = ((tmp_ch - tmp_ch.min()) / (tmp_ch.max() - tmp_ch.min())) * (b - a) + a
                 
                 self.data[i, 0, j] = normalize_ch
+
+    def normalize_trial_by_trial(self, a, b):
+        """
+        Normalize each trial so the value are between a and b
+        """
+        
+        # N.b. self.data.shape = [trials, 1 , channels, eeg samples]
+        # The dimension with the 1 is needed because the conv2d require a 3d tensor input
+        
+        for i in range(self.data.shape[0]): # Cycle over EEG trials
+            tmp_trial = self.data[i, 0, :]
+            
+            normalize_trial = ((tmp_trial - tmp_trial.min()) / (tmp_trial.max() - tmp_trial.min())) * (b - a) + a
+            
+            self.data[i, 0, :] = normalize_trial
 
 #%% End file

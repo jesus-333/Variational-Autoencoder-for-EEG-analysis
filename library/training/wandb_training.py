@@ -130,7 +130,7 @@ def main_EEGNet_classifier():
     train_config['wandb_training'] = True
 
     C = 22
-    T = 512 
+    T = 512
     model_config = cm.get_config_EEGNet_stft_classifier(C, T, 22)
     
     model = train_wandb_V1('EEGNet', dataset_config, train_config, model_config)
