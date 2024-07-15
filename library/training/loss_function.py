@@ -70,7 +70,7 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
             dtw_xy = dtw_loss_function(x_ch, x_r_ch)
             dtw_xx = dtw_loss_function(x_ch, x_ch)
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)
-            tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx - dtw_yy)
+            tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx + dtw_yy)
         else :
             raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
         
