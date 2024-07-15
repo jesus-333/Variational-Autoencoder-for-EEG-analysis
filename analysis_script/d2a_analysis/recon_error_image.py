@@ -15,12 +15,12 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-# subj_list = [1]
+subj_list = [4]
 
 plot_config = dict(
     figsize = (12, 8),
     min_value = 0,
-    max_value = 75,
+    max_value = 20,
     fontsize = 20,
     # colormap = 'RdYlGn_r',
     colormap = 'Reds',
@@ -109,3 +109,6 @@ for subj in subj_list:
 
         fig_train.savefig(path_save + "_TRAIN.eps", format = 'eps')
         fig_test.savefig(path_save + "_TEST.eps", format = 'eps')
+
+        fig_train.savefig(path_save + "_TRAIN.pdf", format = 'pdf')
+        fig_test.savefig(path_save + "_TEST.pdf", format = 'pdf')
