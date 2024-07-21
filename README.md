@@ -1,6 +1,5 @@
 # Variational Autoencoder for EEG analysis
-Branch used for personal experiments
- 
+
 This repository contains the code used for different pubblications. Different branch corresponds to the code used for specific articles or/and up to a specific moment in time. Below there is a list of branches with a short description for each one. The complete list of articles is at the bottom of the readme.
 Index of the README.
 * [List of branches](#list-of-branches)
