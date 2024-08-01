@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-epoch = 80
+epoch = 55
 subj = 9
 use_test_set = False
 
@@ -96,6 +96,7 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+    path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     

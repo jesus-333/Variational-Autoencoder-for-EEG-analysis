@@ -1,5 +1,5 @@
 """
-Similar to inference_time_2.py but also compute the DTW between original and reconstructed signal
+Similar to inference_time_3.py but the soft dtw is computed through the soft-dtw-rust
 """
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -13,15 +13,15 @@ sys.path.insert(0, parent_directory)
 import torch
 import numpy as np
 import time
+import soft_dtw_rust
 
 from library.model import hvEEGNet
-from library.training import loss_function
 from library.config import config_model as cm
 from library.config import config_training as ct
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-n_elements_list = [1, 10]
+n_elements_list = [1]
 C = 22
 T = 1000
 
@@ -40,10 +40,6 @@ def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
     train_config = ct.get_config_hierarchical_vEEGNet_training()
     train_config['device'] = device
     train_config['gamma_dtw'] = 0.1
-    loss_function_function = loss_function.hvEEGNet_loss(train_config)
-
-    true_label = None
-    predict_label = None
 
     if no_grad:
         with torch.no_grad():
@@ -53,12 +49,11 @@ def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
                 # Forward pass
                 x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = model(x)
 
-                # Loss evaluation
-                batch_train_loss = loss_function_function.compute_loss(x, x_r,
-                                                         mu_list, log_var_list,
-                                                         delta_mu_list, delta_log_var_list,
-                                                         predict_label, true_label)
-                
+                # Remove empty dimension
+        
+                # Compute loss
+                loss_value = soft_dtw_rust.compute_sdtw_2d(x.squeeze().numpy().astype('float64'), x_r.squeeze().numpy().astype('float64'), 1)
+
                 time_list.append(time.time() - start)
     else:
         for i in range(n_average):
@@ -67,11 +62,8 @@ def compute_inference_time(model, x, device, no_grad = True, n_average = 20):
             # Forward pass
             x_r, mu_list, log_var_list, delta_mu_list, delta_log_var_list = model(x)
 
-            # Loss evaluation
-            batch_train_loss = loss_function_function.compute_loss(x, x_r,
-                                                     mu_list, log_var_list,
-                                                     delta_mu_list, delta_log_var_list,
-                                                     predict_label, true_label)
+            # Remove empty dimension
+            loss_value = soft_dtw_rust.compute_sdtw_2d(x.squeeze().numpy().astype('float64'), x_r.squeeze().numpy().astype('float64'), 1)
             
             time_list.append(time.time() - start)
     
