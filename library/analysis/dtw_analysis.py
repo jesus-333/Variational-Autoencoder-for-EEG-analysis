@@ -12,7 +12,7 @@ def compute_recon_error_between_two_tensor(x_1 : torch.tensor, x_2 : torch.tenso
     An element is an EEG signal of shape C x T and the number of element is B (i.e. the first dimension).
     For each EEG signal the dtw is computed independently channel by channel. Evenetually, averaged along channels if average_channels is True and over time sample if average_time_sample is True.
 
-    Example : 
+    Example :
     If your input x_1 has shape 4 x 1 x 22 x 1000 it means that the tensor contains 4 EEG signals, and each signal has 22 channels and 1000 temporal samples.
     The tensor x_2 must have the same shape. The dtw is computed element by element in the sense that the first element of x_1 is compared with the first element of x_2 etc.
     Then given a pair of EEG signal of shape 22 x 1000, inside the signal the dtw is computed channel by channel (because the dtw compute the difference between 1d signal).
