@@ -1,5 +1,6 @@
 """
 Used synthetic data to compute the average duration of a training epoch for hvEEGNet
+The time is computed for a specific dataset and batch size and for a specific input size.
 
 @author : Alberto (Jesus) Zancanaro
 @organization : University of Padua
