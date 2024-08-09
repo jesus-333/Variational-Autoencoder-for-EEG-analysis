@@ -13,6 +13,7 @@ The input size remian fix.
 import torch
 import numpy as np
 import time
+import os
 
 from library.model import hvEEGNet
 from library.dataset import dataset_time as ds_time
@@ -21,6 +22,20 @@ from library.training import train_generic
 from library.config import config_model as cm
 from library.config import config_training as ct
 
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def compute_training_time(model, loss_function, optimizer, dataloader, train_config) :
+    time_list = []
+
+    for rep in range(epoch_repetition) :
+        print("\t{} repetition".format(rep + 1))
+
+        start = time.time()
+        _ = train_epoch_function(model, loss_function, optimizer, dataloader, train_config, None)
+        time_list.append(time.time() - start)
+    
+    return time_list
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
@@ -28,12 +43,14 @@ from library.config import config_training as ct
 C = 22      # Number of EEG channels
 T = 1000    # Number of time samples
 
-# Dataset parameters
+# Synthetic dataset parameters
 n_elements_in_the_dataset_list = [10, 50, 100, 150, 200]
+n_elements_in_the_dataset_list = [50]
 batch_size_list = [5, 10, 15]
+batch_size_list = [15]
 
 # Number of time the training epoch is repeated to compute the average time
-epoch_repetition = 3
+epoch_repetition = 5
 
 # Training device (cpu/gpu)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -71,7 +88,7 @@ for i in range(len(n_elements_in_the_dataset_list)) :
     
     for j in range(len(batch_size_list)) :
         # Get batch size
-        batch_size = batch_size_list[i]
+        batch_size = batch_size_list[j]
         
         # Set batch size in the training config
         train_config['batch_size'] = batch_size
@@ -104,14 +121,7 @@ for i in range(len(n_elements_in_the_dataset_list)) :
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Compute average training time for epoch
 
-        time_list = []
-
-        for i in range(epoch_repetition) :
-            print("{} repetition".format(i + 1))
-
-            start = time.time()
-            _ = train_epoch_function(model, loss_function, optimizer, train_dataloader, train_config, None)
-            time_list.append(time.time() - start)
+        time_list = compute_training_time(model, loss_function, optimizer, train_dataloader, train_config)
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Save results
@@ -122,18 +132,21 @@ for i in range(len(n_elements_in_the_dataset_list)) :
         if save_results :
             # Save path and file name
             file_name = 'time_list'
-            save_path = 'Saved Results/computation time/n_elements_{}_batch_{}/'.format(n_elements_in_the_dataset, batch_size)
+            path_save = 'Saved Results/computation time/n_elements_{}_batch_{}/'.format(n_elements_in_the_dataset, batch_size)
+
+            # Create the path if it does not exist
+            os.makedirs(path_save, exist_ok = True)
             
             # Save matrix in npy format
-            np.save(save_path + file_name + '.npy', training_time_matrix_std)
+            np.save(path_save + file_name + '.npy', time_list)
 
             # Save matrix in text format
-            np.savetxt(save_path + file_name + '.txt', training_time_matrix_mean)
+            np.savetxt(path_save + file_name + '.txt', time_list)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Print results
 
-if save_results : print("Note that the saved results are only the lists of time for each combinations of n. elements/batch size. It is recommended to add a txt file with hardware specifications")
+if save_results : print("Note that the saved results are only the lists of time for each combinations of n. elements/batch size. It is recommended to add a txt file with hardware specifications, epoch repetition etc")
 
 for i in range(len(n_elements_in_the_dataset_list)) :
     n_elements_in_the_dataset = n_elements_in_the_dataset_list[i]
