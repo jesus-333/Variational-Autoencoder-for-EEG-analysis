@@ -45,9 +45,9 @@ T = 1000    # Number of time samples
 
 # Synthetic dataset parameters
 n_elements_in_the_dataset_list = [10, 50, 100, 150, 200]
-n_elements_in_the_dataset_list = [50]
+n_elements_in_the_dataset_list = [100, 150, 200]
 batch_size_list = [5, 10, 15]
-batch_size_list = [15]
+batch_size_list = [5, 10]
 
 # Number of time the training epoch is repeated to compute the average time
 epoch_repetition = 5
@@ -151,5 +151,5 @@ if save_results : print("Note that the saved results are only the lists of time 
 for i in range(len(n_elements_in_the_dataset_list)) :
     n_elements_in_the_dataset = n_elements_in_the_dataset_list[i]
     for j in range(len(batch_size_list)) :
-        batch_size = batch_size_list[i]
+        batch_size = batch_size_list[j]
         print("Dataset size = {}, Batch size = {}\t Training time = {:.2f}s ± {:.2f}s".format(n_elements_in_the_dataset, batch_size, training_time_matrix_mean[i, j], training_time_matrix_std[i, j]))
