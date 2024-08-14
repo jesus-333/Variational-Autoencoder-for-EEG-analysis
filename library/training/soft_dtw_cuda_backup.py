@@ -143,9 +143,9 @@ class _SoftDTWCUDA(Function):
         # Run the CUDA kernel.
         # Set CUDA's grid size to be equal to the batch size (every CUDA block processes one sample pair)
         # Set the CUDA block size to be equal to the length of the longer sequence (equal to the size of the largest diagonal)
-        compute_softdtw_cuda[B, threads_per_block](cuda.to_device(D.detach()),
+        compute_softdtw_cuda[B, threads_per_block](cuda.as_cuda_array(D.detach()),
                                                    gamma.item(), bandwidth.item(), N, M, n_passes,
-                                                   cuda.to_device(R))
+                                                   cuda.as_cuda_array(R))
         ctx.save_for_backward(D, R.clone(), gamma, bandwidth)
         return R[:, -2, -2]
 
@@ -172,10 +172,10 @@ class _SoftDTWCUDA(Function):
         E[:, -1, -1] = 1
 
         # Grid and block sizes are set same as done above for the forward() call
-        compute_softdtw_backward_cuda[B, threads_per_block](cuda.to_device(D_),
-                                                            cuda.to_device(R),
+        compute_softdtw_backward_cuda[B, threads_per_block](cuda.as_cuda_array(D_),
+                                                            cuda.as_cuda_array(R),
                                                             1.0 / gamma.item(), bandwidth.item(), N, M, n_passes,
-                                                            cuda.to_device(E))
+                                                            cuda.as_cuda_array(E))
         E = E[:, 1:N + 1, 1:M + 1]
         return grad_output.view(-1, 1, 1).expand_as(E) * E, None, None
 
