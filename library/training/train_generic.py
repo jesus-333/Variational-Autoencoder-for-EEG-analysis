@@ -20,7 +20,11 @@ import pprint
 from . import wandb_support
 from .. import metrics
 from . import loss_function
-from ..dataset import preprocess as pp
+try :
+    from ..dataset import preprocess as pp
+except Exception as e :
+    print(e)
+    print("Problem importing the preprocess submodule from the traing_generic submodule. The train_and_test_model function will not work")
 
 # Config files
 from ..config import config_model as cm

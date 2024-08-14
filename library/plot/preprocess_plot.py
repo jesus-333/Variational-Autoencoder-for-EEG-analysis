@@ -1,11 +1,23 @@
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Imports
+
 import numpy as np
-import matplotlib.pyplot as plt
 import mne
+
+try :
+    import matplotlib.pyplot as plt
+except:
+    print("Problem with the standard matplotlib import. Change backend to agg")
+    import matplotlib
+    matplotlib.use('agg')
+    import matplotlib.pyplot as plt
 
 """
 %load_ext autoreload
 %autoreload 2
 """
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def plot_random_trial_time_domain(trials_matrix, ch_list, config : dict):
     """

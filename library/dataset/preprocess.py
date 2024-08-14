@@ -7,13 +7,18 @@ Function related to download the data, their preprocessing and basic visualizati
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
+try :
+    import matplotlib.pyplot as plt
+except:
+    print("Problem with the standard matplotlib import. Change backend to agg")
+    import matplotlib
+    matplotlib.use('agg')
+    import matplotlib.pyplot as plt
+
 import numpy as np
-import matplotlib.pyplot as plt
-import mne
 from scipy import signal
 
 import moabb.datasets as mb
-import moabb.paradigms as mp
 
 from ..config import config_dataset as cd
 from ..config import config_plot as cp
@@ -30,8 +35,7 @@ from . import support_function as sf
 import preprocess as pp
 """
 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Preprocess
 
 def baseline_removal(trials_matrix, config : dict):
