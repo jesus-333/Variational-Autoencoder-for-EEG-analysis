@@ -4,10 +4,9 @@
 
 Function to the creation the PyTorch dataset with EEG data in format channels x time samples
 """
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-#%% Imports
 
-from typing import List
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Imports
 
 import torch
 from torch.utils.data import Dataset
@@ -47,7 +46,7 @@ class EEG_Dataset(Dataset):
         elif normalize == 3:
             self. normalize_trial_by_trial(-1, 1)
             
-    def __getitem__(self, idx : int) -> List[torch.tensor, torch.tensor] :
+    def __getitem__(self, idx : int) :
         return self.data[idx], self.labels[idx]
     
     def __len__(self) -> int :
