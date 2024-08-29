@@ -57,7 +57,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
 
 # If True save the matrix in a npy file
-save_results = True
+save_results = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Stuff used during the computations
