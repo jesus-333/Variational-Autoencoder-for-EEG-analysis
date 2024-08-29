@@ -1,0 +1,20 @@
+# Support stuff (device log frequency etc)
+epoch_to_save_model = 5                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
+path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training
+use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
+measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
+print_var = true
+
+# (OPTIONAL) wandb settings
+wandb_training = false             # If true track the model during the training with wandb
+project_name = "TMP_Project"       # Name of wandb project
+model_artifact_name = "TMP_NAME"   # Name of the artifact used to save the model
+log_freq = 1                       # How often log gradients and parameters of the tracked model. Ignore and left to 1.
+name_training_run = ""             # Name of the training run. If None wandb will assign a random name.
+notes = ""                         # If you want to add specific note for a specific training run modify this field.
+debug = true                       # Set true if you are debuggin the code (Used to delete debug run from wandb)
+
+
+# Federated parameters used by server
+server_port = "8080"				# Port to used for the server
+num_rounds = 3						# Num of federated training iteration on each device

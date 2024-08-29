@@ -1,0 +1,24 @@
+# Training settings
+batch_size = 30
+lr = 1e-2                          # Learning rate (lr)
+epochs = 3                         # Number of epochs to train the model
+use_scheduler = true               # Use the lr scheduler
+lr_decay_rate = 0.999              # Parameter of the lr exponential scheduler
+optimizer_weight_decay = 1e-2      # Weight decay of the optimizer
+alpha = 1                          # Multiplier of the reconstruction error
+beta = 1                           # Multiplier of the KL
+gamma = 1                          # Multiplier of the classification error (if you also use a classifier). It's completely independent from the gamma_dtw, they simply share a similar name.
+recon_loss_type = 1                # Loss function for the reconstruction (0 = L2, 1 = SDTW, 2 = SDTW-Divergence)
+edge_samples_ignored = 0           # Ignore this number of samples during the computation of the reconstructation loss
+gamma_dtw = 1                      # Hyperparameter of the SDTW. Control the steepness of the soft-min inside the SDTW. The closer to 0 the closer the soft-min approximate the real min
+
+# Support stuff (device log frequency etc)
+epoch_to_save_model = 5                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
+path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training on the CLIENT DEVICE
+use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
+measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
+print_var = true
+
+# Federated parameters used by client
+server_IP = "127.0.0.1"			# IP address of the server
+server_port = "8080"					# Port used by the server
