@@ -50,12 +50,12 @@ def set_weights(model : torch.nn.Module, parameters_list : list):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Flower framework client and server
 
-class FlowerClient(flwr.client.NumPyClient):
+class Client_V1(flwr.client.NumPyClient):
     def __init__(self, 
                  model : torch.nn.Module, 
                  train_loader : torch.utils.data.DataLoader, validation_loader : torch.utils.data.DataLoader, 
                  train_epoch_function, validation_epoch_function,
-                 loss_function, optimizer,
+                 loss_function, optimizer, lr_scheduler,
                  train_config : dict
                  ):
         """
@@ -68,6 +68,7 @@ class FlowerClient(flwr.client.NumPyClient):
         @param validation_epoch_function : Function used for validation
         @param loss_function : Loss function used during training and validation
         @param optimizer : Optimizer used to train the model
+        @param lr_scheduler : Learning rate scheduler
         @param train_config :Dictionary with the hyperparameter used for training
         """
         
@@ -86,9 +87,10 @@ class FlowerClient(flwr.client.NumPyClient):
         self.train_epoch_function = train_epoch_function
         self.validation_epoch_function = validation_epoch_function
 
-        # Save loss function and optimizer
+        # Save loss function, optimizer and learning rate scheduler
         self.loss_function = loss_function
         self.optimizer = optimizer
+        self.lr_scheduler = lr_scheduler
 
     def fit(self, parameters : list, config : dict) :
         """
@@ -112,6 +114,14 @@ class FlowerClient(flwr.client.NumPyClient):
             # Save log in the list
             log_list.append(log_dict)
 
+            # (OPTIONAL) Update learning rate
+            if self.lr_scheduler is not None:
+                # Save the current learning rate if I load the data on wandb
+                if config['wandb_training']: log_dict['learning_rate'] = self.optimizer.param_groups[0]['lr']
+
+                # Update scheduler
+                self.lr_scheduler.step()
+
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.fit
         return get_weights(self.net), len(self.trainloader.dataset), {"log_list" : log_list}
 
@@ -123,22 +133,14 @@ class FlowerClient(flwr.client.NumPyClient):
         # Update the model with the provided weights
         set_weights(self.model, parameters)
         
-        # List used to save the results of each epoch
-        log_list = []
+        # Create log dict. It will be used to saved metrics and loss values after each epoch
+        log_dict = {}
 
-        # Epoch iteration
-        for epoch in self.train_config["epochs"] :
-            # Create log dict. It will be used to saved metrics and loss values after each epoch
-            log_dict = {}
-
-            # Advance epoch (VALIDATION)
-            validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.optimizer, self.train_loader, self.train_config, log_dict = log_dict)
-            
-            # Save log in the list
-            log_list.append(log_dict)
+        # Advance epoch (VALIDATION)
+        validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.optimizer, self.train_loader, self.train_config, log_dict = log_dict)
         
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
-        return validation_loss, len(self.validation_loader.dataset), {"log_list" : log_list} 
+        return validation_loss, len(self.validation_loader.dataset), log_dict
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Server function
