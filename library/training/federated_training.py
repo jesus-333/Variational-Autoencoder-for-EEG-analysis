@@ -13,6 +13,11 @@ try :
 except :
     raise ImportError("To use the federated functions you need the flower framework. More info here https://pypi.org/project/flwr")
 
+try :
+    import wandb
+except :
+    raise ImportError("Failed import of wandb. The wandb_server class will not work.")
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters conversion from/to numpy array
 
@@ -108,7 +113,7 @@ class FlowerClient(flwr.client.NumPyClient):
             log_list.append(log_dict)
 
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.fit
-        return get_weights(self.net), len(self.trainloader.dataset), log_dict
+        return get_weights(self.net), len(self.trainloader.dataset), {"log_list" : log_list}
 
     def evaluate(self, parameters : list, config : dict) :
         """
@@ -133,5 +138,25 @@ class FlowerClient(flwr.client.NumPyClient):
             log_list.append(log_dict)
         
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
-        return validation_loss, len(self.validation_loader.dataset), log_dict
+        return validation_loss, len(self.validation_loader.dataset), {"log_list" : log_list} 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Server function
+
+class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
+    def aggregate_fit(self, server_round: int, results, failures) :
+
+        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+
+        if aggregated_parameters is not None:
+            # TODO Implements after tests
+            # Convert `Parameters` to `List[np.ndarray]`
+            # aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_ndarrays(aggregated_parameters)
+
+            # Save aggregated_ndarrays
+            # print(f"Saving round {server_round} aggregated_ndarrays...")
+            # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
+            print(aggregated_parameters)
+
+        return aggregated_parameters, aggregated_metrics
