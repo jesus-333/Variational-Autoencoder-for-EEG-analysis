@@ -42,6 +42,9 @@ if path_config_file == "" :
 
 train_config = toml.load(path_config_file)
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+train_config['device'] = device
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Get data (for now we used synthetic data to validate the code) and model
 

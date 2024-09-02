@@ -19,7 +19,6 @@ try :
 except :
     raise ImportError("The training config are saved in a toml file. To read it you need the toml library. See here for more info https://pypi.org/project/toml/")
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get config
 

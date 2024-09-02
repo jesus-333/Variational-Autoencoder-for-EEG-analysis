@@ -92,38 +92,56 @@ class Client_V1(flwr.client.NumPyClient):
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
 
+    def get_parameters(self, config) :
+        return get_weights(self.model)
+
     def fit(self, parameters : list, config : dict) :
         """
         Train the provided parameters using the locally held dataset.
         """
+        if self.train_config['print_var'] : print("START training client")
 
         # Update the model with the provided weights
         set_weights(self.model, parameters)
         
-        # List used to save the results of each epoch
-        log_list = []
+        # Variable used to save the metrics during the training
+        train_loss_kl_list = []
+        train_loss_recon_list = []
 
         # Epoch iteration
-        for epoch in self.train_config["epochs"] :
+        for epoch in range(self.train_config["epochs"]) :
+            if self.train_config['print_var'] : print("Epoch : {}".format(epoch))
+
             # Create log dict. It will be used to saved metrics and loss values after each epoch
             log_dict = {}
 
             # Advance epoch (TRAIN)
             _ = self.train_epoch_function( self.model, self.loss_function, self.optimizer, self.train_loader, self.train_config, log_dict = log_dict)
             
-            # Save log in the list
-            log_list.append(log_dict)
-
             # (OPTIONAL) Update learning rate
             if self.lr_scheduler is not None:
                 # Save the current learning rate if I load the data on wandb
-                if config['wandb_training']: log_dict['learning_rate'] = self.optimizer.param_groups[0]['lr']
+                log_dict['learning_rate'] = self.optimizer.param_groups[0]['lr']
 
                 # Update scheduler
                 self.lr_scheduler.step()
 
+            # Save metrics in the list
+            train_loss_kl_list.append('train_loss_kl')
+            train_loss_recon_list.append('train_loss_recon')
+
+        if self.train_config['print_var'] : print("END training client")
+        
+        # Dictionary with all the metrics of the client
+        metrics_dict = {}
+        metrics_dict['train_loss_kl_list'] = train_loss_kl_list
+        metrics_dict['train_loss_recon_list'] = train_loss_recon_list
+
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.fit
-        return get_weights(self.net), len(self.trainloader.dataset), {"log_list" : log_list}
+        return get_weights(self.model), len(self.train_loader.dataset), log_dict
+
+        # Give error when there is a list inside the dictionary
+        # return get_weights(self.model), len(self.train_loader.dataset), {"log_list" : log_list}
 
     def evaluate(self, parameters : list, config : dict) :
         """
@@ -137,10 +155,10 @@ class Client_V1(flwr.client.NumPyClient):
         log_dict = {}
 
         # Advance epoch (VALIDATION)
-        validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.optimizer, self.train_loader, self.train_config, log_dict = log_dict)
+        validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.train_loader, self.train_config, log_dict = log_dict)
         
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
-        return validation_loss, len(self.validation_loader.dataset), log_dict
+        return float(validation_loss), len(self.validation_loader.dataset), {"accuracy" : 0}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Server function
@@ -154,11 +172,14 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
         if aggregated_parameters is not None:
             # TODO Implements after tests
             # Convert `Parameters` to `List[np.ndarray]`
-            # aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_ndarrays(aggregated_parameters)
+            aggregated_ndarrays = flwr.common.parameters_to_ndarrays(aggregated_parameters)
 
             # Save aggregated_ndarrays
             # print(f"Saving round {server_round} aggregated_ndarrays...")
             # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
-            print(aggregated_parameters)
+            # print(aggregated_ndarrays)
+            print("---------")
+            print(results)
+            for i in range(7) : print(aggregated_ndarrays[i].shape)
 
         return aggregated_parameters, aggregated_metrics
