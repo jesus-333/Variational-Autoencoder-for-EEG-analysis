@@ -18,6 +18,8 @@ try :
 except :
     raise ImportError("Failed import of wandb. The wandb_server class will not work.")
 
+from library.model import hvEEGNet
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters conversion from/to numpy array
 
@@ -46,6 +48,17 @@ def set_weights(model : torch.nn.Module, parameters_list : list):
 
     # Load the state dict
     model.load_state_dict(state_dict, strict=True)
+
+def get_random_weights_hvEEGNet(model_config : dict) -> list:
+    """
+    Return the weights of a non traiend hvEEGNet created with the parameters specified in model_config.
+
+    @param model_config : (dict) Dictionary with all the settings for hvEEGNet
+
+    @return weights_list : (list) List where each element is a group of weights of a specific layer/module of hvEEGNet model
+    """
+
+    return get_weights(hvEEGNet.hvEEGNet_shallow(model_config))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Flower framework client and server
@@ -108,6 +121,9 @@ class Client_V1(flwr.client.NumPyClient):
         train_loss_kl_list = []
         train_loss_recon_list = []
 
+        # Dictionary with all the metrics of the client
+        metrics_dict = {}
+
         # Epoch iteration
         for epoch in range(self.train_config["epochs"]) :
             if self.train_config['print_var'] : print("Epoch : {}".format(epoch))
@@ -117,7 +133,7 @@ class Client_V1(flwr.client.NumPyClient):
 
             # Advance epoch (TRAIN)
             _ = self.train_epoch_function( self.model, self.loss_function, self.optimizer, self.train_loader, self.train_config, log_dict = log_dict)
-            
+
             # (OPTIONAL) Update learning rate
             if self.lr_scheduler is not None:
                 # Save the current learning rate if I load the data on wandb
@@ -127,18 +143,24 @@ class Client_V1(flwr.client.NumPyClient):
                 self.lr_scheduler.step()
 
             # Save metrics in the list
-            train_loss_kl_list.append('train_loss_kl')
-            train_loss_recon_list.append('train_loss_recon')
+            train_loss_kl_list.append(log_dict['train_loss_kl'])
+            train_loss_recon_list.append(log_dict['train_loss_recon'])
+
+            # Saved metric in the dict (temporary workaround since flower not support a list as dictionary value)
+            metrics_dict['train_loss_kl_{}'.format(epoch + 1)] = log_dict['train_loss_kl']
+            metrics_dict['train_loss_recon_{}'.format(epoch + 1)] = log_dict['train_loss_recon']
 
         if self.train_config['print_var'] : print("END training client")
+
+        # Saved total number of epoch
+        metrics_dict['epochs'] = self.train_config['epochs']
         
-        # Dictionary with all the metrics of the client
-        metrics_dict = {}
-        metrics_dict['train_loss_kl_list'] = train_loss_kl_list
-        metrics_dict['train_loss_recon_list'] = train_loss_recon_list
+        # Saved list with training loss per epoch (actually not supported by Flower)
+        # metrics_dict['train_loss_kl_list'] = train_loss_kl_list
+        # metrics_dict['train_loss_recon_list'] = train_loss_recon_list
 
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.fit
-        return get_weights(self.model), len(self.train_loader.dataset), log_dict
+        return get_weights(self.model), len(self.train_loader.dataset), metrics_dict
 
         # Give error when there is a list inside the dictionary
         # return get_weights(self.model), len(self.train_loader.dataset), {"log_list" : log_list}
@@ -158,12 +180,16 @@ class Client_V1(flwr.client.NumPyClient):
         validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.train_loader, self.train_config, log_dict = log_dict)
         
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
-        return float(validation_loss), len(self.validation_loader.dataset), {"accuracy" : 0}
+        return float(validation_loss), len(self.validation_loader.dataset), {}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Server function
 
 class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
+    def __init__(self, wandb_config : dict()) :
+        super().__init__()
+        self.wandb_config = wandb_config
+
     def aggregate_fit(self, server_round: int, results, failures) :
 
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
@@ -171,15 +197,15 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
 
         if aggregated_parameters is not None:
             # TODO Implements after tests
+
             # Convert `Parameters` to `List[np.ndarray]`
             aggregated_ndarrays = flwr.common.parameters_to_ndarrays(aggregated_parameters)
 
             # Save aggregated_ndarrays
             # print(f"Saving round {server_round} aggregated_ndarrays...")
             # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
-            # print(aggregated_ndarrays)
+
             print("---------")
             print(results)
-            for i in range(7) : print(aggregated_ndarrays[i].shape)
 
         return aggregated_parameters, aggregated_metrics

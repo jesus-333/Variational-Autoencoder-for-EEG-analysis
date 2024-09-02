@@ -78,7 +78,7 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
     if log_dict is not None:
         log_dict['train_loss'] = float(train_loss)
         log_dict['train_loss_recon'] = float(recon_loss)
-        log_dict['train_kl_loss'] = float(kl_loss)
+        log_dict['train_loss_kl'] = float(kl_loss)
         # for i in range(len(train_loss[3])):
         #     kl_loss = train_loss[3][i]
         #     log_dict['train_loss_recon_{}'.format(i+1)] = kl_loss

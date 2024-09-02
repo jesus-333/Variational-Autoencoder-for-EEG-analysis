@@ -37,8 +37,13 @@ config = toml.load(path_config_file)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Start server 
+
+strategy = federated_training.FedAvg_with_wandb(config)
+
 flwr.server.start_server(
     server_address = "0.0.0.0:{}".format(config['server_port']),
     config = flwr.server.ServerConfig(num_rounds = config['num_rounds']),
-    strategy = federated_training.FedAvg_with_wandb()
+    strategy = strategy
 )
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
