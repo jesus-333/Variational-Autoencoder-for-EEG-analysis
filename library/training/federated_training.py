@@ -108,6 +108,9 @@ class Client_V1(flwr.client.NumPyClient):
     def get_parameters(self, config) :
         return get_weights(self.model)
 
+    def get_properties(self, config) :
+        return {}
+
     def fit(self, parameters : list, config : dict) :
         """
         Train the provided parameters using the locally held dataset.
