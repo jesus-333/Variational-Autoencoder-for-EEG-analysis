@@ -17,4 +17,4 @@ debug = true							   				# Set true if you are debuggin the code (Used to delet
 
 # Federated parameters used by server
 server_port = "8080"				# Port to used for the server
-num_rounds = 3						# Num of federated training iteration on each device
+num_rounds = 2						# Num of federated training iteration on each device

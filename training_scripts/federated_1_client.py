@@ -31,14 +31,16 @@ except :
 
 path_config_file = ""
 
-if path_config_file == "" :
-    print("Path for the config file not specified in the python script. Check if passed as argument")
+if path_config_file == "" or path_config_file is None:
+    print("Path for the config file not specified as a variable in the python script. Check if passed as argument")
     if len(sys.argv) == 1 : 
-        print("Path for the config file not specified as argument. Used the default path \"training_scripts/config/federated_client.toml\"")
-        path_config_file = "training_scripts/config/federated_client.toml" 
+        raise ValueError("Path for the config file not specified")
     else :
-        print("Path passed as argument.")
+        print("Path for config passed as argument.")
         path_config_file = sys.argv[1]
+else :
+    print("Path for config specified in the python script")
+print("Path of the config file: {}".format(path_config_file))
 
 train_config = toml.load(path_config_file)
 
