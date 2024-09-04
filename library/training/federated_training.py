@@ -104,6 +104,9 @@ class Client_V1(flwr.client.NumPyClient):
         self.loss_function = loss_function
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
+        
+        # ID used to save the client results in the server
+        self.client_id = train_config['client_id']
 
     def get_parameters(self, config) :
         return get_weights(self.model)
@@ -157,6 +160,7 @@ class Client_V1(flwr.client.NumPyClient):
 
         # Saved total number of epoch
         metrics_dict['epochs'] = self.train_config['epochs']
+        metrics_dict['client_id'] = self.client_id
         
         # Saved list with training loss per epoch (actually not supported by Flower)
         # metrics_dict['train_loss_kl_list'] = train_loss_kl_list
@@ -182,6 +186,9 @@ class Client_V1(flwr.client.NumPyClient):
         # Advance epoch (VALIDATION)
         validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.train_loader, self.train_config, log_dict = log_dict)
         
+        # Save Client ID
+        log_dict['client_id'] = self.client_id
+        
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
         return float(validation_loss), len(self.validation_loader.dataset), {}
 
@@ -189,9 +196,13 @@ class Client_V1(flwr.client.NumPyClient):
 # Server function
 
 class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
-    def __init__(self, wandb_config : dict()) :
+    def __init__(self, server_config : dict()) :
         super().__init__()
-        self.wandb_config = wandb_config
+        self.server_config = server_config 
+        
+        # TODO 
+        self.wandb_run = wandb.init(project = server_config['project_name'], job_type = "train", config = wandb_config, notes = notes, name = name)
+        self.wandb_run = None
 
     def aggregate_fit(self, server_round: int, results, failures) :
 
@@ -209,6 +220,23 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
             # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
 
             print("---------")
-            print(results)
+            # print(results)
+            # print(type(results))
+            # print(len(results))
+            # print(results[0])
+            # print(results[1])
+            # print(type(results[0]))
+            # print(type(results[1]))
+            # print(len(results[0]))
+            # print(len(results[1]))
+            # print(results[1][1])
+            # print(type(results[1][0]))
+            # print(type(results[1][1]))
+
+            metrics_from_training_1 = results[0][1].metrics
+            metrics_from_training_2 = results[1][1].metrics
+
+            print(metrics_from_training_1)
+            print(metrics_from_training_2)
 
         return aggregated_parameters, aggregated_metrics
