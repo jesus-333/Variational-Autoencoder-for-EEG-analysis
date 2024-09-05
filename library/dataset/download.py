@@ -52,15 +52,40 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
     print(info)
         
     # Select train/test data
-    if type_dataset == 'train':
-        idx_type = info['session'].to_numpy() == '0train'
-    elif type_dataset == 'test':
-        idx_type = info['session'].to_numpy() == '1test'
-
+    idx_type = get_idx_train_or_test(dataset, info)
     raw_data = raw_data[idx_type]
     raw_labels = raw_labels[idx_type]
 
     return raw_data, raw_labels
+
+def get_idx_train_or_test(dataset, info) :
+    """
+    Inside the MOABB every dataset can have different label to indicate which trials are train or test.
+    The label are saved inside the info variable returned from paradigm.get_data()
+
+    @param dataset : dataset object, from MOABB library
+    @param info : (dict) Dictionary obtained from paradig.get_data()
+
+    @return idx_type : (numpy array) Array of boolean that specified which trails are for train or test
+    """
+
+    name_dataset = str(type(type_dataset))
+    
+    if '2014_001' in name_dataset or '2014001' in name_dataset : # Dataset 2a BCI Competition IV
+        if type_dataset == 'train':
+            idx_type = info['session'].to_numpy() == '0train'
+        elif type_dataset == 'test':
+            idx_type = info['session'].to_numpy() == '1test'
+
+    elif 'Zhou2016' in name_dataset : # Zhou2016
+        if type_dataset == 'train':
+            idx_type = info['run'].to_numpy() == '0'
+        elif type_dataset == 'test':
+            idx_type = info['run'].to_numpy() == '1'
+    else :
+        raise ValueError('Dataset not supported')
+
+    return idx_type
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Download and  segmentation through mne
@@ -235,10 +260,9 @@ def get_D2a_data(config, type_dataset):
         raw_data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
         
         # Select channels and convert labels
-        # N.b. since for now we work only with dataset 2a I hardcode the 22 channels selection
+        # Note that d2a has 25 channels but the last 3 where for electro-oculogram and thus are excluded
         data = raw_data[:, 0:22, :]
         labels = convert_label(raw_labels)
-
         ch_list = get_dataset_channels(dataset)[0:22]
     else:
         data, labels, ch_list = get_moabb_data_handmade(dataset, config, type_dataset)
@@ -264,6 +288,9 @@ def get_dataset_channels(dataset):
         ch_list = raw_data.ch_names
     elif 'RawEDF' in str(type(dataset)) :
         ch_list = dataset.ch_names
+    elif 'Zhou2016' in str(type(dataset)) :
+        raw_data = dataset.get_data(subjects = [1])[1]['0']['0']
+        ch_list = raw_data.ch_names
     else:
         raise ValueError("Function not implemented for this type of dataset")
 
@@ -307,6 +334,29 @@ def convert_label(raw_labels, use_BCI_D2a_label = True):
             new_labels[idx_label] = int(i)
 
     return new_labels
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Zhoug 2016 https://doi.org/10.1371/journal.pone.0162657
+
+def get_Zhoug2016(config) :
+    check_config.check_config_dataset(config)
+    mne.set_log_level(False)
+    
+    # Select the dataset
+    dataset = mb.Zhou2016()
+
+    # Select the paradigm (i.e. the object to download the dataset)
+    paradigm = mp.MotorImagery()
+    
+    raw_data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
+    
+    # Select channels and convert labels
+    # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
+    data = raw_data[:, 2:, :]
+    labels = convert_label(raw_labels)
+    ch_list = get_dataset_channels(dataset)[2:]
+
+    return data, labels.squeeze(), ch_list
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # TUAR Dataset (Note that this is not the entire dataset but a subsection hosted on google drive)

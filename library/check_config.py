@@ -48,7 +48,7 @@ def check_config_dataset(config):
 def check_train_config(train_config : dict, model_artifact = None):
     # Parameter used to save the model every x epoch
     if 'epoch_to_save_model' not in train_config: train_config['epoch_to_save_model'] = 1
-    
+       
     # Check if wandb is used during training
     if 'wandb_training' not in train_config: train_config['wandb_training'] = False
     if train_config['wandb_training'] is True and model_artifact is None :
