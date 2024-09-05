@@ -12,13 +12,18 @@ import scipy.fft as fft
 import scipy.signal as signal
 
 from ..config import config_model as cm
-from ..dataset import preprocess as pp
+from ..dataset import preprocess as pp, download, support_function as sf, dataset_time as ds_time
 from ..training import train_generic
 from ..training.soft_dtw_cuda import SoftDTW
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# TODO Rewrite the function
 def get_dataset_and_model(dataset_config, model_name):
+    """
+    Get the dataset 2a, as specified in dataset config and the hvEEGnet with the parameters to work with dataset 2a
+    """
+
     C = 22
     if dataset_config['resample_data']: sf = dataset_config['resample_freq']
     else: sf = 250
@@ -46,6 +51,54 @@ def get_dataset_and_model(dataset_config, model_name):
 
     return train_dataset, validation_dataset, test_dataset, model
 
+def get_dataset_zhou2016_and_model(dataset_config, model_config, model_name):
+    """
+    Get the dataset Zhou2016, as specified in dataset config and the hvEEGnet with the parameters to work with dataset 2016
+    """
+     
+    data_train, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
+    data_test, labels_test, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+
+    # Add extra dimension, necessary to work with Conv2d layer
+    data_train = np.expand_dims(data_train, 1)
+    data_test = np.expand_dims(data_test, 1)
+
+    # For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
+    # (The original signal is sampled at 250Hz for 5 seconds)
+    # In this case to have a even number of samples the last one is removed
+    if dataset_config['resample_data'] == False :
+        data_train = data_train[:, :, :, 0:-1]
+        data_test= data_test[:, :, :, 0:-1]
+
+    # Split train data in train and validation set
+    if dataset_config['percentage_split_train_validation'] > 0 and dataset_config['percentage_split_train_validation'] < 1:
+        idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], dataset_config['percentage_split_train_validation'], dataset_config['seed_split'])
+        data_validation, labels_validation = data_train[idx_validation], labels_train[idx_validation]
+        data_train, labels_train = data_train[idx_train], labels_train[idx_train]
+        dataset_config['idx_train'] = idx_train
+        dataset_config['idx_validation'] = idx_validation
+
+    # Get number of channels and length of time samples
+    C = data_train.shape[2]
+    T = data_train.shape[3]
+
+    # Update model config with information from the data
+    model_config['encoder_config']['C'] = C
+    model_config['encoder_config']['T'] = T
+    model_config['encoder_config']['c_kernel_2'] = [C, 1]
+
+    # Create dataset
+    dataset_train = ds_time.EEG_Dataset(data_train, labels_train, ch_list)
+    dataset_test = ds_time.EEG_Dataset(data_test, labels_test, ch_list)
+    if dataset_config['percentage_split_train_validation'] > 0 and dataset_config['percentage_split_train_validation'] < 1:
+        dataset_validation = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list)
+    else :
+        dataset_validation = None
+    
+    # Create model
+    model = train_generic.get_untrained_model(model_name, model_config)
+
+    return dataset_train, dataset_validation, dataset_test, model
 
 def compute_loss_dataset(dataset, model, device, batch_size = 32):
     use_cuda = True if device == 'cuda' else False
