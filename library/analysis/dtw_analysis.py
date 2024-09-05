@@ -40,7 +40,7 @@ def compute_recon_error_between_two_tensor(x_1 : torch.tensor, x_2 : torch.tenso
     recon_error = torch.zeros(x_1.shape[0], x_1.shape[2])
     
     # Move input tensor to device
-    x_1 = x_2.to(device)
+    x_1 = x_1.to(device)
     x_2 = x_2.to(device)
     
     # Compute the DTW channel by channels
