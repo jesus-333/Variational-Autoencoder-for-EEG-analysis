@@ -40,8 +40,6 @@ dataset_config['subjects_list'] = [subj]
 # Model and check model
 model_config = toml.load(path_model_config)
 check_config. check_model_config_hvEEGNet(model_config)
-from library.config import config_model as cm
-a = cm.get_config_hierarchical_vEEGNet(1, 1)
 
 # Training
 train_config = toml.load(path_traing_config)
