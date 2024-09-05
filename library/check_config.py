@@ -72,10 +72,10 @@ def check_train_config(train_config : dict, model_artifact = None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Check model config
-def check_model_config(model_config : dict) :
+def check_model_config_hvEEGNet(model_config : dict) :
     # In EEGNet class to skip the pooling layer the values of p_kernel_1/p_kernel_2 must be set to None
     # But toml format not support None/nill values. So for the pool kernel I used the value -1 inside the toml file
     # Here, if I find a -1 in p_kernel_1/p_kernel_2, I change the value to None
-    if model_config['p_kernel_1'] == -1 : model_config['p_kernel_1'] = None
-    if model_config['p_kernel_2'] == -1 : model_config['p_kernel_2'] = None
+    if model_config['encoder_config']['p_kernel_1'] == -1 : model_config['encoder_config']['p_kernel_1'] = None
+    if model_config['encoder_config']['p_kernel_2'] == -1 : model_config['encoder_config']['p_kernel_2'] = None
 

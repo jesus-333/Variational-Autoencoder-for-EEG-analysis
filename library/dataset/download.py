@@ -26,7 +26,7 @@ import download
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Download and automatic segmentation (moabb)
 
-def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
+def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : str):
     """
     Return the raw data from the moabb package of the specified dataset and paradigm with some basic preprocess (implemented inside the library)
     This function utilize the moabb library to automatic divide the dataset in trials and for the baseline removal
@@ -49,27 +49,27 @@ def get_moabb_data_automatic(dataset, paradigm, config, type_dataset):
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
-    print(info)
         
     # Select train/test data
-    idx_type = get_idx_train_or_test(dataset, info)
+    idx_type = get_idx_train_or_test(dataset, info, type_dataset)
     raw_data = raw_data[idx_type]
     raw_labels = raw_labels[idx_type]
 
     return raw_data, raw_labels
 
-def get_idx_train_or_test(dataset, info) :
+def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
     """
     Inside the MOABB every dataset can have different label to indicate which trials are train or test.
     The label are saved inside the info variable returned from paradigm.get_data()
 
     @param dataset : dataset object, from MOABB library
     @param info : (dict) Dictionary obtained from paradig.get_data()
+    @param type_dataset : (str) String that specify which type of data obtain (i.e. train or test)
 
     @return idx_type : (numpy array) Array of boolean that specified which trails are for train or test
     """
 
-    name_dataset = str(type(type_dataset))
+    name_dataset = str(type(dataset))
     
     if '2014_001' in name_dataset or '2014001' in name_dataset : # Dataset 2a BCI Competition IV
         if type_dataset == 'train':
@@ -338,7 +338,17 @@ def convert_label(raw_labels, use_BCI_D2a_label = True):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Zhoug 2016 https://doi.org/10.1371/journal.pone.0162657
 
-def get_Zhoug2016(config) :
+def get_Zhoug2016(config : dict, type_dataset : str) :
+    """
+    Throuhg moabb, get the dataset preseneted by Zhou et al. 2016 (https://doi.org/10.1371/journal.pone.0162657)
+
+    @param config : (dict) Dictionary with the config for the dataset
+    @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
+
+    @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
+    @retunr label : ...
+    @return ch_list : (list) List with the name of the channels
+    """
     check_config.check_config_dataset(config)
     mne.set_log_level(False)
     
@@ -353,7 +363,7 @@ def get_Zhoug2016(config) :
     # Select channels and convert labels
     # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
     data = raw_data[:, 2:, :]
-    labels = convert_label(raw_labels)
+    labels = convert_label(raw_labels, use_BCI_D2a_label = False) # TODO implement for Zhou2016
     ch_list = get_dataset_channels(dataset)[2:]
 
     return data, labels.squeeze(), ch_list
