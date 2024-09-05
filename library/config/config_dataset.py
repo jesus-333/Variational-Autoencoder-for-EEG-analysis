@@ -36,7 +36,7 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9], use_stft_repre
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
 
         # Other
-        n_classes = 4,                  # Number of labels. For datset 2a is equal to 4. (IGNORE)
+        n_classes = 4,                  # Number of labels. E.g. for datset 2a is equal to 4. 
         subjects_list = subjects_list,  # List of the subjects of dataset 2a to download
 
         # Stft settings (IGNORE)(NOT USED)
