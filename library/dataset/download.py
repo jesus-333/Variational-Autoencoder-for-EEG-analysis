@@ -46,6 +46,10 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
     # if 'baseline' in config: paradigm.baseline = config['baseline']
     
     paradigm.n_classes = config['n_classes']
+    
+    # Set start and end of each trial
+    paradigm.tmin = config['trial_start']
+    paradigm.tmax = config['trial_end']
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
@@ -78,10 +82,19 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
             idx_type = info['session'].to_numpy() == '1test'
 
     elif 'Zhou2016' in name_dataset : # Zhou2016
+        # This list contains the id of each run for each trial
+        run_of_each_trials = info['run'].to_numpy()
+        
+        # Note that a certain point the id used to to distinguish between run of type 0 and 1 was changed.
+        # To keep compatibility with each possible version of moabb I check which id is used
         if type_dataset == 'train':
-            idx_type = info['run'].to_numpy() == '0'
+            if '0' in run_of_each_trials : idx_type = run_of_each_trials == '0'
+            elif 'run_0' in run_of_each_trials : idx_type = run_of_each_trials == 'run_0'
+            else : raise ValueError("Probably there is some problem with the wandb version")
         elif type_dataset == 'test':
-            idx_type = info['run'].to_numpy() == '1'
+            if '1' in run_of_each_trials : idx_type = run_of_each_trials == '1'
+            elif 'run_1' in run_of_each_trials : idx_type = run_of_each_trials == 'run_1'
+            else : raise ValueError("Probably there is some problem with the wandb version")
     else :
         raise ValueError('Dataset not supported')
 
@@ -278,63 +291,6 @@ def get_D2a_data(config, type_dataset):
 
     return data, labels.squeeze(), ch_list
 
-def get_dataset_channels(dataset):
-    """
-    Get the list of channels for the specific dataset
-    """
-
-    if 'BNCI2014_001' in str(type(dataset)) : # Dataset 2a BCI Competition IV
-        raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
-        ch_list = raw_data.ch_names
-    elif 'RawEDF' in str(type(dataset)) :
-        ch_list = dataset.ch_names
-    elif 'Zhou2016' in str(type(dataset)) :
-        raw_data = dataset.get_data(subjects = [1])[1]['0']['0']
-        ch_list = raw_data.ch_names
-    else:
-        raise ValueError("Function not implemented for this type of dataset")
-
-    return np.asarray(ch_list)
-
-def convert_label(raw_labels, use_BCI_D2a_label = True):
-    """
-    Convert the "raw" label obtained from the moabb dataset into a numerical vector where to each label is assigned a number
-    use_BCI_D2a_label is a parameter that assign for the label of the Dataset 2a of BCI Competition IV specific label
-    """
-    
-    # Create a vector of the same lenght of the previous labels vector
-    new_labels = np.zeros(len(raw_labels))
-    
-    # Create a list with all the possible labels
-    if use_BCI_D2a_label:
-        labels_list = dict(
-            left_hand = 1,
-            right_hand = 2,
-            feet = 3,
-            tongue = 4,
-        )
-    else:
-        labels_list = np.unique(raw_labels)
-    
-    # Iterate through the possible labels
-    if use_BCI_D2a_label:
-        for label in labels_list:
-            print("Label {} get the value {}".format(label, labels_list[label]))
-            idx_label = raw_labels == label
-            new_labels[idx_label] = int(labels_list[label])
-    else:
-        for i in range(len(labels_list)):
-            print("Label {} get the value {}".format(labels_list[i], i))
-
-            # Get the label
-            label = labels_list[i]
-            idx_label = raw_labels == label
-            
-            # Assign numerical label
-            new_labels[idx_label] = int(i)
-
-    return new_labels
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Zhoug 2016 https://doi.org/10.1371/journal.pone.0162657
 
@@ -357,6 +313,8 @@ def get_Zhoug2016(config : dict, type_dataset : str) :
 
     # Select the paradigm (i.e. the object to download the dataset)
     paradigm = mp.MotorImagery()
+    paradigm.tmin = config['trial_start']
+    paradigm.tmax = config['trial_end']
     
     raw_data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     
@@ -431,3 +389,67 @@ def download_from_google_drive(link_drive : str, path_save : str) :
         download_folder(link_drive, path_save)
     except :
         raise ImportError("To download the TUAR dataset you need the googledriver package. You can download it from https://pypi.org/project/googledriver/")
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Other functions
+
+def get_dataset_channels(dataset):
+    """
+    Get the list of channels for the specific dataset
+    """
+
+    if 'BNCI2014_001' in str(type(dataset)) : # Dataset 2a BCI Competition IV
+        raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
+        ch_list = raw_data.ch_names
+    elif 'RawEDF' in str(type(dataset)) :
+        ch_list = dataset.ch_names
+    elif 'Zhou2016' in str(type(dataset)) :
+        raw_data = dataset.get_data(subjects = [1])[1]
+        if '0' in raw_data : raw_data = raw_data['0']['0']
+        elif 'session_0' in raw_data : raw_data = raw_data['session_0']['run_0']
+        else : raise ValueError('Probably there is some problem with the moabb version')
+       
+        ch_list = raw_data.ch_names
+    else:
+        raise ValueError("Function not implemented for this type of dataset")
+
+    return np.asarray(ch_list)
+
+def convert_label(raw_labels, use_BCI_D2a_label = True):
+    """
+    Convert the "raw" label obtained from the moabb dataset into a numerical vector where to each label is assigned a number
+    use_BCI_D2a_label is a parameter that assign for the label of the Dataset 2a of BCI Competition IV specific label
+    """
+    
+    # Create a vector of the same lenght of the previous labels vector
+    new_labels = np.zeros(len(raw_labels))
+    
+    # Create a list with all the possible labels
+    if use_BCI_D2a_label:
+        labels_list = dict(
+            left_hand = 1,
+            right_hand = 2,
+            feet = 3,
+            tongue = 4,
+        )
+    else:
+        labels_list = np.unique(raw_labels)
+    
+    # Iterate through the possible labels
+    if use_BCI_D2a_label:
+        for label in labels_list:
+            print("Label {} get the value {}".format(label, labels_list[label]))
+            idx_label = raw_labels == label
+            new_labels[idx_label] = int(labels_list[label])
+    else:
+        for i in range(len(labels_list)):
+            print("Label {} get the value {}".format(labels_list[i], i))
+
+            # Get the label
+            label = labels_list[i]
+            idx_label = raw_labels == label
+            
+            # Assign numerical label
+            new_labels[idx_label] = int(i)
+
+    return new_labels

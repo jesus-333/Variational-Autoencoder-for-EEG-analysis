@@ -202,6 +202,8 @@ def train(model, loss_function, optimizer, loader_list, train_config, lr_schedul
     if train_config['wandb_training']:
         wandb_support.add_file_to_artifact(model_artifact, '{}/{}'.format(train_config['path_to_save_model'], 'model_BEST.pth'))
 
+    return model
+
 def test(model, test_loader, config):
     print("Metrics at the end of the training (END)")
     metrics_dict = metrics.compute_metrics(model, test_loader, 'cpu')
