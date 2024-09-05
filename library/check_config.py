@@ -78,4 +78,12 @@ def check_model_config_hvEEGNet(model_config : dict) :
     # Here, if I find a -1 in p_kernel_1/p_kernel_2, I change the value to None
     if model_config['encoder_config']['p_kernel_1'] == -1 : model_config['encoder_config']['p_kernel_1'] = None
     if model_config['encoder_config']['p_kernel_2'] == -1 : model_config['encoder_config']['p_kernel_2'] = None
+    
+    # Toml load list of mulitple element as python list
+    # Some of this parametersa are used as input of Torch layer that require tuple and not list
+    # So I convert each list in a tuple 
+    key_list = ['c_kernel_1', 'c_kernel_2', 'c_kernel_3', 'p_kernel_1', 'p_kernel_2'] 
+    for key in key_list :
+        if model_config['encoder_config'][key] is not None :
+            model_config['encoder_config'][key] = tuple(model_config['encoder_config'][key])
 

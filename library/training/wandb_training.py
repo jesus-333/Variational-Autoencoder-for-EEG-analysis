@@ -60,25 +60,31 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
         return model
 
 
-def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, train_dataset, validation_dataset):
+def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, train_dataset, validation_dataset, dataset_config : dict = None):
     """
     Train a model with the data provided by the user and log everything on wandb.
 
     @param model_name: string with the name of the model.
     @param train_config: dictionary with all the hyperparameter for the training. Check the README_training for more info.
     @param model_config: dictionary with all the parameter to use in the creation of the model. Check README_model for more info.
-    @param optimizer: PyTorch optimizer to use during the training (e.g. AdamW)
-    @param loader_list: list with two dataloader. The first dataloader is for the training data and the second for the test data.
+    @param train_dataset : dataset with the training data. Must by implemented with the class EEG_dataset inside library.dataset_time
+    @param validation_dataset : dataset with the validation data. Must by implemented with the class EEG_dataset inside library.dataset_time
+    @param dataset_config : (dict) Dictionary with all the parameters used for the data preprocess and dataset creation. Not used during the training but if passed it is logged in wandb. Default to None
+
     @return: the trained model.
     """
 
     notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
     name = train_config['name_training_run'] if 'name' in train_config else None
-
+    
+    # Add train and model config to wandb dict so they are saved and logged in wandb
     wandb_config = dict(
         train = train_config,
         model = model_config
     )
+    
+    # If not None add also the dataset_config 
+    if dataset_config is not None : wandb_config['dataset'] = dataset_config
     
     # Create dataloader
     train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
