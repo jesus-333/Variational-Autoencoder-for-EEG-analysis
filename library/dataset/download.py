@@ -40,8 +40,8 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
         paradigm.fmax = config['fmax']
     else:
         print("NON FILTRATO")
-        paradigm.fmin = 0
-        paradigm.fmax = 100
+        # paradigm.fmin = 0
+        # paradigm.fmax = 100
 
     # if 'baseline' in config: paradigm.baseline = config['baseline']
     
@@ -95,6 +95,13 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
             if '1' in run_of_each_trials : idx_type = run_of_each_trials == '1'
             elif 'run_1' in run_of_each_trials : idx_type = run_of_each_trials == 'run_1'
             else : raise ValueError("Probably there is some problem with the wandb version")
+
+    elif 'BI2014a' in name_dataset : # BI2014a 
+        # In this dataset train and test are not indicated. So for now I take half of the dataset for training and the other half for test
+        # TODO Implement a better division
+        n_elements = len(info['run'].to_numpy())
+        if type_dataset == 'train' : idx_type = np.arange(0, int(n_elements / 2))
+        if type_dataset == 'test'  : idx_type = np.arange(int(n_elements / 2), n_elements)
     else :
         raise ValueError('Dataset not supported')
 
@@ -316,13 +323,48 @@ def get_Zhoug2016(config : dict, type_dataset : str) :
     paradigm.tmin = config['trial_start']
     paradigm.tmax = config['trial_end']
     
-    raw_data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
+    data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     
     # Select channels and convert labels
+    labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
+
     # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
-    data = raw_data[:, 2:, :]
-    labels = convert_label(raw_labels, use_BCI_D2a_label = False) # TODO implement for Zhou2016
-    ch_list = get_dataset_channels(dataset)[2:]
+    # From the data this 2 channel are automatically removed by the paradigm.get_data() function
+    ch_list = get_dataset_channels(dataset)[2:] 
+
+    return data, labels.squeeze(), ch_list
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def get_BI2014a(config : dict, type_dataset : str) :
+    """
+    Throuhg moabb, get the dataset preseneted by Huebner et al. 2018 (https://doi.org/10.1109/MCI.2018.2807039)
+
+    @param config : (dict) Dictionary with the config for the dataset
+    @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
+
+    @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
+    @retunr label : ...
+    @return ch_list : (list) List with the name of the channels
+    """
+    check_config.check_config_dataset(config)
+    mne.set_log_level(False)
+    
+    # Select the dataset
+    dataset = mb.BI2014a()
+
+    # Select the paradigm (i.e. the object to download the dataset)
+    paradigm = mp.P300()
+    
+    data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
+    print(data.shape)
+    
+    # Select channels and convert labels
+    labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
+
+    # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
+    # From the data this 2 channel are automatically removed by the paradigm.get_data() function
+    ch_list = get_dataset_channels(dataset)[2:] 
 
     return data, labels.squeeze(), ch_list
 
@@ -404,6 +446,14 @@ def get_dataset_channels(dataset):
     elif 'RawEDF' in str(type(dataset)) :
         ch_list = dataset.ch_names
     elif 'Zhou2016' in str(type(dataset)) :
+        raw_data = dataset.get_data(subjects = [1])[1]
+        if '0' in raw_data : raw_data = raw_data['0']['0']
+        elif 'session_0' in raw_data : raw_data = raw_data['session_0']['run_0']
+        else : raise ValueError('Probably there is some problem with the moabb version')
+       
+        ch_list = raw_data.ch_names
+
+    elif 'BI2014a' in str(type(dataset)) :
         raw_data = dataset.get_data(subjects = [1])[1]
         if '0' in raw_data : raw_data = raw_data['0']['0']
         elif 'session_0' in raw_data : raw_data = raw_data['session_0']['run_0']
