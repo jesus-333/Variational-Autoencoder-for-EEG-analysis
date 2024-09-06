@@ -75,7 +75,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     """
 
     notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
-    name = train_config['name_training_run'] if 'name' in train_config else None
+    name = train_config['name_training_run'] if 'name_training_run' in train_config else None
     
     # Add train and model config to wandb dict so they are saved and logged in wandb
     wandb_config = dict(
@@ -87,6 +87,8 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     if dataset_config is not None : wandb_config['dataset'] = dataset_config
     
     # Create dataloader
+    print(len(train_dataset), train_config['batch_size'])
+    print(len(validation_dataset), train_config['batch_size'])
     train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
     validation_dataloader   = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
     loader_list             = [train_dataloader, validation_dataloader]
@@ -125,7 +127,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
         # Log the model artifact
         run.log_artifact(model_artifact)
 
-        return model
+    return model
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

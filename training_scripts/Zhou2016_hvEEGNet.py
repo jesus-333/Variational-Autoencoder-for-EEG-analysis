@@ -61,6 +61,13 @@ test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
 data_train = np.expand_dims(data_train, 1)
 test_data = np.expand_dims(test_data, 1)
 
+# For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
+# (The original signal is sampled at 250Hz for 5 seconds)
+# In this case to have a even number of samples the last one is removed
+if dataset_config['resample_data'] == False :
+    data_train = data_train[:, :, :, 0:-1]
+    test_data = test_data[:, :, :, 0:-1]
+
 # Split train data in train and validation set
 if dataset_config['percentage_split_train_validation'] > 0 and dataset_config['percentage_split_train_validation'] < 1:
     idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], dataset_config['percentage_split_train_validation'], dataset_config['seed_split'])
@@ -68,13 +75,6 @@ if dataset_config['percentage_split_train_validation'] > 0 and dataset_config['p
     data_train, labels_train = data_train[idx_train], labels_train[idx_train]
     dataset_config['idx_train'] = idx_train
     dataset_config['idx_validation'] = idx_validation
-
-# For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
-# (The original signal is sampled at 250Hz for 5 seconds)
-# In this case to have a even number of samples the last one is removed
-if dataset_config['resample_data'] == False :
-    data_train = data_train[:, :, :, 0:-1]
-    test_data = test_data[:, :, :, 0:-1]
 
 # Get number of channels and length of time samples
 C = data_train.shape[2]
