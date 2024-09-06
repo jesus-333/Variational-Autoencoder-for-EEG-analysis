@@ -66,17 +66,17 @@ for i in range(len(subj_list)):
     
     # Plot the data
     if distribution_type == 1:
-        ax.hist(train_data.sort()[0], plot_config['bins'], density = True,
+        ax.hist(train_data.sort()[0][111:-111], plot_config['bins'], density = True,
                 label = 'S{} Train'.format(subj), histtype = 'step', linewidth = plot_config['linewidth']
                 )
 
-        ax.hist(test_data.sort()[0], plot_config['bins'], density = True,
+        ax.hist(test_data.sort()[0][111:-111], plot_config['bins'], density = True,
                 label = 'S{} Test'.format(subj), histtype = 'step', linewidth = plot_config['linewidth']
                 )
 
         ax.set_ylabel("Continuos PDF")
     elif distribution_type == 2:
-        train_p_x, bins_position = np.histogram(train_data.sort()[0], bins = plot_config['bins'], density = False)
+        train_p_x, bins_position = np.histogram(train_data.sort()[0][111:-111], bins = plot_config['bins'], density = False)
         train_p_x = train_p_x / len(train_data)
         step_bins = bins_position[1] - bins_position[0]
         bins_position = bins_position[1:] - step_bins
@@ -84,7 +84,7 @@ for i in range(len(subj_list)):
                 label = 'Train', color = 'green', linewidth = plot_config['linewidth']
                 )
 
-        test_p_x, bins_position = np.histogram(test_data.sort()[0], bins = plot_config['bins'], density = False)
+        test_p_x, bins_position = np.histogram(test_data.sort()[0][111:-111], bins = plot_config['bins'], density = False)
         test_p_x = test_p_x / len(test_data)
         step_bins = bins_position[1] - bins_position[0]
         bins_position = bins_position[1:] - step_bins
@@ -102,7 +102,7 @@ for i in range(len(subj_list)):
     ax.set_xlabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
     # ax.set_title("S{} - Hist ALL samples".format(subj))
     # ax.set_title("S{}".format(subj))
-    ax.set_xlim([-50, 50])
+    # ax.set_xlim([-50, 50])
     # ax.set_ylim([0, 650])
     ax.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
     
