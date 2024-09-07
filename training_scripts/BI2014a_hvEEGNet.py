@@ -53,18 +53,18 @@ train_config['debug'] = debug
 
 # Download train and test data
 data_train, labels_train, ch_list = download.get_BI2014a(dataset_config, 'train')
-test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+data_test, labels_test, ch_list = download.get_BI2014a(dataset_config, 'test')
 
 # Add extra dimension, necessary to work with Conv2d layer
 data_train = np.expand_dims(data_train, 1)
-test_data = np.expand_dims(test_data, 1)
+data_test = np.expand_dims(data_test, 1)
 
 # # For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
 # (The original signal is sampled at 250Hz for 5 seconds)
 # In this case to have a even number of samples the last one is removed
 if dataset_config['resample_data'] == False :
     data_train = data_train[:, :, :, 0:-1]
-    test_data = test_data[:, :, :, 0:-1]
+    data_test = data_test[:, :, :, 0:-1]
 
 # # Split train data in train and validation set
 if dataset_config['percentage_split_train_validation'] > 0 and dataset_config['percentage_split_train_validation'] < 1:
@@ -86,9 +86,9 @@ model_config['encoder_config']['c_kernel_2'] = [C, 1]
 # # Create train and validation dataset
 dataset_train = ds_time.EEG_Dataset(data_train, labels_train, ch_list)
 dataset_validation = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list)
-#
-# # Train the model
-# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
+
+# Train the model
+model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

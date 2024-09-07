@@ -48,8 +48,9 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
     paradigm.n_classes = config['n_classes']
     
     # Set start and end of each trial
-    paradigm.tmin = config['trial_start']
-    paradigm.tmax = config['trial_end']
+    if config['trial_start'] > 0 and config['trial_end'] > config['trial_start'] :
+        paradigm.tmin = config['trial_start']
+        paradigm.tmax = config['trial_end']
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
