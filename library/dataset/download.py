@@ -372,6 +372,7 @@ def get_BI2014a(config : dict, type_dataset : str) :
 # TUAR Dataset (Note that this is not the entire dataset but a subsection hosted on google drive)
 
 def get_TUAR_data(config : dict) :
+    
     # Check if the data are already downloaded
     if os.path.exists('data/TUAR_dataset') :
         if 'force_download' not in config : config['force_download'] = False
@@ -410,6 +411,9 @@ def get_TUAR_data(config : dict) :
     return data_segmented, data_raw, ch_list
 
 def download_TUAR() :
+    """
+    Download some file of the TUAR dataset from google drive
+    """
     # Link to shared file in google drive and path to save the data
     link_drive = 'https://drive.google.com/drive/folders/10JmpvbkcMVc20EJt0caAqBDxYOkZth31?usp=sharing'
     path_save = 'data/'
