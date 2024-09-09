@@ -44,6 +44,8 @@ train_config['debug'] = debug
 data_train = np.load('data/TUAR/NO_NOTCH_train8.npz')['train_data']
 data_test = np.load('data/TUAR/NO_NOTCH_train8.npz')['test_data']
 
+data_train = data_train[0:300]
+
 # Crate fake labels array
 labels_train = np.ones(len(data_train))
 labels_test = np.ones(len(data_test))
@@ -72,7 +74,7 @@ dataset_validation = ds_time.EEG_Dataset(data_validation, labels_validation, ch_
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train the model
-# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
+model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
