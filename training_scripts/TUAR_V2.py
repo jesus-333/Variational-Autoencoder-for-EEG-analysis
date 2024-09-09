@@ -15,7 +15,7 @@ id_machine = 'WSL_Jesus_Dell'
 notes = "Nothing in particular to report"
 debug = True
 
-filename = 'NO_NOTCH_train8'
+filename = 'NO_NOTCH_suffle6'
 
 path_dataset_config = 'training_scripts/config/TUAR/dataset.toml'
 path_model_config = 'training_scripts/config/TUAR/model.toml'
@@ -41,8 +41,8 @@ train_config['debug'] = debug
 # Dataset creation
 
 # Load data
-data_train = np.load('data/TUAR/NO_NOTCH_train8.npz')['train_data']
-data_test = np.load('data/TUAR/NO_NOTCH_train8.npz')['test_data']
+data_train = np.load('data/TUAR/{}.npz'.format(filename))['train_data']
+data_test = np.load('data/TUAR/{}.npz'.format(filename))['test_data']
 
 data_train = data_train[0:300]
 
@@ -74,7 +74,7 @@ dataset_validation = ds_time.EEG_Dataset(data_validation, labels_validation, ch_
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Train the model
-model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
+# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, dataset_train, dataset_validation)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

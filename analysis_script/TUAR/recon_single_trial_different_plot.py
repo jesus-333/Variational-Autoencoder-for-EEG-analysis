@@ -18,27 +18,40 @@ from library.analysis import support
 from library import check_config
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def low_pass_data(data, config : dict) :
+    b, a = signal.butter(config['order'], Wn = config['cutoff'], fs = config['fs'], btype='lowpass')
+    return signal.filtfilt(b, a, data)
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
-# N.b. Per ora il percorso dei pesi è hardcoded
+# N.b. RICORDATI NORMALIZATION DEI TRAILS
 filename = 'NO_NOTCH_train8'
-tot_epoch_training = 10
-epoch = 10
+tot_epoch_training = 30
+epoch = 20
 use_test_set = False
 
-t_min = 1
-t_max = 5
+t_min = 0
+t_max = 4
 
 compute_spectra_with_entire_signal = True
-nperseg = 500
+nperseg = None
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = False
-plot_to_create = 10
+rand_trial_sample = True
+plot_to_create = 15
 
-n_trial = 33
+n_trial = 77
 channel = 12
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
+
+filter_config = dict(
+    use_filter = False,
+    fs = 250,
+    cutoff = 60,
+    order = 5
+)
 
 plot_config = dict(
     figsize_time = (10, 5),
@@ -70,7 +83,6 @@ path_traing_config = 'training_scripts/config/TUAR/training.toml'
 if rand_trial_sample == False : plot_to_create = 1
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 
-
 # Load data
 data_train = np.load('data/TUAR/NO_NOTCH_train8.npz')['train_data']
 data_test = np.load('data/TUAR/NO_NOTCH_train8.npz')['test_data']
@@ -93,55 +105,65 @@ check_config.check_model_config_hvEEGNet(model_config)
 model_config['encoder_config']['C'] = C
 model_config['encoder_config']['T'] = T
 model_config['encoder_config']['c_kernel_2'] = [C, 1]
-model = train_generic.get_untrained_model('hvEEGNet_shallow', model_config)
+model_hv = train_generic.get_untrained_model('hvEEGNet_shallow', model_config)
 
 # Decide if use the train or the test dataset
-if use_test_set : dataset = data_test
-else : dataset = data_train
+if use_test_set : dataset = dataset_test
+else : dataset = dataset_train
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Plot
 
 for n_plot in range(plot_to_create):
 
     np.random.seed(None)
     if rand_trial_sample:
         n_trial = np.random.randint(len(dataset))
-        # repetition = np.random.randint(19) + 1
-        channel = np.random.choice(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
-
-        # Da usare solo per il test fatto per sbaglio con 12 canali
-        channel = np.random.choice(['FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2']) 
-        dataset.ch_list = np.asarray(['FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
+        channel = np.random.randint(data_train.shape[2])
     
     # Get trial and create vector for time and channel
-    x, label = dataset[n_trial]
+    x, _ = dataset[n_trial]
     tmp_t = np.linspace(1, 5, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
-    idx_ch = dataset.ch_list == channel
+    idx_ch = np.arange(data_train.shape[2]) == channel
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/TUAR/{}_{}_epochs/model_{}.pth'.format(filename, tot_epoch_training, epoch) 
+    path_weight = 'Saved Model/repetition_hvEEGNet_80/subj 3/rep 13/model_80.pth'
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
+
+    if filter_config['use_filter']:
+        x_r = low_pass_data(x_r[idx_ch], filter_config).squeeze()
+    else : 
+        x_r = x_r[idx_ch].squeeze()
     
     # Select channel and time samples
     x_original_to_plot = x[0, idx_ch, idx_t]
-    x_r_to_plot = x_r[idx_ch, idx_t]
+    x_r_to_plot = x_r[idx_t]
     
     if compute_spectra_with_entire_signal:
         x_original_for_psd = x[0, idx_ch, :].squeeze()
-        x_r_for_psd = x_r[idx_ch, :].squeeze()
+        x_r_for_psd = x_r[:].squeeze()
     else:
         x_original_for_psd = x_original_to_plot
         x_r_for_psd = x_r_to_plot
+
     
     # Compute PSD
-    f, x_psd = signal.welch(x_original_for_psd, fs = 250, nperseg = nperseg)
-    f, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
+    fs = 250
+    f, x_psd = signal.welch(x_original_for_psd, fs = fs, nperseg = nperseg)
+    f, x_r_psd = signal.welch(x_r_for_psd, fs = fs, nperseg = nperseg)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
+    
+    # TMP
+    x_original_to_plot = (x_original_to_plot - x_original_to_plot.min()) / (x_original_to_plot.max() - x_original_to_plot.min())
+    x_r_to_plot = (x_r_to_plot - x_r_to_plot.min()) / (x_r_to_plot.max() - x_r_to_plot.min())
     
     ax_time.plot(t, x_original_to_plot, label = 'original signal',
                  color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
@@ -155,7 +177,7 @@ for n_plot in range(plot_to_create):
     ax_time.grid(True)
     ax_time.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
 
-    if plot_config['add_title']: ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
+    if plot_config['add_title']: ax_time.set_title('{} - Ch. {} - Trial {}'.format(filename, channel, n_trial))
     
     fig_time.tight_layout()
     fig_time.show()
@@ -171,12 +193,12 @@ for n_plot in range(plot_to_create):
 
     ax_freq.set_xlabel("Frequency [Hz]", fontsize = plot_config['fontsize'])
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]", fontsize = plot_config['fontsize'])
-    ax_freq.set_xlim([0, 80])
+    ax_freq.set_xlim([0, fs/2])
     # ax_freq.legend()
     ax_freq.grid(True)
     ax_freq.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
 
-    if plot_config['add_title']: ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
+    if plot_config['add_title']: ax_freq.set_title('{} - Ch. {} - Trial {}'.format(filename, channel, n_trial))
 
     fig_freq.tight_layout()
     fig_freq.show()
@@ -184,14 +206,14 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/zhou2016/reconstruction/subj {}/".format(subj)
+        path_save = "Saved Results/TUAR/reconstruction/{}/".format(filename)
 
-        if use_test_set: path_save += '/test/'
+        if use_test_set : path_save += '/test/'
         else: path_save += '/train/'
 
         os.makedirs(path_save, exist_ok = True)
         # path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
-        path_save += "s{}_trial_{}_{}_rep_{}_epoch_{}".format(subj, n_trial + 1, channel, repetition, epoch)
+        path_save += "{}_trial_{}_{}_epoch_{}".format(filename, n_trial + 1, channel, epoch)
 
         if use_test_set: path_save += '_test_set'
         else: path_save += '_train_set'

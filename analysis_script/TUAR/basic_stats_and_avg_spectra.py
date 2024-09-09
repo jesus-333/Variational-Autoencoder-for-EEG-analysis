@@ -47,9 +47,13 @@ plot_config = dict(
 
 data_raw_train = np.load('data/TUAR/NO_NOTCH_train8.npz')['train_data']
 data_raw_test = np.load('data/TUAR/NO_NOTCH_train8.npz')['test_data']
-
 data_notch_train = np.load('data/TUAR/NOTCH_train8.npz')['train_data']
 data_notch_test = np.load('data/TUAR/NOTCH_train8.npz')['test_data']
+
+# data_raw_train = np.load('data/TUAR/NO_NOTCH_shuffle6.npz')['train_data']
+# data_raw_test = np.load('data/TUAR/NO_NOTCH_shuffle6.npz')['test_data']
+# data_notch_train = np.load('data/TUAR/NOTCH_shuffle6.npz')['train_data']
+# data_notch_test = np.load('data/TUAR/NOTCH_shuffle6.npz')['test_data']
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Print basic information
