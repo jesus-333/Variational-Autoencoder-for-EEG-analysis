@@ -1,1 +1,6 @@
-# Since the dataset is not download with moabb for now this file is empty
+# Since the dataset is not download with moabb a lot of entries are not reported
+
+# Split in train/test/validation
+seed_split = 42                        # Seed for the random function used for split the dataset. Used for reproducibility
+percentage_split_train_test = -1       # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
+percentage_split_train_validation = 0.9 # For ONLY the training data select the percentage for train and for validation
