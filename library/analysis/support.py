@@ -281,13 +281,17 @@ def compute_average_and_std_reconstruction_error(tot_epoch_training, subj_list, 
 
 
 def compute_average_spectra(data, nperseg, fs, idx_ch):
-    # Create a variable to saved the average spectra for the various channels
+    """
+    Compute the average spectra of a collection of EEG data in the shape of N x 1 x C x T 
+    """
 
+    # Create a variable to saved the average spectra for the various channels
     _, tmp_spectra = signal.welch(data.squeeze()[0][0][:], fs = fs, nperseg = nperseg)
     computed_spectra = np.zeros((len(data), len(tmp_spectra)))
 
     # Compute the average spectra
     for idx_trial in range(len(data)): # Cycle through eeg trials
+        # Take a single EEG signal
         x = data[idx_trial]
         
         # Compute PSD

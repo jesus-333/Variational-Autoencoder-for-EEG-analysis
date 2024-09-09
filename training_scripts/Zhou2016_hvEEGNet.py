@@ -39,7 +39,7 @@ dataset_config['subjects_list'] = [subj]
 
 # Model and check model
 model_config = toml.load(path_model_config)
-check_config. check_model_config_hvEEGNet(model_config)
+check_config.check_model_config_hvEEGNet(model_config)
 
 # Training
 train_config = toml.load(path_traing_config)

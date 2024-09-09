@@ -19,7 +19,7 @@ from library.analysis import support
 #%% Settings
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [2, 5]
+# subj_list = [2, 5]
 
 channel_to_plot = None
 
@@ -84,7 +84,7 @@ for i in range(len(subj_list)):
         step_bins = bins_position[1] - bins_position[0]
         bins_position = bins_position[1:] - step_bins
         ax.step(bins_position, test_p_x,
-                label = 'Test', color = 'red', linewidth = plot_config['linewidth']
+                label = 'Test', color = 'red', linewidth = plot_config['linewidth'], 
                 )
 
         ax.set_ylabel("Discrete PDF", fontsize = plot_config['fontsize'])
@@ -93,7 +93,7 @@ for i in range(len(subj_list)):
         ax.hist(test_data.sort()[0], bins = plot_config['bins'], label = 'S{}'.format(subj), histtype = 'step', linewidth = 1.5)
 
     ax.grid(True)
-    ax.legend()
+    ax.legend(fontsize = plot_config['fontsize'])
     ax.set_xlabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
     # ax.set_title("S{} - Hist ALL samples".format(subj))
     # ax.set_title("S{}".format(subj))
@@ -104,9 +104,10 @@ for i in range(len(subj_list)):
     if plot_config['use_log_scale_x']: ax.set_xscale('log')
     if plot_config['use_log_scale_y']: ax.set_yscale('log')
 
+    fig.tight_layout()
+    fig.show()
+
     if plot_config['save_fig']:
-        fig.tight_layout()
-        fig.show()
 
         # Create pat
         path_save = 'Saved Results/d2a_analysis/hist_samples_train_vs_test/bins {}/'.format(plot_config['bins'])
