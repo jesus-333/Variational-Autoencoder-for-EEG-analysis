@@ -9,8 +9,8 @@ resample_data = false  # If true resample the data
 resample_freq = 128    # New sampling frequency (used only if resample_data is True)
 
 # Trial segmentation
-trial_start = 1    # Time (in seconds) when the trial starts. Keep this value
-trial_end = 5      # Time (in seconds) when the trial end. Keep this value
+trial_start = -1    # Time (in seconds) when the trial starts. Keep this value
+trial_end = -1      # Time (in seconds) when the trial end. Keep this value
 
 # Split in train/test/validation
 seed_split = 42                        # Seed for the random function used for split the dataset. Used for reproducibility
