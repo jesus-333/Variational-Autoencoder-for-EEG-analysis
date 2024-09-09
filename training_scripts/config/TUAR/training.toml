@@ -26,3 +26,6 @@ debug = false
 
 [train_iteration_per_subject]
 NO_NOTCH_train8 = 0
+NOTCH_train8 = 0
+NO_NOTCH_suffle6 = 0
+NOTCH_suffle6 = 0
