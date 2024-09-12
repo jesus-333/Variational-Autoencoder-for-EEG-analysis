@@ -100,7 +100,18 @@ def get_dataset_zhou2016_and_model(dataset_config, model_config, model_name):
 
     return dataset_train, dataset_validation, dataset_test, model
 
-def compute_loss_dataset(dataset, model, device, batch_size = 32):
+def compute_loss_dataset(dataset, model, device, batch_size : int = 32, scale_before_computation : bool = False):
+    """
+    Compute the reconstruction loss for each EEG channel of the dataset using the model provided.
+    The reconstruction loss is computed using the SoftDTW loss.
+    The results are saved in a matrix of shape n.trials x n.channels.
+
+    @param dataset: Dataset to use
+    @param model: Model to use
+    @param device: Device to use (cpu or cuda)
+    @param batch_size: Batch size to use. Default is 32
+    @param scale_before_computation: If True scale the signal between 0 and 1 before computing the loss. Default is False
+    """
     use_cuda = True if device == 'cuda' else False
     recon_loss_function = SoftDTW(use_cuda = use_cuda, normalize = False)
 
