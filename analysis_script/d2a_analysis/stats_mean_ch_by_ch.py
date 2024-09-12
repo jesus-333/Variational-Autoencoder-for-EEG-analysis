@@ -1,5 +1,5 @@
 """
-For the subject in subject_list compute the std of each channel of each trials and plot them
+For the subject in subject_list compute the mean of each channel of each trials and plot them
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -14,8 +14,8 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3]
-subj_list = [4, 5, 6, 7, 8, 9]
+# subj_list = []
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 plot_config = dict(
     use_TkAgg_backend = True,
@@ -42,21 +42,25 @@ for i in range(len(subj_list)) :
     train_data = train_dataset.data.numpy().squeeze()
     test_data = test_dataset.data.numpy().squeeze()
     
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    # Compute the std for each channel
+    # Variable to save mean
+    mean_ch_train = np.zeros((train_data.shape[0], train_data.shape[1]))
+    mean_ch_test = np.zeros((test_data.shape[0], test_data.shape[1]))
 
-    std_ch_train = train_data.std(2)
-    std_ch_test = test_data.std(2)
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # Compute the mean for each channel
+
+    mean_ch_train = train_data.mean(2)
+    mean_ch_test = test_data.mean(2)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Plot the data (histogram)
 
     fig, axs = plt.subplots(1, 2, figsize = plot_config['figsize'])
 
-    axs[0].hist(std_ch_train.flatten(), bins = plot_config['bins'], color = 'black')
+    axs[0].hist(mean_ch_train.flatten(), bins = plot_config['bins'], color = 'black')
     axs[0].set_title('Train data')
 
-    axs[1].hist(std_ch_test.flatten(), bins = plot_config['bins'], color = 'black')
+    axs[1].hist(mean_ch_test.flatten(), bins = plot_config['bins'], color = 'black')
     axs[1].set_title('Test data')
 
     for ax in axs:
@@ -68,22 +72,22 @@ for i in range(len(subj_list)) :
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/d2a_analysis/stats_ch/std/"
+        path_save = "Saved Results/d2a_analysis/stats_ch/mean/"
         os.makedirs(path_save, exist_ok = True)
-        fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.png'.format(subj), format = 'png')
-        # fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.pdf'.format(subj), format = 'pdf')
+        fig.savefig(path_save + 'hist_mean_ch_by_ch_S{}.png'.format(subj), format = 'png')
+        # fig.savefig(path_save + 'hist_mean_ch_by_ch_S{}.pdf'.format(subj), format = 'pdf')
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Plot the data (average per trial) 
 
     fig, axs = plt.subplots(1, 2, figsize = plot_config['figsize'])
 
-    axs[0].plot(std_ch_train.mean(axis = 1), color = 'black')
-    axs[0].fill_between(np.arange(std_ch_train.shape[0]), std_ch_train.mean(axis = 1) - std_ch_train.std(axis = 1), std_ch_train.mean(axis = 1) + std_ch_train.std(axis = 1), color = 'black', alpha = 0.2)
+    axs[0].plot(mean_ch_train.mean(axis = 1), color = 'black')
+    axs[0].fill_between(np.arange(mean_ch_train.shape[0]), mean_ch_train.mean(axis = 1) - mean_ch_train.std(axis = 1), mean_ch_train.mean(axis = 1) + mean_ch_train.std(axis = 1), color = 'black', alpha = 0.2)
     axs[0].set_title('Train data')
 
-    axs[1].plot(std_ch_test.mean(axis = 1), color = 'black')
-    axs[1].fill_between(np.arange(std_ch_test.shape[0]), std_ch_test.mean(axis = 1) - std_ch_test.std(axis = 1), std_ch_test.mean(axis = 1) + std_ch_test.std(axis = 1), color = 'black', alpha = 0.2)
+    axs[1].plot(mean_ch_test.mean(axis = 1), color = 'black')
+    axs[1].fill_between(np.arange(mean_ch_test.shape[0]), mean_ch_test.mean(axis = 1) - mean_ch_test.std(axis = 1), mean_ch_test.mean(axis = 1) + mean_ch_test.std(axis = 1), color = 'black', alpha = 0.2)
     axs[1].set_title('Test data')
 
     for ax in axs:
@@ -95,7 +99,7 @@ for i in range(len(subj_list)) :
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/d2a_analysis/stats_ch/std/"
+        path_save = "Saved Results/d2a_analysis/stats_ch/mean/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'avg_per_trial_S{}.png'.format(subj), format = 'png')
         # fig.savefig(path_save + 'avg_per_trial_S{}.pdf'.format(subj), format = 'pdf')
