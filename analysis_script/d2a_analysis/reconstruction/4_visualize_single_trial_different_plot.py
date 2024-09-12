@@ -88,6 +88,7 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
+    # x *= 20
     tmp_t = np.linspace(2, 6, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
