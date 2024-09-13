@@ -58,7 +58,7 @@ train_dataset, _, test_dataset , model_hv = support.get_dataset_and_model(datase
 
 # Decide if use the train or the test dataset
 if use_test_set: dataset = test_dataset
-else: dataset = train_dataset
+else : dataset = train_dataset
 
 # Load weight
 path_weight = 'Saved Model/repetition_hvEEGNet_80/subj {}/rep {}/model_{}.pth'.format(subj, repetition, epoch)

@@ -22,7 +22,7 @@ from library.config import config_dataset as cd
 # Parameters
 
 tot_epoch_training = 80
-epoch = 55
+epoch = 80
 subj = 9
 use_test_set = False
 
@@ -45,6 +45,7 @@ channel = 'Cz'
     
 
 plot_config = dict(
+    rescale_minmax = True,
     figsize_time = (10, 5),
     figsize_freq = (10, 5),
     fontsize = 18,
@@ -88,7 +89,14 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
-    # x *= 20
+
+    std_train = train_dataset.data.std(-1).mean()
+    # x += 1000
+    # x *= (1 * std_train)
+    x += 72 * std_train
+    # plt.hist(x.flatten(), bins = 100)
+    # plt.show()
+
     tmp_t = np.linspace(2, 6, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
@@ -97,7 +105,7 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
-    path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
+    # path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -118,6 +126,11 @@ for n_plot in range(plot_to_create):
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
+
+    # (OPTIONAL) 
+    if plot_config['rescale_minmax'] :
+        x_original_to_plot = (x_original_to_plot - x_original_to_plot.min()) / (x_original_to_plot.max() - x_original_to_plot.min())
+        x_r_to_plot = (x_r_to_plot - x_r_to_plot.min()) / (x_r_to_plot.max() - x_r_to_plot.min())
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
     

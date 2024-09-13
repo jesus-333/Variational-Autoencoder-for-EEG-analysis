@@ -64,9 +64,9 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
         # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
         # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
         
-        if soft_DTW_type == 1 :
+        if soft_DTW_type == 1 : # Soft-DTW
             tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
-        elif soft_DTW_type == 2 :
+        elif soft_DTW_type == 2 : # Soft-DTW divergence
             dtw_xy = dtw_loss_function(x_ch, x_r_ch)
             dtw_xx = dtw_loss_function(x_ch, x_ch)
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)

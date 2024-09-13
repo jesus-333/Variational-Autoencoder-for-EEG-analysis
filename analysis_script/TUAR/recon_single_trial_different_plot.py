@@ -40,7 +40,7 @@ compute_spectra_with_entire_signal = True
 nperseg = None
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = True
+rand_trial_sample = False
 plot_to_create = 20
 
 n_trial = 327
@@ -132,7 +132,7 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/TUAR/{}_{}_epochs/model_{}.pth'.format(filename, tot_epoch_training, epoch) 
-    # path_weight = 'Saved Model/repetition_hvEEGNet_80/subj 3/rep 13/model_80.pth'
+    path_weight = 'Saved Model/repetition_hvEEGNet_80/subj 3/rep 13/model_80.pth'
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
 
