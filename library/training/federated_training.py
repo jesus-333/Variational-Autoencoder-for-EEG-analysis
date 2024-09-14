@@ -184,7 +184,7 @@ class Client_V1(flwr.client.NumPyClient):
         log_dict = {}
 
         # Advance epoch (VALIDATION)
-        validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.train_loader, self.train_config, log_dict = log_dict)
+        validation_loss = self.validation_epoch_function( self.model, self.loss_function, self.validation_loader, self.train_config, log_dict = log_dict)
         
         # Save Client ID
         log_dict['client_id'] = self.client_id

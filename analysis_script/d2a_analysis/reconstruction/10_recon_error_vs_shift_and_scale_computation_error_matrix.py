@@ -1,6 +1,12 @@
 """
 Scale and shift the signal of n std, with the std compute from the train set and evaluate the reconstruction error.
 Since the shift and scale change the amplitude of signal, before the error computation both the original and the reconstructed signal are scaled between 0 and 1
+
+The formula of the trasformatino is the following x = (x * n_1 * std_train) + n_2 * std_train
+
+Note after running the code
+The formula can be rewritten as x = std_train * (n_1 * x + n_2)
+This means that the effective change are proportional only to n_1 and n_2 and the moltiplication by std_train should not have great effect
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

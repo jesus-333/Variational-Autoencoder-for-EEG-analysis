@@ -218,9 +218,9 @@ def skip_training_run(subj, repetition):
     """
     List of training run to skip for each subject during the computation of the average reconstruction training loss in the analysis script 
     """
-    if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19): return True
-    if subj == 5 and repetition == 19: return True
-    if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16): return True
+    if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19) : return True
+    if subj == 5 and repetition == 19 : return True
+    if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16) : return True
     
     return False
 
