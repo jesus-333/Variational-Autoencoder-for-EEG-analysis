@@ -5,7 +5,11 @@ use_classifier = false                     # Ignore. It is used only if the mode
 measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
 print_var = true
 
-# wandb settings
+# Federated parameters used by server
+server_port = "8080"				# Port to used for the server
+num_rounds = 2						# Num of federated training iteration on each device
+
+[wandb_config]
 wandb_training = false             						# If true track the model during the training with wandb
 project_name = "Federated_hvEEGNet"  					# Name of wandb project
 model_artifact_name = "hvEEGNet_federated_debug"		# Name of the artifact used to save the model
@@ -13,8 +17,3 @@ log_freq = 1							   				# How often log gradients and parameters of the tracke
 name_training_run = "hvEEGNet_fed_debug"				# Name of the training run. If None wandb will assign a random name.
 notes = ""								   				# If you want to add specific note for a specific training run modify this field.
 debug = true							   				# Set true if you are debuggin the code (Used to delete debug run from wandb)
-
-
-# Federated parameters used by server
-server_port = "8080"				# Port to used for the server
-num_rounds = 2						# Num of federated training iteration on each device
