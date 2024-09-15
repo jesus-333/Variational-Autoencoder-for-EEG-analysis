@@ -100,7 +100,7 @@ def get_dataset_zhou2016_and_model(dataset_config, model_config, model_name):
 
     return dataset_train, dataset_validation, dataset_test, model
 
-def compute_loss_dataset(dataset, model, device, batch_size : int = 32, scale_before_computation : bool = False):
+def compute_loss_dataset(dataset, model, device, batch_size : int = 32, use_dtw_divergence : bool = False, scale_before_computation : bool = False):
     """
     Compute the reconstruction loss for each EEG channel of the dataset using the model provided.
     The reconstruction loss is computed using the SoftDTW loss.
@@ -114,7 +114,6 @@ def compute_loss_dataset(dataset, model, device, batch_size : int = 32, scale_be
     """
     use_cuda = True if device == 'cuda' else False
     recon_loss_function = SoftDTW(use_cuda = use_cuda, normalize = False)
-
     recon_loss_matrix = np.zeros((len(dataset), len(dataset.ch_list)))
     
     with torch.no_grad():
@@ -134,7 +133,18 @@ def compute_loss_dataset(dataset, model, device, batch_size : int = 32, scale_be
                 # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
                 # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
                 
-                tmp_recon_loss[:, j] = recon_loss_function(x_ch, x_r_ch).cpu()
+                # (OPTIONAL) Scale between 0 and 1
+                if scale_before_computation :
+                    x_ch = (x_ch - x_ch.min()) / (x_ch.max() - x_ch.min())
+                    x_r_ch = (x_r_ch - x_r_ch.min()) / (x_r_ch.max() - x_r_ch.min())
+                
+                if use_dtw_divergence : 
+                    dtw_xy = recon_loss_function(x_ch, x_r_ch)
+                    dtw_xx = recon_loss_function(x_ch, x_ch)
+                    dtw_yy = recon_loss_function(x_r_ch, x_r_ch)
+                    tmp_recon_loss[:, j] = (dtw_xy - 0.5 * (dtw_xx + dtw_yy)).cpu()
+                else : 
+                    tmp_recon_loss[:, j] = recon_loss_function(x_ch, x_r_ch).cpu()
 
             recon_loss_matrix[(i * batch_size):((i * batch_size) + x.shape[0]), :] = tmp_recon_loss
             i += 1
@@ -208,9 +218,9 @@ def skip_training_run(subj, repetition):
     """
     List of training run to skip for each subject during the computation of the average reconstruction training loss in the analysis script 
     """
-    if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19): return True
-    if subj == 5 and repetition == 19: return True
-    if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16): return True
+    if subj == 4 and (repetition == 17 or repetition == 18 or repetition == 19) : return True
+    if subj == 5 and repetition == 19 : return True
+    if subj == 8 and (repetition == 3 or repetition == 14 or repetition == 16) : return True
     
     return False
 
