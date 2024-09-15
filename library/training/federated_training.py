@@ -1,5 +1,5 @@
 """
-Functions to used for federated training on edge device
+Functions used for federated training.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -35,20 +35,6 @@ def get_weights(model : torch.nn.Module) -> list:
     weights_list = [val.cpu().numpy() for _, val in model.state_dict().items()]
     return weights_list
 
-def set_weights(model : torch.nn.Module, parameters_list : list):
-    """
-    Given a list of weights, each one represented as a numpy array, load the weights into the PyTorch model
-    """
-    # For each weight key (i.e. the name of parameters inside the model) save the key and the correspondent element in the parameters_list
-    params_dict = zip(model.state_dict().keys(), parameters_list)
-
-    # Convert the element in torch tensor
-    # Note that from Python 3.7 normal dict works as OrderedDict. I use OrderedDict to keep compitability of the code with old python version
-    state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
-
-    # Load the state dict
-    model.load_state_dict(state_dict, strict=True)
-
 def get_random_weights_hvEEGNet(model_config : dict) -> list:
     """
     Return the weights of a non traiend hvEEGNet created with the parameters specified in model_config.
@@ -70,7 +56,7 @@ class Client_V1(flwr.client.NumPyClient):
                  train_epoch_function, validation_epoch_function,
                  loss_function, optimizer, lr_scheduler,
                  train_config : dict
-                 ):
+                 ) -> None :
         """
         Constructor of the flower client
 
@@ -84,6 +70,7 @@ class Client_V1(flwr.client.NumPyClient):
         @param lr_scheduler : Learning rate scheduler
         @param train_config :Dictionary with the hyperparameter used for training
         """
+        super().__init__()
         
         # Save dataloader used for training and validation
         self.train_loader = train_loader
@@ -109,10 +96,34 @@ class Client_V1(flwr.client.NumPyClient):
         self.client_id = train_config['client_id']
 
     def get_parameters(self, config) :
-        return get_weights(self.model)
+        """
+        Given a PyTorch model extract the weights/parameters, convert them in a numpy array and save them to a list
+
+        @param model : PyTorch model
+
+        @return weights_list : (list) List where each element is a group of weights of a specific layer/module of the Pytorch model
+        """
+
+        weights_list = [val.cpu().numpy() for _, val in self.model.state_dict().items()]
+
+        return weights_list
 
     def get_properties(self, config) :
         return {}
+
+    def set_weights(self, parameters_list : list):
+        """
+        Given a list of weights, each one represented as a numpy array, load the weights into the PyTorch model
+        """
+        # For each weight key (i.e. the name of parameters inside the model) save the key and the correspondent element in the parameters_list
+        params_dict = zip(self.model.state_dict().keys(), parameters_list)
+
+        # Convert the element in torch tensor
+        # Note that from Python 3.7 normal dict works as OrderedDict. I use OrderedDict to keep compitability of the code with old python version
+        state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
+
+        # Load the state dict
+        self.model.load_state_dict(state_dict, strict=True)
 
     def fit(self, parameters : list, config : dict) :
         """
@@ -121,7 +132,7 @@ class Client_V1(flwr.client.NumPyClient):
         if self.train_config['print_var'] : print("START training client")
 
         # Update the model with the provided weights
-        set_weights(self.model, parameters)
+        self.set_weights(parameters)
         
         # Variable used to save the metrics during the training
         train_loss_kl_list = []
@@ -167,10 +178,10 @@ class Client_V1(flwr.client.NumPyClient):
         # metrics_dict['train_loss_recon_list'] = train_loss_recon_list
 
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.fit
-        return get_weights(self.model), len(self.train_loader.dataset), metrics_dict
+        return self.get_parameters(None), len(self.train_loader.dataset), metrics_dict
 
         # Give error when there is a list inside the dictionary
-        # return get_weights(self.model), len(self.train_loader.dataset), {"log_list" : log_list}
+        # return self.get_parameters(None), len(self.train_loader.dataset), {"log_list" : log_list}
 
     def evaluate(self, parameters : list, config : dict) :
         """
@@ -178,7 +189,7 @@ class Client_V1(flwr.client.NumPyClient):
         """
 
         # Update the model with the provided weights
-        set_weights(self.model, parameters)
+        self.set_weights(parameters)
         
         # Create log dict. It will be used to saved metrics and loss values after each epoch
         log_dict = {}
@@ -199,12 +210,24 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
     def __init__(self, server_config : dict()) :
         super().__init__()
         self.server_config = server_config 
+
+        if 'notes' not in server_config['wandb_config'] : 
+            server_config['wandb_config']['notest'] = 'No additional notes.'
+        if 'name_training_run ' not in server_config['wandb_config'] or len(server_config['wandb_config']['name_training_run ']) == 0: 
+            print('No name for the wandb run provided.')
+            server_config['wandb_config']['name_training_run '] = None
         
-        # TODO 
-        self.wandb_run = wandb.init(project = server_config['project_name'], job_type = "train", config = wandb_config, notes = notes, name = name)
+        self.wandb_run = wandb.init(project = server_config['wandb_config']['project_name'], job_type = "train", config = server_config, notes = server_config['wandb_config']['notes'], name = server_config['wandb_config']['name_training_run '])
         self.wandb_run = None
 
+        self.count_rounds = 0
+
     def aggregate_fit(self, server_round: int, results, failures) :
+        """
+        aggregate the results from the results from the clients and upload the results in wandb
+        """
+
+        self.count_rounds += 1
 
         # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
@@ -219,24 +242,16 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
             # print(f"Saving round {server_round} aggregated_ndarrays...")
             # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
 
-            print("---------")
-            # print(results)
-            # print(type(results))
-            # print(len(results))
-            # print(results[0])
-            # print(results[1])
-            # print(type(results[0]))
-            # print(type(results[1]))
-            # print(len(results[0]))
-            # print(len(results[1]))
-            # print(results[1][1])
-            # print(type(results[1][0]))
-            # print(type(results[1][1]))
-
-            metrics_from_training_1 = results[0][1].metrics
-            metrics_from_training_2 = results[1][1].metrics
-
-            print(metrics_from_training_1)
-            print(metrics_from_training_2)
+            for i in range(len(results)) :
+                metrics_from_training = results[i][1].metrics
+                print(metrics_from_training)
+            
+            # TODO create model and load aggregated weights
+            # torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
+        
+            # TODO add check when the total number of round is reached 
+            if self.count_rounds == None :
+                # TODO terminate wandb run
+                self.wandb_run = None 
 
         return aggregated_parameters, aggregated_metrics
