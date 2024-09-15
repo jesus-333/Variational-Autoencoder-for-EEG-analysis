@@ -1,5 +1,5 @@
 """
-Functions used for federated training.
+Functions used for the clients in federated training.
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -13,12 +13,7 @@ try :
 except :
     raise ImportError("To use the federated functions you need the flower framework. More info here https://pypi.org/project/flwr")
 
-try :
-    import wandb
-except :
-    raise ImportError("Failed import of wandb. The wandb_server class will not work.")
-
-from library.model import hvEEGNet
+from ...model import hvEEGNet
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters conversion from/to numpy array
@@ -202,56 +197,3 @@ class Client_V1(flwr.client.NumPyClient):
         
         # Return variables, as specified in https://flower.ai/docs/framework/ref-api/flwr.client.NumPyClient.html#flwr.client.NumPyClient.evaluate
         return float(validation_loss), len(self.validation_loader.dataset), {}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Server function
-
-class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
-    def __init__(self, server_config : dict()) :
-        super().__init__()
-        self.server_config = server_config 
-
-        if 'notes' not in server_config['wandb_config'] : 
-            server_config['wandb_config']['notest'] = 'No additional notes.'
-        if 'name_training_run ' not in server_config['wandb_config'] or len(server_config['wandb_config']['name_training_run ']) == 0: 
-            print('No name for the wandb run provided.')
-            server_config['wandb_config']['name_training_run '] = None
-        
-        self.wandb_run = wandb.init(project = server_config['wandb_config']['project_name'], job_type = "train", config = server_config, notes = server_config['wandb_config']['notes'], name = server_config['wandb_config']['name_training_run '])
-        self.wandb_run = None
-
-        self.count_rounds = 0
-
-    def aggregate_fit(self, server_round: int, results, failures) :
-        """
-        aggregate the results from the results from the clients and upload the results in wandb
-        """
-
-        self.count_rounds += 1
-
-        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
-        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
-
-        if aggregated_parameters is not None:
-            # TODO Implements after tests
-
-            # Convert `Parameters` to `List[np.ndarray]`
-            aggregated_ndarrays = flwr.common.parameters_to_ndarrays(aggregated_parameters)
-
-            # Save aggregated_ndarrays
-            # print(f"Saving round {server_round} aggregated_ndarrays...")
-            # np.savez(f"round-{server_round}-weights.npz", *aggregated_ndarrays)
-
-            for i in range(len(results)) :
-                metrics_from_training = results[i][1].metrics
-                print(metrics_from_training)
-            
-            # TODO create model and load aggregated weights
-            # torch.save(model.state_dict(), '{}/{}'.format(train_config['path_to_save_model'], "model_{}.pth".format(epoch + 1)))
-        
-            # TODO add check when the total number of round is reached 
-            if self.count_rounds == None :
-                # TODO terminate wandb run
-                self.wandb_run = None 
-
-        return aggregated_parameters, aggregated_metrics
