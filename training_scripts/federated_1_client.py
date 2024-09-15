@@ -8,7 +8,7 @@ Script to be used for the clients during federated training
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
-from library.training import federated_training
+from library.training.federated import client
 from library.dataset import dataset_time as ds_time
 from library.model import hvEEGNet
 from library.training import train_generic
@@ -51,11 +51,11 @@ train_config['device'] = device
 # Get data (for now we used synthetic data to validate the code) and model
 
 # Create synthetic data
-train_data = np.random.rand(100, 1 , 3, 1000)
-validation_data = np.random.rand(100, 1 , 3, 1000)
+train_data = np.random.rand(30, 1 , 10, 1000)
+validation_data = np.random.rand(30, 1 , 10, 1000)
 
 # Create channel lists
-ch_list = ['C3', 'C5', 'C6']
+ch_list = np.arange(train_data.shape[2])
 
 # Create synthetic label
 train_label = np.random.randint(0, 4, train_data.shape[0])
@@ -100,7 +100,6 @@ else:
 # Create dataloader
 train_dataloader        = torch.utils.data.DataLoader(train_dataset, batch_size = train_config['batch_size'], shuffle = True)
 validation_dataloader   = torch.utils.data.DataLoader(validation_dataset, batch_size = train_config['batch_size'], shuffle = True)
-loader_list             = [train_dataloader, validation_dataloader]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Start client and train the model
@@ -109,7 +108,7 @@ server_address = "{}:{}".format(train_config['server_IP'], train_config['server_
 
 flwr.client.start_numpy_client(
     server_address = server_address,
-    client = federated_training.Client_V1(
+    client = client.Client_V1(
         model,
         train_dataloader, validation_dataloader,
         train_epoch_function, validation_epoch_function,

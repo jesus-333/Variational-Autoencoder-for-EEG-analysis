@@ -3,6 +3,7 @@ rounds_to_save_model = 5                   # How often save the model weights (e
 path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training
 use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
 measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
+log_loss_type = 1						   # Specify how to log the losses for each round of the client. 1 = Each loss will have its own plot, 2 = Only a plot with all the losses together, 3 = Both the previous option
 print_var = true
 
 # Federated parameters used by server
@@ -17,3 +18,35 @@ log_freq = 1							   				# How often log gradients and parameters of the tracke
 name_training_run = "hvEEGNet_fed_debug"				# Name of the training run. If None wandb will assign a random name.
 notes = ""								   				# If you want to add specific note for a specific training run modify this field.
 debug = true							   				# Set true if you are debuggin the code (Used to delete debug run from wandb)
+
+[model_config]
+hidden_space = 1   				# Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
+type_encoder = 0   				# Ignore. (0 -> EEGNet, 1 -> MBEEGNet (to check implementation)).
+type_decoder = 0        			# Decide if use upsample (0) or transpose convolution (1) to increase the size of the data inside the decoder. Keep the value to 0.
+type_vae = 0                       # 0 = normal VAE, 1 = conditional VAE (not implemented). Keep to 0
+n_classes = 4                      # Used if there is a classifier. Ignore for hierarchical VAE.
+use_h_in_decoder = false           # Ignore.
+use_activation_in_sampling = true  # Ignore.
+sampling_activation = 'elu'        # Ignore.
+convert_logvar_to_var = false      # Ignore.
+hidden_space_dimension_list = [32, 128, 512]   # Important only if parameters_map_type = 1. Ignore otherwise.
+parameters_map_type = 0			   # Defined how to map the data inside the latent space. Keep the value to 0
+use_classifier = false             # Ignore. If True add a classifier to hvEEGNet.
+
+[model_config.encoder_config]
+c_kernel_1 = [1, 128]
+c_kernel_2 = [10, 1]
+c_kernel_3 = [1, 32]
+filter_1 = 8
+filter_2 = 16
+p_kernel_1 = -1
+p_kernel_2 = [1, 10,]
+C = 14
+T = 1250
+D = 2
+activation = 'elu'
+use_bias = false
+prob_dropout = 0.5
+use_dropout_2d = true
+flatten_output = true
+print_var = false
