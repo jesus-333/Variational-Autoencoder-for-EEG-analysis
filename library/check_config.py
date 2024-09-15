@@ -10,7 +10,7 @@ import os
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check config dataset
 
-def check_config_dataset(config):
+def check_config_dataset(config) -> None :
     # Check the frequency filter settings
     if 'filter_data' not in config:
         config['filter_data'] = False
@@ -45,7 +45,7 @@ def check_config_dataset(config):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check config train
 
-def check_train_config(train_config : dict, model_artifact = None):
+def check_train_config(train_config : dict, model_artifact = None) -> None :
     # Parameter used to save the model every x epoch
     if 'epoch_to_save_model' not in train_config: train_config['epoch_to_save_model'] = 1
        
@@ -72,7 +72,7 @@ def check_train_config(train_config : dict, model_artifact = None):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Check model config
-def check_model_config_hvEEGNet(model_config : dict) :
+def check_model_config_hvEEGNet(model_config : dict) -> None:
     # In EEGNet class to skip the pooling layer the values of p_kernel_1/p_kernel_2 must be set to None
     # But toml format not support None/nill values. So for the pool kernel I used the value -1 inside the toml file
     # Here, if I find a -1 in p_kernel_1/p_kernel_2, I change the value to None
@@ -86,4 +86,26 @@ def check_model_config_hvEEGNet(model_config : dict) :
     for key in key_list :
         if model_config['encoder_config'][key] is not None :
             model_config['encoder_config'][key] = tuple(model_config['encoder_config'][key])
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+def check_server_config(server_config) -> None : 
+    """
+    Check the dictionary used for the server in the federated training
+    """
+
+    if 'notes' not in server_config['wandb_config'] : 
+        server_config['wandb_config']['notest'] = 'No additional notes.'
+
+    if 'name_training_run' not in server_config['wandb_config'] or len(server_config['wandb_config']['name_training_run']) == 0: 
+        print('No name for the wandb run provided. Set to None')
+        server_config['wandb_config']['name_training_run '] = None
+
+    if 'path_to_save_model' not in server_config :
+        raise ValueError("The key path_to_save_model is not specified in the config. You must specified where to save the model weights")
+
+    if 'model_config' not in server_config :
+        raise ValueError('The key model_config is not specified in the config. The server need a copy of the model config from the client to create a local copy of the model')
+
+    check_model_config_hvEEGNet(server_config['model_config'])
 

@@ -8,8 +8,7 @@ Script to be used for the server during federated training
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
-
-from library.training import federated_training
+from library.training.federated import server
 
 import sys
 import flwr 
@@ -22,7 +21,7 @@ except :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get config
 
-path_config_file = ""
+path_config_file = "training_scripts/config/federated_server.toml"
 
 if path_config_file == "" :
     print("Path for the config file not specified in the python script. Check if passed as argument")
@@ -40,7 +39,7 @@ config = toml.load(path_config_file)
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Start server 
 
-strategy = federated_training.FedAvg_with_wandb(config)
+strategy = server.FedAvg_with_wandb(config)
 
 print("Start servert at 0.0.0.0:{}".format(config['server_port']))
 

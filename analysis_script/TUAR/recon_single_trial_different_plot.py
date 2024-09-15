@@ -43,8 +43,8 @@ nperseg = None
 rand_trial_sample = False
 plot_to_create = 20
 
-n_trial = 327
-channel = 10
+n_trial = 441
+channel = 5
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 filter_config = dict(
@@ -125,6 +125,8 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, _ = dataset[n_trial]
+    # x += 1000
+    # x *= 100
     tmp_t = np.linspace(0, 4, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
@@ -132,7 +134,7 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/TUAR/{}_{}_epochs/model_{}.pth'.format(filename, tot_epoch_training, epoch) 
-    path_weight = 'Saved Model/repetition_hvEEGNet_80/subj 3/rep 13/model_80.pth'
+    path_weight = 'Saved Model/repetition_hvEEGNet_80/subj 4/rep 13/model_80.pth'
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
 
