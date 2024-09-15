@@ -52,6 +52,7 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
         # Get configs for the specifi client
         model_config = model_config_list[id]
         train_config = train_config_list[id]
+        print("Get configs - OK")
 
         # If the model has also a classifier add the information to training config
         train_config['measure_metrics_during_training'] = model_config['use_classifier']
@@ -59,12 +60,15 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
 
         # hvEEGNet creation
         model = hvEEGNet.hvEEGNet_shallow(model_config_list[id])
+        print("Model creation - OK")
 
         # Get training and validaiton function
         train_epoch_function, validation_epoch_function = train_generic.get_train_and_validation_function(model)
+        print("Get train and validation function - OK")
 
         # Get loss function for hvEEGNet
         loss_function = train_generic.get_loss_function(model_name = 'hvEEGNet_shallow', config = train_config)
+        print("Get loss function - OK")
 
         # Create optimizer
         optimizer = torch.optim.AdamW(model.parameters(),
@@ -89,6 +93,7 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
             loss_function, optimizer, lr_scheduler,
             train_config
         )
+        print("Client Creation - OK")
 
         return tmp_client
 
