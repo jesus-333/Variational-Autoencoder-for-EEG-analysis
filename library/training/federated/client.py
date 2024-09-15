@@ -161,6 +161,7 @@ class Client_V1(flwr.client.NumPyClient):
             # Saved metric in the dict (temporary workaround since flower not support a list as dictionary value)
             metrics_dict['train_loss_kl_{}'.format(epoch + 1)] = log_dict['train_loss_kl']
             metrics_dict['train_loss_recon_{}'.format(epoch + 1)] = log_dict['train_loss_recon']
+            metrics_dict['train_loss_total_{}'.format(epoch + 1)] = log_dict['train_loss_recon'] + log_dict['train_loss_kl']
 
         if self.train_config['print_var'] : print("END training client")
 

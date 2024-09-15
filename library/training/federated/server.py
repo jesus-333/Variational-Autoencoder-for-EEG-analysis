@@ -7,6 +7,7 @@ Functions used for the servers in federated training.
 
 import os
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 
 from collections import OrderedDict
@@ -92,10 +93,56 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
 
             # Save weights
             self.save_model_weights()
-
+            
+            # TODO Remove in future. Used only to log something for the server at the end of each round
+            avg_recon_loss = 0
+            avg_kl_loss = 0
+            avg_total_loss = 0
+            
+            # Iterate over clients
             for i in range(len(results)) :
-                metrics_from_training = results[i][1].metrics
-                print(metrics_from_training)
+                # Get metrics log dict for current client
+                log_dict = results[i][1].metrics
+                
+                # Get id and number of training epoch
+                client_id = log_dict['client_id']
+
+                # Create epoch arrays
+                training_epochs = np.arange(log_dict['epochs']) + 1
+
+                # Extract losses
+                recon_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_recon')
+                kl_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_kl')
+                total_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_total')
+
+                # TODO remove
+                avg_recon_loss += recon_loss
+                avg_kl_loss += kl_loss
+                avg_total_loss += total_loss
+
+                # Plot(s) creation and log
+                if self.server_config['log_loss_type'] == 1 : # Separate plots
+                    self.create_and_log_plot([recon_loss], training_epochs, ['recon_loss'], client_id)
+                    self.create_and_log_plot([kl_loss],    training_epochs, ['kl_loss'],    client_id)
+                    self.create_and_log_plot([total_loss], training_epochs, ['total_loss'], client_id)
+                elif self.server_config['log_dict'] == 2 : # Single plot 
+                    self.create_and_log_plot([recon_loss, kl_loss, total_loss], training_epochs, ['recon_loss', 'kl_loss', 'total_loss'], client_id)
+                elif self.server_config['log_dict'] == 3 : # Both previous option
+                    self.create_and_log_plot([recon_loss], training_epochs, ['recon_loss'], client_id)
+                    self.create_and_log_plot([kl_loss],    training_epochs, ['kl_loss'],    client_id)
+                    self.create_and_log_plot([total_loss], training_epochs, ['total_loss'], client_id)
+                    self.create_and_log_plot([recon_loss, kl_loss, total_loss], training_epochs, ['recon_loss', 'kl_loss', 'total_loss'], client_id)
+            
+            # TODO add a central dataset and computation at the end of each round
+            # Log loss for the server
+            avg_recon_loss /= len(results)
+            avg_kl_loss /= len(results)
+            avg_total_loss /= len(results)
+            self.wandb_run.log({
+                'server/recon_loss' : avg_recon_loss,
+                'server/kl_loss' : avg_kl_loss,
+                'server/total_loss' : avg_total_loss
+            })
         
             if self.count_rounds == self.tot_rounds :
                 print("End training rounds")
@@ -118,9 +165,47 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
         self.model.load_state_dict(state_dict, strict=True)
 
         # Save the model
+        torch.save(self.model.state_dict(), f"{self.server_config['path_to_save_model']}/model_round_{self.count_rounds}.pth")
 
-    def create_plot_loss_client(self, loss_to_plot, label : str) :
+    def extract_metric_from_log_dict(self, log_dict : dict, metric_name : str) :
+        """
+        Since at the time of writing flower not allow to save entire array/list inside the log dict I have to save each epoch separately, i.e. with a different enty in the dictionary.
+        With this method I will merge all the entry for a specific key in a list. 
+        The list is then returned as numpy array
+        """
+        
+        training_epochs = np.arange(log_dict['epochs']) + 1
+        metric_list = []
+        
+        # Iterate over training epoch
+        for i in range(len(training_epochs)) :
+            # Get epoch and metric for the epoch
+            current_epoch = training_epochs[i]
+            metric_for_current_epoch = log_dict[i][f'{metric_name}_{current_epoch}']
+
+            # Save metric
+            metric_list.append(metric_for_current_epoch)
+        
+        return np.asarray(metric_list)
+
+    def create_and_log_plot(self, metric_to_plot_list, training_epochs, metrics_name_list, client_id) :
+        fig, _ = self.create_metric_plot(metric_to_plot_list, training_epochs, metrics_name_list, client_id)
+        
+        # Name for the plot to log
+        if len(metrics_name_list) == 1 :
+            metric_name = metrics_name_list[0]
+        else : 
+            metric_name = 'all'
+        
+        # Log the plot in wandb
+        self.wandb_run.log({
+            f"{client_id}/{metric_name}_round_{self.count_rounds}" : fig
+        }, commit = False)
+
+    def create_metric_plot(self, metric_to_plot, training_epochs, client_id : str) :
         """
         Create a plot with a loss from a specifi client
         """
         fig, ax = plt.subplots(1, 1)
+
+        return fig, ax
