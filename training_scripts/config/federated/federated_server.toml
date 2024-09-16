@@ -3,7 +3,7 @@ rounds_to_save_model = 5                   # How often save the model weights (e
 path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training
 use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
 measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
-log_loss_type = 1						   # Specify how to log the losses for each round of the client. 1 = Each loss will have its own plot, 2 = Only a plot with all the losses together, 3 = Both the previous option
+log_loss_type = 3						   # Specify how to log the losses for each round of the client. 1 = Each loss will have its own plot, 2 = Only a plot with all the losses together, 3 = Both the previous option
 print_var = true
 
 # Federated parameters used by server
@@ -18,6 +18,8 @@ log_freq = 1							   				# How often log gradients and parameters of the tracke
 name_training_run = "hvEEGNet_fed_debug"				# Name of the training run. If None wandb will assign a random name.
 notes = ""								   				# If you want to add specific note for a specific training run modify this field.
 debug = true							   				# Set true if you are debuggin the code (Used to delete debug run from wandb)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 [model_config]
 hidden_space = 1   				# Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
