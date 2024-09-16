@@ -81,7 +81,7 @@ flwr.simulation.start_simulation(
         num_rounds = server_config['num_rounds']
     ),  
     strategy = strategy,
-    client_resources={
+    client_resources = {
         "num_cpus": 2,
         "num_gpus": 1,
     }, 
