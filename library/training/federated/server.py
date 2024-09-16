@@ -22,6 +22,8 @@ try :
 except :
     raise ImportError("Failed import of wandb. The wandb_server class will not work.")
 
+from .. import wandb_support
+
 from ... import check_config
 from ...model import hvEEGNet
 
@@ -72,6 +74,11 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
                                     name = server_config['wandb_config']['name_training_run']
                                     )
 
+        # Wandb artifact to save model weights
+        self.model_artifact = wandb.Artifact('hvEEGNet_federated', type = "model",
+                                        description = "hvEEGNet trained with federated training model",
+                                        metadata = server_config)
+
         self.count_rounds = 0
         self.tot_rounds = server_config['num_rounds']
 
@@ -92,7 +99,11 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
             self.model_weights  = model_weights
 
             # Save weights
-            self.save_model_weights()
+            save_path = self.save_model_weights()
+
+            # Add weight to wandb
+            self.model_artifact.add_file(save_path)
+            wandb.save(save_path)
             
             # TODO Remove in future. Used only to log something for the server at the end of each round
             avg_recon_loss = 0
@@ -116,18 +127,18 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
                 total_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_total')
 
                 # TODO remove
-                avg_recon_loss += recon_loss
-                avg_kl_loss += kl_loss
-                avg_total_loss += total_loss
+                avg_recon_loss += np.mean(recon_loss)
+                avg_kl_loss += np.mean(kl_loss)
+                avg_total_loss += np.mean(total_loss)
 
                 # Plot(s) creation and log
                 if self.server_config['log_loss_type'] == 1 : # Separate plots
                     self.create_and_log_plot([recon_loss], training_epochs, ['recon_loss'], client_id)
                     self.create_and_log_plot([kl_loss],    training_epochs, ['kl_loss'],    client_id)
                     self.create_and_log_plot([total_loss], training_epochs, ['total_loss'], client_id)
-                elif self.server_config['log_dict'] == 2 : # Single plot 
+                elif self.server_config['log_loss_type'] == 2 : # Single plot 
                     self.create_and_log_plot([recon_loss, kl_loss, total_loss], training_epochs, ['recon_loss', 'kl_loss', 'total_loss'], client_id)
-                elif self.server_config['log_dict'] == 3 : # Both previous option
+                elif self.server_config['log_loss_type'] == 3 : # Both previous option
                     self.create_and_log_plot([recon_loss], training_epochs, ['recon_loss'], client_id)
                     self.create_and_log_plot([kl_loss],    training_epochs, ['kl_loss'],    client_id)
                     self.create_and_log_plot([total_loss], training_epochs, ['total_loss'], client_id)
@@ -139,9 +150,9 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
             avg_kl_loss /= len(results)
             avg_total_loss /= len(results)
             self.wandb_run.log({
-                'server/recon_loss' : avg_recon_loss,
-                'server/kl_loss' : avg_kl_loss,
-                'server/total_loss' : avg_total_loss
+                "server_recon_loss" : avg_recon_loss,
+                "server_kl_loss" : avg_kl_loss,
+                "server_total_loss" : avg_total_loss
             })
         
             if self.count_rounds == self.tot_rounds :
@@ -165,7 +176,10 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
         self.model.load_state_dict(state_dict, strict=True)
 
         # Save the model
-        torch.save(self.model.state_dict(), f"{self.server_config['path_to_save_model']}/model_round_{self.count_rounds}.pth")
+        save_path = f"{self.server_config['path_to_save_model']}/model_round_{self.count_rounds}.pth"
+        torch.save(self.model.state_dict(), save_path)
+
+        return save_path 
 
     def extract_metric_from_log_dict(self, log_dict : dict, metric_name : str) :
         """
@@ -181,7 +195,7 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
         for i in range(len(training_epochs)) :
             # Get epoch and metric for the epoch
             current_epoch = training_epochs[i]
-            metric_for_current_epoch = log_dict[i][f'{metric_name}_{current_epoch}']
+            metric_for_current_epoch = log_dict[f'{metric_name}_{current_epoch}']
 
             # Save metric
             metric_list.append(metric_for_current_epoch)
@@ -202,10 +216,22 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
             f"{client_id}/{metric_name}_round_{self.count_rounds}" : fig
         }, commit = False)
 
-    def create_metric_plot(self, metric_to_plot, training_epochs, client_id : str) :
+    def create_metric_plot(self, metric_to_plot_list : list, training_epochs, metrics_name_list : list, client_id : str) :
         """
         Create a plot with a loss from a specifi client
         """
-        fig, ax = plt.subplots(1, 1)
+        fig, ax = plt.subplots(1, 1, figsize = (16, 10))
+        fontsize = 16
+
+        for i in range(len(metrics_name_list)) :
+            # Plot the metric
+            ax.plot(training_epochs, metric_to_plot_list[i], label = metrics_name_list[i])
+
+            ax.legend(fontsize = fontsize)
+            ax.set_xlabel('Epoch', fontsize = fontsize)
+            ax.set_ylabel('Loss', fontsize = fontsize)
+            ax.grid(True)
+
+        fig.tight_layout()
 
         return fig, ax
