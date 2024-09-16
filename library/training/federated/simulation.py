@@ -6,9 +6,9 @@ Function used to simulate federated training if multiple devices are not availab
 
 import torch
 
-from . import federated_training as ft
-from ..model import hvEEGNet
-from ..training import train_generic
+from . import client
+from ...model import hvEEGNet
+from ...training import train_generic
 
 try :
     import flwr
@@ -82,7 +82,7 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
         train_dataloader        = torch.utils.data.DataLoader(train_dataset_list[id], batch_size = train_config['batch_size'], shuffle = True)
         validation_dataloader   = torch.utils.data.DataLoader(validation_dataset_list[id], batch_size = train_config['batch_size'], shuffle = True)
 
-        client = ft.Client_V1(
+        tmp_client = client.Client_V1(
             model,
             train_dataloader, validation_dataloader,
             train_epoch_function, validation_epoch_function,
@@ -90,7 +90,7 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
             train_config
         )
 
-        return client
+        return tmp_client
 
     return client_function_hvEEGNet_training
 
