@@ -1,6 +1,6 @@
 # Federated parameters used by server
 server_port = "8080"				# Port to used for the server
-num_rounds = 2						# Num of federated training iteration on each device
+num_rounds = 8						# Num of federated training iteration on each device
 rounds_to_save_model = 5                   # How often save the model weights (e.g. 5 means that the weights are saved every 5 rounds)
 path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training
 use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
@@ -35,7 +35,7 @@ use_classifier = false             # Ignore. If True add a classifier to hvEEGNe
 
 [model_config.encoder_config]
 c_kernel_1 = [1, 128]
-c_kernel_2 = [10, 1]
+c_kernel_2 = [22, 1]
 c_kernel_3 = [1, 32]
 filter_1 = 8
 filter_2 = 16

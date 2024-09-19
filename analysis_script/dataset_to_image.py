@@ -79,7 +79,7 @@ fig_train, ax_train = plot_data(train_data_to_plot, 'Train data S{}'.format(subj
 fig_test, ax_test = plot_data(test_data_to_plot, 'Test data S{}'.format(subj), plot_config)
 
 if plot_config['save_fig'] :
-    path_save = 'Saved Results/{}/dataset_to_image/S{}_image_dataset'.format(dataset_to_use,subj)
+    path_save = 'Saved Results/dataset_to_image/{}_S{}_image_dataset'.format(dataset_to_use,subj)
 
     os.makedirs(path_save, exist_ok = True)
 

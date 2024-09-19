@@ -64,7 +64,7 @@ for i in range(len(subj_list)) :
     axs[1].set_title('Test data')
 
     for ax in axs:
-        ax.set_xlabel('Standard deviation')
+        ax.set_xlabel('Mean')
         ax.set_ylabel('Number of occurrences')
 
     fig.suptitle('Subject {}'.format(subj))
@@ -93,6 +93,10 @@ for i in range(len(subj_list)) :
     for ax in axs:
         ax.set_xlabel('Trial number')
         ax.set_ylabel('Average standard deviation per trial')
+
+        # Subsessions marker
+        subsession_start = (np.arange(5) + 1 ) * 48
+        for j in range(len(subsession_start)) : ax.axvline(subsession_start[j], color = 'red', alpha = 0.5)
     
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()

@@ -23,8 +23,9 @@ from library.config import config_dataset as cd
 
 tot_epoch_training = 80
 epoch = 80
-subj = 9
-use_test_set = False
+subj_for_weights = 2
+subj_for_data = 2
+use_test_set = True
 
 t_min = 2
 t_max = 4
@@ -34,18 +35,19 @@ nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = False
-plot_to_create = 10
+plot_to_create = 20
 
-repetition = 5
-n_trial = 252
-channel = 'Cz'
+repetition = 7
+n_trial = 49 
+channel = 'C6'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
     
 
 plot_config = dict(
-    rescale_minmax = True,
+    use_TkAgg_backend = True,
+    rescale_minmax = False,
     figsize_time = (10, 5),
     figsize_freq = (10, 5),
     fontsize = 18,
@@ -65,17 +67,24 @@ xticks_time = None
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+if plot_config['use_TkAgg_backend']:
+    plt.switch_backend('TkAgg')
+
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot', 3 : 'tongue'}
 if rand_trial_sample is False: plot_to_create = 1
 
-dataset_config = cd.get_moabb_dataset_config([subj])
+dataset_config = cd.get_moabb_dataset_config([subj_for_data])
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
 
 # Decide if use the train or the test dataset
 if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
+
+std_train = train_dataset.data.std(-1).mean()
+# dataset.data *= 1
+# dataset.data += 900
 
 for n_plot in range(plot_to_create):
 
@@ -90,10 +99,8 @@ for n_plot in range(plot_to_create):
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
 
-    std_train = train_dataset.data.std(-1).mean()
     # x += 1000
     # x *= (1 * std_train)
-    x += 72 * std_train
     # plt.hist(x.flatten(), bins = 100)
     # plt.show()
 
@@ -104,7 +111,7 @@ for n_plot in range(plot_to_create):
     label_name = label_dict[int(label)]
     
     # Load weight and reconstruction
-    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj, repetition, epoch)
+    path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj_for_weights, repetition, epoch)
     # path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
@@ -145,14 +152,22 @@ for n_plot in range(plot_to_create):
     ax_time.set_xlim([t_min, t_max])
     ax_time.grid(True)
     ax_time.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
-
-    if plot_config['add_title']: ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
+    
+    if plot_config['add_title'] : 
+        if subj_for_weights == subj_for_data :
+            ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj_for_data, channel, n_trial))
+        else :
+            ax_time.set_title('S{} - Ch. {} - Trial {} - Weights of S{}'.format(subj_for_data, channel, n_trial, subj_for_weights))
     
     fig_time.tight_layout()
     fig_time.show()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in frequency domain
+
+    if plot_config['rescale_minmax'] :
+        x_psd = (x_psd - x_psd.min()) / (x_psd.max() - x_psd.min())
+        x_r_psd = (x_r_psd - x_r_psd.min()) / (x_r_psd.max() - x_r_psd.min())
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
     ax_freq.plot(f, x_psd, label = 'original signal',
@@ -167,7 +182,11 @@ for n_plot in range(plot_to_create):
     ax_freq.grid(True)
     ax_freq.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
 
-    if plot_config['add_title']: ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
+    if plot_config['add_title']: 
+        if subj_for_weights == subj_for_data :
+            ax_freq.set_title('S{} - Ch. {} - Trial {}'.format(subj_for_weights, channel, n_trial))
+        else :
+            ax_freq.set_title('S{} - Ch. {} - Trial {} - Weights of S{}'.format(subj_for_data, channel, n_trial, subj_for_weights))
 
     fig_freq.tight_layout()
     fig_freq.show()
@@ -175,13 +194,20 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj)
+
+        if subj_for_weights != subj_for_data :
+            path_save = "Saved Results/d2a_analysis/transfer_learning/subj {}/".format(subj_for_data)
+        else :
+            path_save = "Saved Results/repetition_hvEEGNet_{}/subj {}/Plot/".format(tot_epoch_training, subj_for_weights)
+
         os.makedirs(path_save, exist_ok = True)
-        # path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
-        path_save += "s{}_trial_{}_{}_rep_{}_epoch_{}".format(subj, n_trial + 1, channel, repetition, epoch)
+        path_save += "s{}_trial_{}_{}_rep_{}_epoch_{}".format(subj_for_data, n_trial + 1, channel, repetition, epoch)
+        if plot_config['rescale_minmax'] : path_save += '_minmax'
 
         if use_test_set: path_save += '_test_set'
         else: path_save += '_train_set'
+
+        if subj_for_weights != subj_for_data : path_save += '_weights_S{}'.format(subj_for_weights)
 
         for format in plot_config['format_so_save']:
             fig_time.savefig(path_save + "_time." + format, format = format)

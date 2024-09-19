@@ -95,7 +95,7 @@ def generate_client_function_hvEEGNet_training(model_config_list : list, train_c
         )
         print("Client Creation - OK")
 
-        return tmp_client
+        return tmp_client.to_client()
 
     return client_function_hvEEGNet_training
 

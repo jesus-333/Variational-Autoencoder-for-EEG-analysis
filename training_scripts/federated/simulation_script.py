@@ -63,7 +63,7 @@ for i in range(len(subj_list)) :
     train_dataset, validation_dataset, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
 
     # Save dataset in list
-    train_dataset_list.append(train_dataset_list)
+    train_dataset_list.append(train_dataset)
     validation_dataset_list.append(validation_dataset)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -81,7 +81,7 @@ flwr.simulation.start_simulation(
         num_rounds = server_config['num_rounds']
     ),  
     strategy = strategy,
-    client_resources={
+    client_resources = {
         "num_cpus": 2,
         "num_gpus": 1,
     }, 

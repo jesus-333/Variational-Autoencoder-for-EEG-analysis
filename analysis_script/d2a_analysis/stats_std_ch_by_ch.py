@@ -14,14 +14,14 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3]
-subj_list = [4, 5, 6, 7, 8, 9]
+subj_list = [3]
+# subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 plot_config = dict(
     use_TkAgg_backend = True,
     figsize = (12, 6),
     bins = 200,
-    save_fig = True,
+    save_fig = False,
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -41,6 +41,8 @@ for i in range(len(subj_list)) :
     # Get data (in numpy array)
     train_data = train_dataset.data.numpy().squeeze()
     test_data = test_dataset.data.numpy().squeeze()
+
+    # train_data *= 40
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel
@@ -77,18 +79,26 @@ for i in range(len(subj_list)) :
     # Plot the data (average per trial) 
 
     fig, axs = plt.subplots(1, 2, figsize = plot_config['figsize'])
-
+    
+    # Train set
     axs[0].plot(std_ch_train.mean(axis = 1), color = 'black')
     axs[0].fill_between(np.arange(std_ch_train.shape[0]), std_ch_train.mean(axis = 1) - std_ch_train.std(axis = 1), std_ch_train.mean(axis = 1) + std_ch_train.std(axis = 1), color = 'black', alpha = 0.2)
     axs[0].set_title('Train data')
-
+    
+    # Test set
     axs[1].plot(std_ch_test.mean(axis = 1), color = 'black')
     axs[1].fill_between(np.arange(std_ch_test.shape[0]), std_ch_test.mean(axis = 1) - std_ch_test.std(axis = 1), std_ch_test.mean(axis = 1) + std_ch_test.std(axis = 1), color = 'black', alpha = 0.2)
     axs[1].set_title('Test data')
-
+    
+    # Add other info
     for ax in axs:
+        # Labels
         ax.set_xlabel('Trial number')
         ax.set_ylabel('Average standard deviation per trial')
+
+        # Subsessions marker
+        subsession_start = (np.arange(5) + 1 ) * 48
+        for j in range(len(subsession_start)) : ax.axvline(subsession_start[j], color = 'red', alpha = 0.5)
     
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()
