@@ -11,7 +11,7 @@ Script used to train hvEEGNet with federated learning if multiple device are not
 import toml
 import flwr
 
-from library.analysis import support
+from library.dataset import preprocess as pp
 from library.training.federated import server, simulation
 
 from library.config import config_dataset as cd
@@ -60,7 +60,7 @@ for i in range(len(subj_list)) :
 
     # Get dataset
     dataset_config = cd.get_moabb_dataset_config([subj])
-    train_dataset, validation_dataset, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
+    train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
 
     # Save dataset in list
     train_dataset_list.append(train_dataset)
@@ -70,19 +70,19 @@ for i in range(len(subj_list)) :
 # Simulation
 
 # Generate client function for each subject
-client_function = simulation.generate_client_function_hvEEGNet_training(model_config_list, train_config_list, 
-                                                                        train_dataset_list, validation_dataset_list
-                                                                        )
-# Run simulation
-flwr.simulation.start_simulation(
-    client_fn = client_function,
-    num_clients = len(subj_list),
-    config = flwr.server.ServerConfig(
-        num_rounds = server_config['num_rounds']
-    ),  
-    strategy = strategy,
-    client_resources = {
-        "num_cpus": 2,
-        "num_gpus": 1,
-    }, 
-)
+# client_function = simulation.generate_client_function_hvEEGNet_training(model_config_list, train_config_list, 
+#                                                                         train_dataset_list, validation_dataset_list
+#                                                                         )
+# # Run simulation
+# flwr.simulation.start_simulation(
+#     client_fn = client_function,
+#     num_clients = len(subj_list),
+#     config = flwr.server.ServerConfig(
+#         num_rounds = server_config['num_rounds']
+#     ),  
+#     strategy = strategy,
+#     client_resources = {
+#         "num_cpus": 2,
+#         "num_gpus": 1,
+#     }, 
+# )

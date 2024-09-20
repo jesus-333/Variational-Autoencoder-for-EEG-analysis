@@ -155,11 +155,12 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
                 "server_total_loss" : avg_total_loss
             })
         
-            if self.count_rounds == self.tot_rounds :
-                print("End training rounds")
-                self.wandb_run.finish()
         else :
             model_weights = None
+
+        if self.count_rounds == self.tot_rounds :
+            print("End training rounds")
+            self.wandb_run.finish()
 
         return aggregated_parameters, aggregated_metrics
 
