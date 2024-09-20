@@ -1,7 +1,7 @@
 # Training settings
 batch_size = 5
 lr = 1e-2                          # Learning rate (lr)
-epochs = 10                        # Number of epochs to train the model
+epochs = 5                        # Number of epochs to train the model
 use_scheduler = true               # Use the lr scheduler
 lr_decay_rate = 0.999              # Parameter of the lr exponential scheduler
 optimizer_weight_decay = 1e-2      # Weight decay of the optimizer

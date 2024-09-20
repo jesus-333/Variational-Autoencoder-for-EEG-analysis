@@ -20,7 +20,7 @@ from library.config import config_dataset as cd
 # Settings
 
 subj_list = [4, 5, 6, 7, 8, 9]
-subj_list = [2, 8]
+subj_list = [2, 5, 8]
 
 path_server_config_file = 'training_scripts/config/federated/server.toml'
 path_client_config_file = 'training_scripts/config/federated/client.toml'
@@ -61,10 +61,17 @@ for i in range(len(subj_list)) :
     # Get dataset
     dataset_config = cd.get_moabb_dataset_config([subj])
     train_dataset, validation_dataset, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
-
+    
+    # TODO Change to random sampling. Reduce dataset size
+    # train_dataset.data = train_dataset.data[0:int(259/3)]
+    
     # Save dataset in list
     train_dataset_list.append(train_dataset)
     validation_dataset_list.append(validation_dataset)
+    
+# Update model_config. Notes that this work because all model config point to the same dictionary in the memory
+server_config['model_config']['encoder_config']['C'] = train_dataset.data.shape[2]
+server_config['model_config']['encoder_config']['T'] = train_dataset.data.shape[3]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Simulation
