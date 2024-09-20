@@ -5,6 +5,7 @@ For the subject in subject_list compute the std of each channel of each trials a
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Import
 
+import toml
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -24,6 +25,7 @@ plot_config = dict(
     save_fig = True,
 )
 
+path_dataset_config = 'training_scripts/config/zhou2016/dataset.toml'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 if plot_config['use_TkAgg_backend']:
@@ -34,7 +36,8 @@ for i in range(len(subj_list)) :
     subj = subj_list[i]
 
     # Get dataset
-    dataset_config = cd.get_moabb_dataset_config([subj])
+    dataset_config = toml.load(path_dataset_config)
+    dataset_config['subjects_list'] = [subj]
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
     train_data, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
     test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
