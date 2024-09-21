@@ -30,9 +30,11 @@ def check_config_dataset(config) -> None :
 
     if 'use_moabb_segmentation' not in config : config['use_moabb_segmentation'] = False
 
-    if config['use_moabb_segmentation']:
-        config['use_moabb_segmentation'] = False
-        print('use_moabb_segmentation not specified. Set to False. Ignore if you are not using moabb')
+    if 'n_samples_to_use' not in config : config['n_samples_to_use'] = -1
+
+    # if config['use_moabb_segmentation']:
+    #     config['use_moabb_segmentation'] = False
+    #     print('use_moabb_segmentation not specified. Set to False. Ignore if you are not using moabb')
 
     # if 'normalization_type not in config:
     #     config['normalization_type'] = 0

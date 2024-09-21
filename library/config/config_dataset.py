@@ -28,12 +28,13 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9], use_stft_repre
         # Trial segmentation
         trial_start = 2,    # Time (in seconds) when the trial starts. Keep this value
         trial_end = 6,      # Time (in seconds) when the trial end. Keep this value
-        use_moabb_segmentation = False,
+        use_moabb_segmentation = False, # Allow moab to split the data in different trails.
 
         # Split in train/test/validation
-        seed_split = 42,                        # Seed for the random function used for split the dataset. Used for reproducibility
-        percentage_split_train_test = -1,       # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
+        seed_split = 42,                         # Seed for the random function used for split the dataset. Used for reproducibility
+        percentage_split_train_test = -1,        # For ALL the data select the percentage for training and for test. -1 means to use the original division in train and test data
         percentage_split_train_validation = 0.9, # For ONLY the training data select the percentage for train and for validation
+        use_fewer_trials = -1,                   # If it is a positive value that number of trails will be be used (e.g. if the dataset has 288 trials but use_fewer_trials = 120, then 120 trails will be selected randomly from the 288 of the dataset)
 
         # Other
         n_classes = 4,                  # Number of labels. E.g. for datset 2a is equal to 4. 

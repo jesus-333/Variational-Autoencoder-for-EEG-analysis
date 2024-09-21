@@ -22,21 +22,18 @@ from library.config import config_dataset as cd
 subj_list = [4, 5, 6, 7, 8, 9]
 subj_list = [2, 5, 8]
 
+trials_to_use_per_subject = int(288 / len(subj_list))
+
 path_server_config_file = 'training_scripts/config/federated/server.toml'
 path_client_config_file = 'training_scripts/config/federated/client.toml'
 path_train_config = 'training_scripts/config/federated/training.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Server setup
 
 # Get server config
 server_config = toml.load(path_server_config_file)
 server_config['subj_list'] = subj_list
 
-# Create server
-strategy = server.FedAvg_with_wandb(server_config)
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get data
 
 model_config_list = []
@@ -60,6 +57,7 @@ for i in range(len(subj_list)) :
 
     # Get dataset
     dataset_config = cd.get_moabb_dataset_config([subj])
+    dataset_config['use_fewer_trials'] = trials_to_use_per_subject 
     train_dataset, validation_dataset, test_dataset = pp.get_dataset_d2a(dataset_config)
 
     # Save dataset in list
@@ -73,6 +71,9 @@ server_config['model_config']['encoder_config']['T'] = train_dataset.data.shape[
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Simulation
 
+# Create server
+# strategy = server.FedAvg_with_wandb(server_config)
+#
 # Generate client function for each subject
 # client_function = simulation.generate_client_function_hvEEGNet_training(model_config_list, train_config_list,
 #                                                                         train_dataset_list, validation_dataset_list

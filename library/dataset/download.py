@@ -13,6 +13,7 @@ import os
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
+from . import support_function as sf
 from ..config import config_dataset as cd
 from .. import check_config
 
@@ -59,6 +60,8 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
     idx_type = get_idx_train_or_test(dataset, info, type_dataset)
     raw_data = raw_data[idx_type]
     raw_labels = raw_labels[idx_type]
+
+    # print(raw_data.shape)
 
     return raw_data, raw_labels
 
@@ -130,9 +133,9 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         raw_data = raw_dataset[subject]
         
         # For each subject the data are divided in train and test. Here I extract train or test data
-        if type_dataset == 'train': raw_data = raw_data['0train']
-        elif type_dataset == 'test': raw_data = raw_data['1test']
-        else: raise ValueError("type_dataset must have value train or test")
+        if type_dataset == 'train' : raw_data = raw_data['0train']
+        elif type_dataset == 'test' : raw_data = raw_data['1test']
+        else : raise ValueError("type_dataset must have value train or test")
 
         trials_matrix, labels, ch_list = get_trial_handmade(raw_data, config)
 
@@ -278,6 +281,8 @@ def get_D2a_data(config, type_dataset):
 
     # Get the data
     if config['use_moabb_segmentation']:
+        # Note that for some reasons the automatic division of the dataset by the moabb created  281 trials, insted of 288.
+
         raw_data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
         
         # Select channels and convert labels
@@ -296,6 +301,14 @@ def get_D2a_data(config, type_dataset):
         # By default the labels obtained through the moabb have value between 1 and 4.
         # But Pytorch for 4 classes want values between 0 and 3
         labels -= 1
+    
+    # (OPTIONAL) if use_fewer_trials is a positive number randomly select that number of trials
+    if config['use_fewer_trials'] > 0:
+        np.random.seed(config['seed_split'])
+        idx = np.random.permutation(data.shape[0])
+        idx = idx[0:config['use_fewer_trials']]
+        data = data[idx]
+        labels = labels[idx]
 
     return data, labels.squeeze(), ch_list
 
@@ -358,7 +371,7 @@ def get_BI2014a(config : dict, type_dataset : str) :
     paradigm = mp.P300()
     
     data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
-    print(data.shape)
+    # print(data.shape)
     
     # Select channels and convert labels
     labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
