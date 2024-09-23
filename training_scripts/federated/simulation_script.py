@@ -20,7 +20,7 @@ from library.config import config_dataset as cd
 # Settings
 
 subj_list = [4, 5, 6, 7, 8, 9]
-subj_list = [2, 5, 8]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 trials_to_use_per_subject = int(288 / len(subj_list))
 
@@ -72,22 +72,22 @@ server_config['model_config']['encoder_config']['T'] = train_dataset.data.shape[
 # Simulation
 
 # Create server
-# strategy = server.FedAvg_with_wandb(server_config)
-#
+strategy = server.FedAvg_with_wandb(server_config)
+
 # Generate client function for each subject
-# client_function = simulation.generate_client_function_hvEEGNet_training(model_config_list, train_config_list,
-#                                                                         train_dataset_list, validation_dataset_list
-#                                                                         )
-# # Run simulation
-# flwr.simulation.start_simulation(
-#     client_fn = client_function,
-#     num_clients = len(subj_list),
-#     config = flwr.server.ServerConfig(
-#         num_rounds = server_config['num_rounds']
-#     ),
-#     strategy = strategy,
-#     client_resources = {
-#         "num_cpus": 2,
-#         "num_gpus": 1,
-#     },
-# )
+client_function = simulation.generate_client_function_hvEEGNet_training(model_config_list, train_config_list,
+                                                                        train_dataset_list, validation_dataset_list
+                                                                        )
+
+# Run simulation
+flwr.simulation.start_simulation(
+    client_fn = client_function,
+    num_clients = len(subj_list),
+    config = flwr.server.ServerConfig(
+        num_rounds = server_config['num_rounds']
+    ),
+    strategy = strategy,
+    client_resources = {
+        "num_gpus": 1,
+    },
+)

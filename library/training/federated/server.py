@@ -126,7 +126,7 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
                 kl_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_kl')
                 total_loss = self.extract_metric_from_log_dict(log_dict, 'train_loss_total')
 
-                # TODO remove
+                # TODO Think about alternatives 
                 avg_recon_loss += np.mean(recon_loss)
                 avg_kl_loss += np.mean(kl_loss)
                 avg_total_loss += np.mean(total_loss)
