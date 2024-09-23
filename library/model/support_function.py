@@ -62,12 +62,16 @@ class weighted_sum_tensor(nn.Module):
         return x
 
 class LoRALinear(nn.Module):
-    def __init__(self, in_dim: int, out_dim: int, rank: int, alpha : float = -1):
+    def __init__(self, in_dim: int, out_dim: int, rank: int, alpha : float = -1, use_spectral_norm : bool = False):
         super().__init__()
 
         # These are the new LoRA params. In general rank << in_dim, out_dim
-        self.lora_a = nn.Linear(in_dim, rank, bias = False)
-        self.lora_b = nn.Linear(rank, out_dim, bias = False)
+        if use_spectral_norm : 
+            self.lora_a = nn.utils.parametrizations.spectral_norm(nn.Linear(in_dim, rank, bias = False))
+            self.lora_b = nn.utils.parametrizations.spectral_norm(nn.Linear(rank, out_dim, bias = False))
+        else : 
+            self.lora_a = nn.Linear(in_dim, rank, bias = False)
+            self.lora_b = nn.Linear(rank, out_dim, bias = False)
 
         # Rank and alpha are commonly-tuned hyperparameters
         self.rank = rank
@@ -125,7 +129,7 @@ class map_to_distribution_parameters_with_vector(nn.Module):
         return self.map_mu(x), self.map_sigma(x)
 
 class map_to_distribution_parameters_with_vector_LoRA(nn.Module):
-    def __init__(self, hidden_space_dimension : int, input_shape, rank : int, use_activation : bool = False, activation : str = 'elu'):
+    def __init__(self, hidden_space_dimension : int, input_shape, rank : int, use_activation : bool = False, activation : str = 'elu', use_spectral_norm : bool = False):
         """
         Work as map_to_distribution_parameters_with_vector but use the basic idea behind LoRA to reduce the number of wieghts in the linear layer
         """
@@ -135,12 +139,12 @@ class map_to_distribution_parameters_with_vector_LoRA(nn.Module):
 
         self.map_mu = nn.Sequential(
             get_activation(activation) if use_activation else nn.Identity(),
-            LoRALinear(n_neurons_input, hidden_space_dimension, rank)
+            LoRALinear(n_neurons_input, hidden_space_dimension, rank, use_spectral_norm = use_spectral_norm)
         )
 
         self.map_sigma = nn.Sequential(
             get_activation(activation) if use_activation else nn.Identity(),
-            LoRALinear(n_neurons_input, hidden_space_dimension, rank)
+            LoRALinear(n_neurons_input, hidden_space_dimension, rank, use_spectral_norm = use_spectral_norm)
         )
 
     def forward(self, x):
@@ -185,10 +189,12 @@ class sample_layer(nn.Module):
                                                                                       input_shape = input_shape,
                                                                                       rank = config['rank'],
                                                                                       use_activation = config['use_activation_in_sampling'], 
-                                                                                      activation = config['sampling_activation'])
+                                                                                      activation = config['sampling_activation'],
+                                                                                      use_spectral_norm = config['use_spectral_norm']
+                                                                                      )
             
                 # Map from latent space sample to decoder input
-                map_from_hidden_space_sample = LoRALinear(hidden_space_dimension, n_neurons_output, config['rank'])
+                map_from_hidden_space_sample = LoRALinear(hidden_space_dimension, n_neurons_output, config['rank'], use_spectral_norm = config['use_spectral_norm'])
 
             self.ff_layer = nn.Sequential(
                 map_from_hidden_space_sample,

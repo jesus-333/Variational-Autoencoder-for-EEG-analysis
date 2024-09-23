@@ -1,4 +1,4 @@
-batch_size = 30
+batch_size = 15
 lr = 0.01
 epochs = 20
 use_scheduler = true
@@ -7,7 +7,7 @@ optimizer_weight_decay = 0.01
 alpha = 1
 beta = 1
 gamma = 1
-recon_loss_type = 1
+recon_loss_type = 2
 edge_samples_ignored = 0
 gamma_dtw = 1
 device = "cuda"

@@ -105,8 +105,9 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
         use_classifier = False,
-        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer), 3 (feed forward with LoRA). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
-        rank = 8, # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
+        parameters_map_type = 0,    # 0 (convolution), 1 (feed forward layer), 3 (feed forward with LoRA). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
+        rank = 8,                   # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
+        use_spectral_norm = False,  # If True and parameters_map_type is equal to 1 or 2, it applies spectral normalization to feedforward layers.
         use_activation_in_sampling = True,
         sampling_activation = 'elu',
     )
@@ -144,7 +145,8 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
         convert_logvar_to_var = False,      # Ignore.
         hidden_space_dimension_list = [32, 128, 512],   # Important only if parameters_map_type = 1. Ignore otherwise.
         parameters_map_type = parameters_map_type,      # More info under this function definition.
-        rank = 16,
+        rank = 16,                          # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
+        use_spectral_norm = False,          # If True and parameters_map_type is equal to 1 or 2, it applies spectral normalization to feedforward layers.
         use_classifier = False,             # Ignore. If True add a classifier to hvEEGNet.
     )
 

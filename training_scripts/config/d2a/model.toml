@@ -4,18 +4,19 @@ type_decoder = 0        			# Decide if use upsample (0) or transpose convolution
 type_vae = 0                       # 0 = normal VAE, 1 = conditional VAE (not implemented). Keep to 0
 n_classes = 4                      # Used if there is a classifier. Ignore for hierarchical VAE.
 use_h_in_decoder = false           # Ignore.
-use_activation_in_sampling = true  # Ignore.
+use_activation_in_sampling = false  # Ignore.
 sampling_activation = 'elu'        # Ignore.
 convert_logvar_to_var = false      # Ignore.
 hidden_space_dimension_list = [32, 128, 512]   # Important only if parameters_map_type = 1. Ignore otherwise.
 parameters_map_type = 2			   # 0 convolution, 1 feed forward, 2 feedforward with LoRA
-rank = 16
+rank = 16                          # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
+use_spectral_norm = true           # If True and parameters_map_type is equal to 1 or 2, it applies spectral normalization to feedforward layers.
 use_classifier = false             # Ignore. If True add a classifier to hvEEGNet.
-input_size = []						# Size of the 4D tensor that the model received in input. Usually I compute the value directly inside the training script and then update the dictionary
+input_size = []					   # Size of the 4D tensor that the model received in input. Usually I compute the value directly inside the training script and then update the dictionary
 
 [encoder_config]
 c_kernel_1 = [ 1, 128]
-c_kernel_2 = [ 14, 1]
+c_kernel_2 = [ 22, 1]
 c_kernel_3 = [ 1, 32]
 filter_1 = 4
 filter_2 = 8

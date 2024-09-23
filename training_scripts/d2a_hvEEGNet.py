@@ -40,4 +40,4 @@ train_config = toml.load(path_traing_config)
 check_config.check_train_config(train_config)
 
 # Train the model
-# model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)
+model = wt.train_wandb_V2('hvEEGNet_shallow', train_config, model_config, train_dataset, validation_dataset)
