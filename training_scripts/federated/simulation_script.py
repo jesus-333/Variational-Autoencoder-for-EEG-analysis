@@ -52,7 +52,7 @@ for i in range(len(subj_list)) :
 
     # Save train config
     train_config = toml.load(path_train_config)
-    train_config['clint_id'] = 'S{}'.format(subj)
+    train_config['client_id'] = 'S{}'.format(subj)
     train_config_list.append(train_config)
 
     # Get dataset

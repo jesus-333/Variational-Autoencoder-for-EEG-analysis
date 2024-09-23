@@ -50,7 +50,7 @@ class weighted_sum_tensor(nn.Module):
     def __init__(self, depth_x1 : int, depth_x2 : int, depth_output):
         """
         Implement a 1 x 1 convolution that mix togheter two tensors. The convolution works along the depth dimension.
-        Sinche the size of the kernel is (1 x 1) this operation is equal to a weighted sum between the features maps, with the weighted learned during the training
+        Sinche the size of the kernel is (1 x 1) this operation is equal to a weighted sum between the features maps, with the weights learned during the training
         """
         super().__init__()
 
@@ -60,6 +60,25 @@ class weighted_sum_tensor(nn.Module):
         x = torch.cat([x1, x2], dim = 1)
         x = self.mix(x)
         return x
+
+class LoRALinear(nn.Module):
+    def __init__(self, in_dim: int, out_dim: int, rank: int, alpha : float = -1):
+        # These are the new LoRA params. In general rank << in_dim, out_dim
+        self.lora_a = nn.Linear(in_dim, rank, bias = False)
+        self.lora_b = nn.Linear(rank, out_dim, bias = False)
+
+        # Rank and alpha are commonly-tuned hyperparameters
+        self.rank = rank
+        self.alpha = alpha if alpha > 0 else rank
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # lora_a projects inputs down to the much smaller self.rank,
+        # then lora_b projects back up to the output dimension
+        lora_out = self.lora_b(self.lora_a(x))
+
+        # Finally, scale by the alpha parameter (normalized by rank)
+        # and add to the original model's outputs
+        return (self.alpha / self.rank) * lora_out
 
 class map_to_distribution_parameters_with_convolution(nn.Module):
     def __init__(self, depth : int, use_activation : bool = False, activation : str = 'elu'):
@@ -103,6 +122,28 @@ class map_to_distribution_parameters_with_vector(nn.Module):
     def forward(self, x):
         return self.map_mu(x), self.map_sigma(x)
 
+class map_to_distribution_parameters_with_vector_LoRA(nn.Module):
+    def __init__(self, hidden_space_dimension : int, input_shape, rank : int, use_activation : bool = False, activation : str = 'elu'):
+        """
+        Work as map_to_distribution_parameters_with_vector but use the basic idea behind LoRA to reduce the number of wieghts in the linear layer
+        """
+        super().__init__()
+
+        n_neurons_input = input_shape[1] * input_shape[2] * input_shape[3]
+
+        self.map_mu = nn.Sequential(
+            get_activation(activation) if use_activation else nn.Identity(),
+            LoRALinear(n_neurons_input, hidden_space_dimension, rank)
+        )
+
+        self.map_sigma = nn.Sequential(
+            get_activation(activation) if use_activation else nn.Identity(),
+            LoRALinear(n_neurons_input, hidden_space_dimension, rank)
+        )
+
+    def forward(self, x):
+        return self.map_mu(x), self.map_sigma(x)
+
 
 class sample_layer(nn.Module):
     def __init__(self, input_shape, config : dict, hidden_space_dimension : int = -1):
@@ -121,16 +162,33 @@ class sample_layer(nn.Module):
             self.parameters_map = map_to_distribution_parameters_with_convolution(depth = input_shape[1],
                                                                                use_activation = config['use_activation_in_sampling'], 
                                                                                activation = config['sampling_activation'])
-        elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
-            self.parameters_map = map_to_distribution_parameters_with_vector(hidden_space_dimension = hidden_space_dimension,
-                                                                          input_shape = input_shape,
-                                                                          use_activation = config['use_activation_in_sampling'], 
-                                                                          activation = config['sampling_activation'])
-            n_neurons_input = hidden_space_dimension
+        elif self.parameters_map_type == 1 or self.parameters_map_type == 2: # Feedforward (i.e. vector latent space)(1 without LoRA, 2 with LoRA)
+            # Used to map from the latent space sample to the tensor that will be used as input of the decoder
             n_neurons_output = input_shape[1] * input_shape[2] * input_shape[3]
+
+            if self.parameters_map_type == 1 : # Feedforward layer
+                # Map from encoder output to latent space
+                self.parameters_map = map_to_distribution_parameters_with_vector(hidden_space_dimension = hidden_space_dimension,
+                                                                              input_shape = input_shape,
+                                                                              use_activation = config['use_activation_in_sampling'], 
+                                                                              activation = config['sampling_activation'])
+
+                # Map from latent space sample to decoder input
+                map_from_hidden_space_sample = nn.Linear(hidden_space_dimension, n_neurons_output)
+
+            elif self.parameters_map_type == 2 : # Feedforward layer with LoRA
+                # Map from encoder output to latent space
+                self.parameters_map = map_to_distribution_parameters_with_vector_LoRA(hidden_space_dimension = hidden_space_dimension,
+                                                                                      input_shape = input_shape,
+                                                                                      rank = config['rank'],
+                                                                                      use_activation = config['use_activation_in_sampling'], 
+                                                                                      activation = config['sampling_activation'])
             
+                # Map from latent space sample to decoder input
+                map_from_hidden_space_sample = LoRALinear(hidden_space_dimension, n_neurons_output, config['rank'])
+
             self.ff_layer = nn.Sequential(
-                nn.Linear(n_neurons_input, n_neurons_output),
+                map_from_hidden_space_sample,
                 get_activation(config['sampling_activation']) if config['use_activation_in_sampling'] else nn.Identity(),
             )
 
@@ -148,11 +206,11 @@ class sample_layer(nn.Module):
 
         if self.parameters_map_type == 0: # Convolution
             x = z
-        elif self.parameters_map_type == 1: # Feedforward (i.e. vector latent space)
+        elif self.parameters_map_type == 1 or self.parameters_map_type == 2: # Feedforward (i.e. vector latent space)
             x = self.ff_layer(z)
             x = x.reshape(self.input_shape)
         else:
-            raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
+            raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector) or 2 (Feedforward-vector with LoRA)")
 
         return x, mean, log_var
 
@@ -166,9 +224,10 @@ class sample_layer(nn.Module):
 
         z = reparametrize(mu, log_var)
 
-        if return_as_tensor and self.parameters_map_type == 1: 
+        if return_as_tensor and (self.parameters_map_type == 1 or self.parameters_map_type == 2): 
             return self.ff_layer(z).reshape(self.input_shape)
-        else: return z
+        else : 
+            return z
 
 
 def reparametrize(mu, log_var):

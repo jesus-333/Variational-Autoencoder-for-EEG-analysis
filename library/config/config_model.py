@@ -105,7 +105,8 @@ def get_config_vEEGNet(C : int, T : int, hidden_space : int, type_encoder : int,
         type_vae = 0, # 0 = normal VAE, 1 = conditional VAE
         n_classes = 4,
         use_classifier = False,
-        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
+        parameters_map_type = 0, # 0 (convolution), 1 (feed forward layer), 3 (feed forward with LoRA). This parameter specify if use a convolution to create the mean and variance variables of the latent hidden_space
+        rank = 8, # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
         use_activation_in_sampling = True,
         sampling_activation = 'elu',
     )
