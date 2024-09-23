@@ -12,6 +12,7 @@ import torch
 from torch import nn
 
 from . import support_function
+from ..import check_config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Network declaration
@@ -29,6 +30,8 @@ class EEGNet(nn.Module):
         """
 
         super().__init__()
+
+        check_config.check_model_config_EEGNet(config)
         
         use_bias = config['use_bias']
         D = config['D']

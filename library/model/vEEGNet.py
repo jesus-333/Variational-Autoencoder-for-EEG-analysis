@@ -44,8 +44,11 @@ class vEEGNet(nn.Module):
         self.sample_layer = support_function.sample_layer(decoder_ouput_shape, config, config['hidden_space'])
         self.parameters_map_type = config['parameters_map_type']
 
-        if self.parameters_map_type == 0: self.hidden_space = n_input_neurons
-        elif self.parameters_map_type == 1: self.hidden_space = config['hidden_space'] # Note that in this case the variable is not used and is put here only as a placehoder to avoid error with old code
+        if self.parameters_map_type == 0 : 
+            self.hidden_space = n_input_neurons
+        elif self.parameters_map_type == 1 or self.parameters_map_type == 2: 
+            # Note that in this case the variable is not used and is put here only as a placehoder to avoid error with old code
+            self.hidden_space = config['hidden_space'] 
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

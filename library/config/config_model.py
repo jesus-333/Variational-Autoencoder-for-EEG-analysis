@@ -144,6 +144,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
         convert_logvar_to_var = False,      # Ignore.
         hidden_space_dimension_list = [32, 128, 512],   # Important only if parameters_map_type = 1. Ignore otherwise.
         parameters_map_type = parameters_map_type,      # More info under this function definition.
+        rank = 16,
         use_classifier = False,             # Ignore. If True add a classifier to hvEEGNet.
     )
 

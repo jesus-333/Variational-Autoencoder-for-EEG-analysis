@@ -14,6 +14,7 @@ import torch
 
 # Custom functions
 from . import train_generic
+from .. import check_config
 
 # Config files
 from ..config import config_model as cm
@@ -73,6 +74,9 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
 
     @return: the trained model.
     """
+    
+    if 'hvEEGNet' in model_name : check_config.check_model_config_hvEEGNet(model_config)
+    check_config.check_train_config(train_config)
 
     notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
     name = train_config['name_training_run'] if 'name_training_run' in train_config else None

@@ -8,24 +8,25 @@ use_activation_in_sampling = true  # Ignore.
 sampling_activation = 'elu'        # Ignore.
 convert_logvar_to_var = false      # Ignore.
 hidden_space_dimension_list = [32, 128, 512]   # Important only if parameters_map_type = 1. Ignore otherwise.
-parameters_map_type = 3			   # 0 convolution, 1 feed forward, 2 feedforward with LoRA
+parameters_map_type = 2			   # 0 convolution, 1 feed forward, 2 feedforward with LoRA
 rank = 16
 use_classifier = false             # Ignore. If True add a classifier to hvEEGNet.
+input_size = []						# Size of the 4D tensor that the model received in input. Usually I compute the value directly inside the training script and then update the dictionary
 
 [encoder_config]
 c_kernel_1 = [ 1, 128]
 c_kernel_2 = [ 14, 1]
 c_kernel_3 = [ 1, 32]
-filter_1 = 8
-filter_2 = 16
+filter_1 = 4
+filter_2 = 8
 p_kernel_1 = -1
 p_kernel_2 = [ 1, 10,]
-C = 14
-T = 1250
+C = 22
+T = 1000
 D = 2
 activation = "elu"
 use_bias = false
 prob_dropout = 0.5
 use_dropout_2d = true
-flatten_output = true
+flatten_output = false
 print_var = false

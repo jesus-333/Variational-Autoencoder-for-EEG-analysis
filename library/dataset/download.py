@@ -141,8 +141,8 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
 
         # Select only the data channels
         if 'BNCI2014_001' in str(type(dataset)): # Dataset 2a BCI Competition IV
-            if 'channels_list' in config: idx_ch = get_idx_ch(ch_list, config)
-            else: idx_ch = np.arange(22)
+            if 'channels_list' in config and len(config['channels_list']) > 0 : idx_ch = get_idx_ch(ch_list, config)
+            else : idx_ch = np.arange(22)
             
             trials_matrix = trials_matrix[:, idx_ch, :]
             ch_list = ch_list[idx_ch]

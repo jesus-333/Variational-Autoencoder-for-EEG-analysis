@@ -63,6 +63,8 @@ class weighted_sum_tensor(nn.Module):
 
 class LoRALinear(nn.Module):
     def __init__(self, in_dim: int, out_dim: int, rank: int, alpha : float = -1):
+        super().__init__()
+
         # These are the new LoRA params. In general rank << in_dim, out_dim
         self.lora_a = nn.Linear(in_dim, rank, bias = False)
         self.lora_b = nn.Linear(rank, out_dim, bias = False)
@@ -147,13 +149,13 @@ class map_to_distribution_parameters_with_vector_LoRA(nn.Module):
 
 class sample_layer(nn.Module):
     def __init__(self, input_shape, config : dict, hidden_space_dimension : int = -1):
-        super().__init__()
         """
         PyTorch module used to implement the reparametrization trick and the sampling from the laten space in the hierarchical VAE (hVAE)
         input_shape = shape of the input tensor
         config = dictionary with some parameters
         hidden_space_dimension = int with the dimension of the laten/hidden space. Used only if we have a vector as hidden variable
         """
+        super().__init__()
 
         self.parameters_map_type = config['parameters_map_type']
         self.input_shape = list(input_shape)
@@ -164,6 +166,7 @@ class sample_layer(nn.Module):
                                                                                activation = config['sampling_activation'])
         elif self.parameters_map_type == 1 or self.parameters_map_type == 2: # Feedforward (i.e. vector latent space)(1 without LoRA, 2 with LoRA)
             # Used to map from the latent space sample to the tensor that will be used as input of the decoder
+            # print(input_shape)
             n_neurons_output = input_shape[1] * input_shape[2] * input_shape[3]
 
             if self.parameters_map_type == 1 : # Feedforward layer
@@ -194,10 +197,10 @@ class sample_layer(nn.Module):
 
             self.input_shape[0] = -1
         else:
-            raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector)")
+            raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector) or 2 (Feedforward-vector with Lora). Curent value {}".format(self.parameters_map_type))
 
     def forward(self, x):
-        if self.parameters_map_type == 1: # Feedforward
+        if self.parameters_map_type == 1 or self.parameters_map_type == 2: # Feedforward/Feedforward with LoRA
             x = x.flatten(1)
         
         # Get distribution parameters and "sample" through reparametrization trick

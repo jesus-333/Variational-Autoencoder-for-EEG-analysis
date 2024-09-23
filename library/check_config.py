@@ -28,7 +28,9 @@ def check_config_dataset(config) -> None :
         if 'resample_freq' not in config: raise ValueError('You must specify the resampling frequency (resample_freq)')
         if config['resample_freq'] <= 0: raise ValueError('The resample_freq must be a positive value')
 
-    if 'use_moabb_segmentation' not in config : config['use_moabb_segmentation'] = False
+    if 'use_moabb_segmentation' not in config : 
+        print('use_moabb_segmentation not specified in dataset config. Set to True')
+        config['use_moabb_segmentation'] = True
 
     if 'n_samples_to_use' not in config : config['n_samples_to_use'] = -1
 
@@ -39,6 +41,8 @@ def check_config_dataset(config) -> None :
     # if 'normalization_type not in config:
     #     config['normalization_type'] = 0
     #     print('normalization_type not specified. Set to 0 (no normalization)')
+
+    if config['train_trials_to_keep'] == [] : config['train_trials_to_keep'] = None
 
     if 'use_stft_representation' in config:
         if config['use_stft_representation'] and 'stft_parameters' not in config:
@@ -52,9 +56,9 @@ def check_train_config(train_config : dict, model_artifact = None) -> None :
     if 'epoch_to_save_model' not in train_config: train_config['epoch_to_save_model'] = 1
        
     # Check if wandb is used during training
-    if 'wandb_training' not in train_config: train_config['wandb_training'] = False
-    if train_config['wandb_training'] is True and model_artifact is None :
-        raise ValueError("If you want to train the model and load the data on wandb you must also pass an artifact to save the network")
+    if 'wandb_training' not in train_config : train_config['wandb_training'] = False
+    # if train_config['wandb_training'] is True and model_artifact is None :
+    #     raise ValueError("If you want to train the model and load the data on wandb you must also pass an artifact to save the network")
     
     # Path where save the network during training
     if 'path_to_save_model' not in train_config:
@@ -74,20 +78,35 @@ def check_train_config(train_config : dict, model_artifact = None) -> None :
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Check model config
-def check_model_config_hvEEGNet(model_config : dict) -> None:
+
+def check_model_config_EEGNet(model_config : dict) -> None : 
     # In EEGNet class to skip the pooling layer the values of p_kernel_1/p_kernel_2 must be set to None
     # But toml format not support None/nill values. So for the pool kernel I used the value -1 inside the toml file
     # Here, if I find a -1 in p_kernel_1/p_kernel_2, I change the value to None
-    if model_config['encoder_config']['p_kernel_1'] == -1 : model_config['encoder_config']['p_kernel_1'] = None
-    if model_config['encoder_config']['p_kernel_2'] == -1 : model_config['encoder_config']['p_kernel_2'] = None
-    
+    if model_config['p_kernel_1'] == -1 : 
+        model_config['p_kernel_1'] = None
+        print("Find invalid value for p_kernel_1. Set to None")
+    if model_config['p_kernel_2'] == -1 : 
+        model_config['p_kernel_2'] = None
+        print("Find invalid value for p_kernel_2. Set to None")
+
     # Toml load list of mulitple element as python list
     # Some of this parametersa are used as input of Torch layer that require tuple and not list
     # So I convert each list in a tuple 
     key_list = ['c_kernel_1', 'c_kernel_2', 'c_kernel_3', 'p_kernel_1', 'p_kernel_2'] 
     for key in key_list :
-        if model_config['encoder_config'][key] is not None :
-            model_config['encoder_config'][key] = tuple(model_config['encoder_config'][key])
+        if model_config[key] is not None :
+            model_config[key] = tuple(model_config[key])
+
+def check_model_config_hvEEGNet(model_config : dict) -> None:
+    check_model_config_EEGNet(model_config['encoder_config'])   
+
+    if model_config['encoder_config']['flatten_output'] : 
+        print("Automatically set flatten_output to False. For hvEEGNet flatten_output must be set to False.")
+        model_config['encoder_config']['flatten_output'] = False
+
+    if model_config['parameters_map_type'] < 0 or model_config['parameters_map_type'] > 3 :
+        raise ValueError("Invalid value for parameters_map_type. Value must be between 0 and 3. Current value is {}".format(model_config['parameters_map_type']))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
