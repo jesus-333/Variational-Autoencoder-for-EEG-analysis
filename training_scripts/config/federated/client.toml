@@ -1,7 +1,7 @@
 # Training settings
 batch_size = 5
 lr = 1e-2                          # Learning rate (lr)
-epochs = 5                        # Number of epochs to train the model
+epochs = 10                         # Number of epochs to train the model
 use_scheduler = true               # Use the lr scheduler
 lr_decay_rate = 0.999              # Parameter of the lr exponential scheduler
 optimizer_weight_decay = 1e-2      # Weight decay of the optimizer
@@ -16,7 +16,7 @@ gamma_dtw = 1                      # Hyperparameter of the SDTW. Control the ste
 epoch_to_save_model = 5                    # How often save the model weights (e.g. 5 means that the weights are saved every 5 epochs)
 path_to_save_model = 'TMP_Folder'          # Folder where the weights of the model will be saved during training on the CLIENT DEVICE
 use_classifier = false                     # Ignore. It is used only if the model has a classifier. In this way the code know that during the training it also need to compute the classification error
-measure_metrics_during_training = true     # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
+measure_metrics_during_training = false    # Ignore. If true measuere accuracy and other metrics during the training. Works only if the model has a classifier
 print_var = true
 
 # Federated parameters used by client
