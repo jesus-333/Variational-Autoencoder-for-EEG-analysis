@@ -104,7 +104,7 @@ class EEGNet(nn.Module):
 
     def debug_shape(self, input_size):
         """
-        Method that create a fake input and pass it through the network, showing after each pass the shape
+        Method that create a fake input and pass it through the network, showing after each step the shape
         """
 
         print("Shape tracking across EEGNet")

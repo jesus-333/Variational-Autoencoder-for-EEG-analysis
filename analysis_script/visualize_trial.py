@@ -142,22 +142,22 @@ else:
         fig_time.tight_layout()
         fig_time.show()
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Plot in frequency domain
 
-        ax_freq.plot(f, x_psd, 
+        ax_freq.plot(f, x_psd,
                      label = "trial {} - ch {} - {} movement".format(idx_trials_saved[i], label_to_ch[label_trials_saved[i]], label_dict[label_trials_saved[i]])
                      )
         ax_freq.set_xlabel("Frequency [Hz]")
         ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]")
         ax_freq.set_xlim([0, 50])
         ax_freq.legend()
-        ax_freq.grid(True) 
-
+        ax_freq.grid(True)
+        
         fig_freq.tight_layout()
         fig_freq.show()
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # Save plots
 
         if plot_config['save_fig']:

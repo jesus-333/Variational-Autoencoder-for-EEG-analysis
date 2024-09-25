@@ -5,7 +5,7 @@
 Script with the function to train vEEGNet
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 # Python library
@@ -30,10 +30,10 @@ import pprint
 %load_ext autoreload
 %autoreload 2
 
-import train_vEEGNet 
+import train_vEEGNet
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def train_epoch(model, loss_function, optimizer, train_loader, train_config, log_dict = None):
     # Set the model in training mode

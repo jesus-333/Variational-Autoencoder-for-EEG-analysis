@@ -137,7 +137,7 @@ def get_config_hierarchical_vEEGNet(C : int, T : int, type_decoder : int = 0, pa
         type_encoder = 0,   # Ignore. (0 -> EEGNet, 1 -> MBEEGNet (to check implementation)).
         encoder_config = encoder_config,    # Parameter of the encoder. For more info check get_config_EEGNet. (also note that this parameters will be also used for the decoder).
         type_decoder = type_decoder,        # N.b. specified the architecture of decoder. More info under this function definition.
-        type_vae = 0,                       # 0 = normal VAE, 1 = conditional VAE (not implemented)
+        type_vae = 0,                       # 0 = normal VAE, 1 = conditional VAE (NOT IMPLEMENTED)
         n_classes = 4,                      # Used if there is a classifier. Ignore
         use_h_in_decoder = False,           # Ignore.
         use_activation_in_sampling = True,  # Ignore.

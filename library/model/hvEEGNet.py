@@ -1,8 +1,8 @@
 """
+Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarchical VAE)
+
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
-
-Implementation of the hierarchical vEEGNet (i.e. a EEGNet that work as a hierarchical VAE)
 """
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
