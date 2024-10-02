@@ -2,7 +2,7 @@
 Train hvEEGNet with the dataset BI2014a.
 
 Dataset info
-link moab
+http://moabb.neurotechx.com/docs/generated/moabb.datasets.BI2014a.html#moabb.datasets.BI2014a
 https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0162657
 """
 
@@ -59,8 +59,8 @@ data_test, labels_test, ch_list = download.get_BI2014a(dataset_config, 'test')
 data_train = np.expand_dims(data_train, 1)
 data_test = np.expand_dims(data_test, 1)
 
-# # For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
-# (The original signal is sampled at 250Hz for 5 seconds)
+# # For some reason the total number of samples is 513 instead of 512 (if no resample is used)
+# (The original signal is sampled at 512Hz for 1 second)
 # In this case to have a even number of samples the last one is removed
 if dataset_config['resample_data'] == False :
     data_train = data_train[:, :, :, 0:-1]

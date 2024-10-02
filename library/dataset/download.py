@@ -378,7 +378,7 @@ def get_BI2014a(config : dict, type_dataset : str) :
 
     # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
     # From the data this 2 channel are automatically removed by the paradigm.get_data() function
-    ch_list = get_dataset_channels(dataset)[2:] 
+    ch_list = get_dataset_channels(dataset)[0:-1] 
 
     return data, labels.squeeze(), ch_list
 

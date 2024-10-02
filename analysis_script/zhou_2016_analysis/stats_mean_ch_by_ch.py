@@ -15,12 +15,12 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3, 4]
-subj_list = [1]
+subj_list = [1, 2, 3]
+# subj_list = [1]
 
 plot_config = dict(
-    use_TkAgg_backend = True,
-    figsize = (12, 6),
+    use_TkAgg_backend = False,
+    figsize = (14, 8),
     bins = 200,
     save_fig = True,
 )
@@ -68,6 +68,7 @@ for i in range(len(subj_list)) :
     for ax in axs:
         ax.set_xlabel('Mean')
         ax.set_ylabel('Number of occurrences')
+        ax.grid(True)
 
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()
@@ -95,6 +96,7 @@ for i in range(len(subj_list)) :
     for ax in axs:
         ax.set_xlabel('Trial number')
         ax.set_ylabel('Average standard deviation per trial')
+        ax.grid(True)
     
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()

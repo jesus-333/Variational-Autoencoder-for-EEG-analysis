@@ -11,7 +11,8 @@ import torch
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
-from library.analysis import support
+from library.dataset import download, dataset_time
+from library.model import hvEEGNet
 
 from library import check_config
 
@@ -20,23 +21,23 @@ from library import check_config
 
 # N.b. Per ora il percorso dei pesi è hardcoded
 tot_epoch_training = 30
-epoch = 10
-subj = 3
-repetition = 2
+epoch = 30
+subj = 17 
 use_test_set = False
 
-t_min = 1
-t_max = 3
+t_min = 0
+t_max = 1
 
 compute_spectra_with_entire_signal = True
-nperseg = 500
+nperseg = 200
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
 plot_to_create = 30
 
+repetition = 5
 n_trial = 252
-channel = 'Cz'
+channel = 'F3'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
@@ -47,7 +48,7 @@ plot_config = dict(
     linewidth_reconstructed = 1.5,
     color_original = 'black',
     color_reconstructed = 'red',
-    add_title = False,
+    add_title = True,
     save_fig = True,
     # format_so_save = ['png', 'pdf', 'eps']
     format_so_save = ['png']
@@ -64,16 +65,36 @@ plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'left', 1 : 'right', 2 : 'foot'} # TODO CHECK
 
 # Get subject data and model
-dataset_config = toml.load('training_scripts/config/zhou2016/dataset.toml')
+dataset_config = toml.load('training_scripts/config/BI2014a/dataset.toml')
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
 dataset_config['subjects_list'] = [subj] 
-model_config = toml.load('training_scripts/config/zhou2016/model.toml')
+train_data, train_labels, ch_list = download.get_BI2014a(dataset_config, 'train')
+test_data, test_labels, ch_list = download.get_BI2014a(dataset_config, 'test')
+
+# Add extra dimension, necessary to work with Conv2d layer
+train_data = np.expand_dims(train_data, 1)
+test_data = np.expand_dims(test_data, 1)
+
+# # For some reason the total number of samples is 1251 instead of 1250 (if no resample is used)
+# (The original signal is sampled at 250Hz for 5 seconds)
+# In this case to have a even number of samples the last one is removed
+# Note also that the final signal has length 1000 samples (4s) because the activity is performed from 1s to 5s
+# You can change this by chaning the key trial_start and trials_end in dataset_time
+if dataset_config['resample_data'] == False :
+    train_data = train_data[:, :, :, 0:-1]
+    test_data = test_data[:, :, :, 0:-1]
+
+model_config = toml.load('training_scripts/config/BI2014a/model.toml')
+model_config['encoder_config']['C'] = train_data.shape[2]
+model_config['encoder_config']['T'] = train_data.shape[3] 
 check_config. check_model_config_hvEEGNet(model_config)
-train_dataset, _, test_dataset, model_hv = support.get_dataset_zhou2016_and_model(dataset_config, model_config, model_name = 'hvEEGNet_shallow')
+model_hv = hvEEGNet.hvEEGNet_shallow(model_config)
 
 # Decide if use the train or the test dataset
-if use_test_set : dataset = test_dataset
-else : dataset = train_dataset
+if use_test_set : 
+    dataset = dataset_time.EEG_Dataset(test_data, test_labels, ch_list)
+else : 
+    dataset = dataset_time.EEG_Dataset(train_data, train_labels, ch_list)
 
 for n_plot in range(plot_to_create):
 
@@ -81,18 +102,18 @@ for n_plot in range(plot_to_create):
     if rand_trial_sample:
         n_trial = np.random.randint(len(dataset))
         # repetition = np.random.randint(19) + 1
-        channel = np.random.choice(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
+        channel = np.random.choice(ch_list)
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
-    tmp_t = np.linspace(1, 5, x.shape[-1])
+    tmp_t = np.linspace(0, 1, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
     idx_ch = dataset.ch_list == channel
     label_name = label_dict[int(label)]
     
     # Load weight and reconstruction
-    path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+    path_weight = 'Saved Model/BI2014a/S{}_{}_epochs/model_{}.pth'.format(subj, tot_epoch_training, epoch) # TODO Eventulmente da modificare in futuro
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -157,7 +178,7 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/zhou2016/reconstruction/subj {}/".format(subj)
+        path_save = "Saved Results/BI2014a/reconstruction/subj {}/".format(subj)
 
         if use_test_set: path_save += '/test/'
         else: path_save += '/train/'

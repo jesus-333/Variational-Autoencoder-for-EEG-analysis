@@ -83,12 +83,15 @@ def check_model_config_EEGNet(model_config : dict) -> None :
     # In EEGNet class to skip the pooling layer the values of p_kernel_1/p_kernel_2 must be set to None
     # But toml format not support None/nill values. So for the pool kernel I used the value -1 inside the toml file
     # Here, if I find a -1 in p_kernel_1/p_kernel_2, I change the value to None
-    if model_config['p_kernel_1'] == -1 : 
-        model_config['p_kernel_1'] = None
-        print("Find invalid value for p_kernel_1. Set to None")
-    if model_config['p_kernel_2'] == -1 : 
-        model_config['p_kernel_2'] = None
-        print("Find invalid value for p_kernel_2. Set to None")
+    
+    if type(model_config['p_kernel_1']) is int : 
+        if model_config['p_kernel_1'] <= -1 : 
+            model_config['p_kernel_1'] = None
+            print("Find invalid value for p_kernel_1. Set to None")
+    if type(model_config['p_kernel_2']) is int : 
+        if model_config['p_kernel_2'] <= -1 : 
+            model_config['p_kernel_2'] = None
+            print("Find invalid value for p_kernel_2. Set to None")
 
     # Toml load list of mulitple element as python list
     # Some of this parametersa are used as input of Torch layer that require tuple and not list

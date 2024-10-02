@@ -14,12 +14,13 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3]
-subj_list = [1]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+subj_list = np.arange(10, 20)
+# subj_list = [1]
 
 plot_config = dict(
-    use_TkAgg_backend = True,
-    figsize = (12, 6),
+    use_TkAgg_backend = False,
+    figsize = (16, 8),
     bins = 400,
     xlim = [0, 200],
     use_log_scale_x_axis = False,
@@ -34,7 +35,7 @@ if plot_config['use_TkAgg_backend']:
 
 for i in range(len(subj_list)) :
     # Get subject
-    subj = subj_list[i]
+    subj = int(subj_list[i])
 
     # Get dataset
     dataset_config = cd.get_moabb_dataset_config([subj])
@@ -62,6 +63,7 @@ for i in range(len(subj_list)) :
     for ax in axs:
         ax.set_xlabel('Standard deviation')
         ax.set_ylabel('Number of occurrences')
+        ax.grid(True)
         if 'xlim' in plot_config : ax.set_xlim(plot_config['xlim'])
         if plot_config['use_log_scale_x_axis'] : ax.set_xscale('log')
         if plot_config['use_log_scale_y_axis'] : ax.set_yscale('log')
@@ -92,6 +94,7 @@ for i in range(len(subj_list)) :
     for ax in axs:
         ax.set_xlabel('Trial number')
         ax.set_ylabel('Average standard deviation per trial')
+        ax.grid(True)
     
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()
