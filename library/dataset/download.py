@@ -106,6 +106,10 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
         n_elements = len(info['run'].to_numpy())
         if type_dataset == 'train' : idx_type = np.arange(0, int(n_elements / 2))
         if type_dataset == 'test'  : idx_type = np.arange(int(n_elements / 2), n_elements)
+    elif 'Weibo2014' in name_dataset : # Weibo2014 
+        n_elements = len(info['run'].to_numpy())
+        if type_dataset == 'train' : idx_type = np.arange(0, int(n_elements / 2))
+        if type_dataset == 'test'  : idx_type = np.arange(int(n_elements / 2), n_elements)
     else :
         raise ValueError('Dataset not supported')
 
@@ -331,6 +335,42 @@ def get_Zhoug2016(config : dict, type_dataset : str) :
     
     # Select the dataset
     dataset = mb.Zhou2016()
+
+    # Select the paradigm (i.e. the object to download the dataset)
+    paradigm = mp.MotorImagery()
+    paradigm.tmin = config['trial_start']
+    paradigm.tmax = config['trial_end']
+    
+    data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
+    
+    # Select channels and convert labels
+    labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
+
+    # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
+    # From the data this 2 channel are automatically removed by the paradigm.get_data() function
+    ch_list = get_dataset_channels(dataset)[2:] 
+
+    return data, labels.squeeze(), ch_list
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Weibo2014
+
+def get_Weibo2014(config : dict, type_dataset : str) :
+    """
+    Throuhg moabb, get the dataset preseneted by Zhou et al. 2016 (https://doi.org/10.1371/journal.pone.0162657)
+
+    @param config : (dict) Dictionary with the config for the dataset
+    @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
+
+    @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
+    @retunr label : ...
+    @return ch_list : (list) List with the name of the channels
+    """
+    check_config.check_config_dataset(config)
+    mne.set_log_level(False)
+    
+    # Select the dataset
+    dataset = mb.Weibo2014()
 
     # Select the paradigm (i.e. the object to download the dataset)
     paradigm = mp.MotorImagery()
