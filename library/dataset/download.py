@@ -374,8 +374,11 @@ def get_Weibo2014(config : dict, type_dataset : str) :
 
     # Select the paradigm (i.e. the object to download the dataset)
     paradigm = mp.MotorImagery()
-    paradigm.tmin = config['trial_start']
-    paradigm.tmax = config['trial_end']
+    if config['trial_start'] > 0 and config['trial_end'] > config['trial_end'] :
+        paradigm.tmin = config['trial_start']
+        paradigm.tmax = config['trial_end']
+    else :
+        raise ValueError("")
     
     data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     

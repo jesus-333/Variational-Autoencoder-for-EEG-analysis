@@ -34,6 +34,13 @@ def check_config_dataset(config) -> None :
 
     if 'n_samples_to_use' not in config : config['n_samples_to_use'] = -1
 
+    if 'trial_start' not in config or 'trial_end' not in config :
+        config['trial_start'] = config['trial_end'] = -1
+        print('trial_start and trial_end not specified. Set to default values')
+
+    if config['trial_start'] > 0 and config['trial_end'] > config['trial_end'] :
+        raise ValueError("trial_end must be higher than trial_end. Current values:\ntrial_stard : {}\ntrial_end : {}".format(config['trial_start'], config['trial_end']))
+
     # if config['use_moabb_segmentation']:
     #     config['use_moabb_segmentation'] = False
     #     print('use_moabb_segmentation not specified. Set to False. Ignore if you are not using moabb')

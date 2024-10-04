@@ -2,9 +2,12 @@
 For the subject in subject_list compute the std of each channel of each trials and plot them
 """
 
+# TODO Check and complete
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Import
 
+import toml
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -14,19 +17,17 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = np.arange(20, 60)
-# subj_list = [1]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+subj_list = [4]
 
 plot_config = dict(
     use_TkAgg_backend = False,
-    figsize = (16, 8),
-    bins = 300,
-    xlim = [0, 200],
-    use_log_scale_x_axis = False,
-    use_log_scale_y_axis = False,
+    figsize = (14, 8),
+    bins = 200,
     save_fig = True,
 )
+
+path_dataset_config = 'training_scripts/config/weibo2014/dataset.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -35,13 +36,14 @@ if plot_config['use_TkAgg_backend']:
 
 for i in range(len(subj_list)) :
     # Get subject
-    subj = int(subj_list[i])
+    subj = subj_list[i]
 
     # Get dataset
-    dataset_config = cd.get_moabb_dataset_config([subj])
+    dataset_config = toml.load(path_dataset_config)
+    dataset_config['subjects_list'] = [subj]
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_BI2014a(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_BI2014a(dataset_config, 'test')
+    train_data, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
+    test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel
@@ -64,16 +66,13 @@ for i in range(len(subj_list)) :
         ax.set_xlabel('Standard deviation')
         ax.set_ylabel('Number of occurrences')
         ax.grid(True)
-        if 'xlim' in plot_config : ax.set_xlim(plot_config['xlim'])
-        if plot_config['use_log_scale_x_axis'] : ax.set_xscale('log')
-        if plot_config['use_log_scale_y_axis'] : ax.set_yscale('log')
 
     fig.suptitle('Subject {}'.format(subj))
     fig.tight_layout()
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/BI2014a/stats_ch/std/"
+        path_save = "Saved Results/zhou2016/stats_ch/std/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.png'.format(subj), format = 'png')
         # fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.pdf'.format(subj), format = 'pdf')
@@ -101,7 +100,7 @@ for i in range(len(subj_list)) :
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/BI2014a/stats_ch/std/"
+        path_save = "Saved Results/zhou2016/stats_ch/std/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'avg_per_trial_S{}.png'.format(subj), format = 'png')
         # fig.savefig(path_save + 'avg_per_trial_S{}.pdf'.format(subj), format = 'pdf')

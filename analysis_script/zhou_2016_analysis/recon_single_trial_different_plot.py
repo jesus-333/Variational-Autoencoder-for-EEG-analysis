@@ -20,9 +20,10 @@ from library import check_config
 
 # N.b. Per ora il percorso dei pesi è hardcoded
 tot_epoch_training = 30
-epoch = 10
-subj = 3
-repetition = 2
+epoch = 30
+subj = 2
+repetition = 1
+use_sdtw_divergence = True
 use_test_set = False
 
 t_min = 1
@@ -40,8 +41,8 @@ channel = 'Cz'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
-    figsize_time = (10, 5),
-    figsize_freq = (10, 5),
+    figsize_time = (14, 7),
+    figsize_freq = (14, 7),
     fontsize = 18,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
@@ -92,7 +93,10 @@ for n_plot in range(plot_to_create):
     label_name = label_dict[int(label)]
     
     # Load weight and reconstruction
-    path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+    if use_sdtw_divergence : 
+        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+    else : 
+        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
