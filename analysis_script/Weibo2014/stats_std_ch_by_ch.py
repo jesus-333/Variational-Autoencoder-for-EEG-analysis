@@ -18,7 +18,7 @@ from library.config import config_dataset as cd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-subj_list = [4]
+# subj_list = [4]
 
 plot_config = dict(
     use_TkAgg_backend = False,
@@ -42,8 +42,8 @@ for i in range(len(subj_list)) :
     dataset_config = toml.load(path_dataset_config)
     dataset_config['subjects_list'] = [subj]
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+    train_data, labels_train, ch_list = download.get_Weibo2014(dataset_config, 'train')
+    test_data, test_labels, ch_list = download.get_Weibo2014(dataset_config, 'test')
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel
@@ -72,7 +72,7 @@ for i in range(len(subj_list)) :
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/zhou2016/stats_ch/std/"
+        path_save = "Saved Results/weibo2014/stats_ch/std/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.png'.format(subj), format = 'png')
         # fig.savefig(path_save + 'hist_std_ch_by_ch_S{}.pdf'.format(subj), format = 'pdf')
@@ -100,7 +100,7 @@ for i in range(len(subj_list)) :
     fig.show()
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/zhou2016/stats_ch/std/"
+        path_save = "Saved Results/weibo2014/stats_ch/std/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'avg_per_trial_S{}.png'.format(subj), format = 'png')
         # fig.savefig(path_save + 'avg_per_trial_S{}.pdf'.format(subj), format = 'pdf')

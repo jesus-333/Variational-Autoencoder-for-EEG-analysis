@@ -100,13 +100,9 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
             elif 'run_1' in run_of_each_trials : idx_type = run_of_each_trials == 'run_1'
             else : raise ValueError("Probably there is some problem with the wandb version")
 
-    elif 'BI2014a' in name_dataset : # BI2014a 
-        # In this dataset train and test are not indicated. So for now I take half of the dataset for training and the other half for test
+    elif 'BI2014a' in name_dataset or 'Weibo2014' in name_dataset : # BI2014a, Weibo2014
+        # In these datasets train and test are not indicated. So for now I take half of the dataset for training and the other half for test
         # TODO Implement a better division
-        n_elements = len(info['run'].to_numpy())
-        if type_dataset == 'train' : idx_type = np.arange(0, int(n_elements / 2))
-        if type_dataset == 'test'  : idx_type = np.arange(int(n_elements / 2), n_elements)
-    elif 'Weibo2014' in name_dataset : # Weibo2014 
         n_elements = len(info['run'].to_numpy())
         if type_dataset == 'train' : idx_type = np.arange(0, int(n_elements / 2))
         if type_dataset == 'test'  : idx_type = np.arange(int(n_elements / 2), n_elements)
@@ -377,16 +373,12 @@ def get_Weibo2014(config : dict, type_dataset : str) :
     if config['trial_start'] > 0 and config['trial_end'] > config['trial_end'] :
         paradigm.tmin = config['trial_start']
         paradigm.tmax = config['trial_end']
-    else :
-        raise ValueError("")
     
     data, raw_labels = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     
     # Select channels and convert labels
     labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
 
-    # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
-    # From the data this 2 channel are automatically removed by the paradigm.get_data() function
     ch_list = get_dataset_channels(dataset)[2:] 
 
     return data, labels.squeeze(), ch_list
@@ -506,15 +498,7 @@ def get_dataset_channels(dataset):
         ch_list = raw_data.ch_names
     elif 'RawEDF' in str(type(dataset)) :
         ch_list = dataset.ch_names
-    elif 'Zhou2016' in str(type(dataset)) :
-        raw_data = dataset.get_data(subjects = [1])[1]
-        if '0' in raw_data : raw_data = raw_data['0']['0']
-        elif 'session_0' in raw_data : raw_data = raw_data['session_0']['run_0']
-        else : raise ValueError('Probably there is some problem with the moabb version')
-       
-        ch_list = raw_data.ch_names
-
-    elif 'BI2014a' in str(type(dataset)) :
+    elif 'Zhou2016' in str(type(dataset)) or 'BI2014a' in str(type(dataset)) or 'Weibo2014' in str(type(dataset)):
         raw_data = dataset.get_data(subjects = [1])[1]
         if '0' in raw_data : raw_data = raw_data['0']['0']
         elif 'session_0' in raw_data : raw_data = raw_data['session_0']['run_0']
