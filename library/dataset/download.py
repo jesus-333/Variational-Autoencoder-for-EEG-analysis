@@ -130,7 +130,7 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
         idx_type = np.ones(len(info['run'].to_numpy())) == 0
         if type_dataset == 'train':
             for i in [0, 1, 2, 3, 4] : idx_type += info['run'].to_numpy() == str(i)
-        elif type_dataset == 'train':
+        elif type_dataset == 'test':
             for i in [5, 6, 7, 8, 9] : idx_type += info['run'].to_numpy() == str(i)
         elif type_dataset == 'full' : 
             idx_type = np.ones(len(info['run'].to_numpy())) == 1
@@ -434,6 +434,9 @@ def get_Ofner2017(config : dict, type_dataset : str) :
     # Get data, labels and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
+    # Rescale data (The original data are in the range 10^6-10^7)
+    data = data * (10 ** -6)
+
     # Remove from the channels list that the paradigm automatically removed
     ch_list = ch_list[0:-35]
 
@@ -460,7 +463,7 @@ def get_Lee2019_MI(config : dict, type_dataset : str) :
 
     # Select the dataset and paradigm (i.e. the object to download the dataset)
     dataset = mb.Lee2019_MI()
-    paradigm = mp.MotorImagery()
+    paradigm = mp.LeftRightImagery()
     
     # Get data, labels and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
@@ -590,6 +593,8 @@ def get_dataset_channels(dataset):
         ch_list = raw_data.ch_names
     elif 'Ofner2017' in str(type(dataset)) :
         ch_list = dataset.get_data(subjects = [1])[1]['1imagination']['0'].ch_names
+    elif 'Lee2019_MI' in str(type(dataset)) :
+        ch_list = dataset.get_data(subjects = [1])[1]['0']['1train'].ch_names
     else:
         raise ValueError("Function not implemented for this type of dataset")
 
