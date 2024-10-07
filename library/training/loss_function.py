@@ -70,6 +70,7 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
         x_r_ch = x_r[:, :, i, :].swapaxes(1, 2)
         # Note that the depth dimension has size 1 for EEG signal. So after selecting the channel x_ch will have size [B x D x T], with D = depth = 1
         # The sdtw want the length of the sequence in the dimension with the index 1 so I swap the depth dimension and the the T dimension
+        # With this operation I obtain element of shape [B x T x D]
         
         if soft_DTW_type == 1 : # Soft-DTW
             tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
@@ -79,7 +80,7 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)
             tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx + dtw_yy)
         elif soft_DTW_type == 3 : # Soft-DTW block-wise
-            tmp_recon_loss = block_sdtw(x, x_r, dtw_loss_function, config['block_size'])
+            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'])
         else :
             raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
         
@@ -93,8 +94,8 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
     """
     Instead of applying the dtw to the entire signal, this function applies it on block of size block_size.
 
-    @param x: (torch.tensor) First input tensor of shape B x 1 x C x T
-    @param x_r: (torch.tensor) Second input tensor of shape B x 1 x C x T
+    @param x: (torch.tensor) First input tensor of shape B x T x 1
+    @param x_r: (torch.tensor) Second input tensor of shape B x T x 1
     @param dtw_loss_function: (function) The dtw implementation to use. Actually during the training I use the one provided by https://github.com/Maghoumi/pytorch-softdtw-cuda. This parameter exist to allow the use of other implementation
     @param block_size: (int) Size of blocks into which to divide the signal.
 
@@ -107,16 +108,23 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
     while True :
         # Get indicies for the block
         idx_1 = int(i * block_size)
-        idx_2 = int((i + 1) * block_size) if int((i + 1) * block_size) < x.shape[3] else -1
+        idx_2 = int((i + 1) * block_size) if int((i + 1) * block_size) < x.shape[1] else -1
 
         # Get block of the signal
-        x_block = x[:, :, :, idx_1:idx_2]
-        x_r_block = x_r[:, :, :, idx_1:idx_2]
+        # Note that the order of the axis is different. Check the note in the compute_dtw_loss_along_channels function, at the beggining of the for cycle.
+        x_block = x[:, idx_1:idx_2, :]
+        x_r_block = x_r[:, idx_1:idx_2, :]
+        
+        # print("----------------------------------")
+        # print(x.shape)
+        # print(x_r.shape)
+        # print(x_block.shape)
+        # print(x_r_block.shape)
         
         # Compute dtw for the block
         block_loss = dtw_loss_function(x_block, x_r_block)
-        print(block_loss)
-        print(type(block_loss))
+        # print(block_loss)
+        # print(type(block_loss))
         tmp_recon_loss += block_loss
         
         # End the cylce at the last block

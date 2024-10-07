@@ -1,13 +1,14 @@
 batch_size = 30
 lr = 0.01
-epochs = 10
+epochs = 2
 use_scheduler = true
 lr_decay_rate = 0.999
 optimizer_weight_decay = 0.01
 alpha = 1
 beta = 1
 gamma = 1
-recon_loss_type = 1
+recon_loss_type = 3
+block_size = 512
 edge_samples_ignored = 0
 average_channels = false
 gamma_dtw = 1
