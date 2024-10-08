@@ -13,7 +13,7 @@ use_classifier = false             # Ignore. If True add a classifier to hvEEGNe
 
 [encoder_config]
 c_kernel_1 = [ 1, 512]
-c_kernel_2 = [ 64, 1]
+c_kernel_2 = [ 61, 1]
 c_kernel_3 = [ 1, 64]
 filter_1 = 8
 filter_2 = 16

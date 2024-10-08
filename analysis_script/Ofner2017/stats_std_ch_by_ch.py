@@ -18,7 +18,7 @@ from library.config import config_dataset as cd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-subj_list = [1]
+# subj_list = [1]
 
 plot_config = dict(
     use_TkAgg_backend = False,

@@ -19,11 +19,11 @@ from library import check_config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-subj = 1
+subj = 13
 
 id_machine = 'WSL_Jesus_Dell'
 notes = "Nothing in particular to report"
-debug = True
+debug = False
 
 path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
 path_model_config = 'training_scripts/config/Ofner2017/model.toml'
