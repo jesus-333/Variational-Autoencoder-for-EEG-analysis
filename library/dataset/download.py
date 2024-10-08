@@ -90,7 +90,8 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
 
     name_dataset = str(type(dataset))
     
-    if '2014_001' in name_dataset or '2014001' in name_dataset : # Dataset 2a BCI Competition IV
+    if '2014_001' in name_dataset or '2014001' in name_dataset  or \
+        'Schirrmeister2017' in name_dataset :
         if type_dataset == 'train':
             idx_type = info['session'].to_numpy() == '0train'
         elif type_dataset == 'test':
@@ -468,7 +469,23 @@ def get_Lee2019_MI(config : dict, type_dataset : str) :
     # Get data, labels and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
-    # Remove the last 5 channels, automatically removed from the data by the paradigm (EMG1, EMG2, EMG3, EMG4, Stim)
+    # Remove the last 5 channels, automatically removed from the data by the paradigm (EMG1, EMG2, EMG3, EMG4, STI 014)
+    ch_list = ch_list[0:-5]
+
+    return data, labels.squeeze(), ch_list
+
+def get_Schirrmeister2017(config : dict, type_dataset : str) :
+    """
+    Get the dataset presented by 
+    """
+
+    # Select the dataset and paradigm (i.e. the object to download the dataset)
+    dataset = mb.Schirrmeister2017()
+    paradigm = mp.MotorImagery()
+    
+    # Get data, labels and channels list
+    data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
+
     ch_list = ch_list
 
     return data, labels.squeeze(), ch_list
@@ -595,6 +612,8 @@ def get_dataset_channels(dataset):
         ch_list = dataset.get_data(subjects = [1])[1]['1imagination']['0'].ch_names
     elif 'Lee2019_MI' in str(type(dataset)) :
         ch_list = dataset.get_data(subjects = [1])[1]['0']['1train'].ch_names
+    elif 'Schirrmeister2017' in str(type(dataset)) :
+        ch_list = dataset.get_data(subjects = [1])[1]['0']['0train'].ch_names
     else:
         raise ValueError("Function not implemented for this type of dataset")
 

@@ -12,15 +12,15 @@ parameters_map_type = 0			   # Defined how to map the data inside the latent spa
 use_classifier = false             # Ignore. If True add a classifier to hvEEGNet.
 
 [encoder_config]
-c_kernel_1 = [ 1, 512]
-c_kernel_2 = [ 62, 1]
-c_kernel_3 = [ 1, 128]
+c_kernel_1 = [ 1, 256]
+c_kernel_2 = [ 128, 1]
+c_kernel_3 = [ 1, 64]
 filter_1 = 8
 filter_2 = 16
-p_kernel_1 = [ 1, 5,] 
-p_kernel_2 = [ 1, 10,]
-C = 62 
-T = 4000 
+p_kernel_1 = -1
+p_kernel_2 = [ 1, 8,]
+C = 28
+T = 2000
 D = 2
 activation = "elu"
 use_bias = false
