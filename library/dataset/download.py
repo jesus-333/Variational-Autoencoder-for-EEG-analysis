@@ -58,7 +58,7 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
 
     # Get the raw data
     raw_data, raw_labels, info = paradigm.get_data(dataset = dataset, subjects = config['subjects_list'])
-        
+
     # Select train/test data
     idx_type = get_idx_train_or_test(dataset, info, type_dataset)
     data = raw_data[idx_type]
@@ -90,13 +90,9 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
 
     name_dataset = str(type(dataset))
     
-    if '2014_001' in name_dataset or '2014001' in name_dataset  or \
-        'Schirrmeister2017' in name_dataset :
-        if type_dataset == 'train':
-            idx_type = info['session'].to_numpy() == '0train'
-        elif type_dataset == 'test':
-            idx_type = info['session'].to_numpy() == '1test'
-
+    if '2014_001' in name_dataset or '2014001' in name_dataset:
+        if   type_dataset == 'train': idx_type = info['session'].to_numpy() == '0train'
+        elif type_dataset == 'test' : idx_type = info['session'].to_numpy() == '1test'
     elif 'Zhou2016' in name_dataset : # Zhou2016
         # This list contains the id of each run for each trial
         run_of_each_trials = info['run'].to_numpy()
@@ -135,6 +131,9 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
             for i in [5, 6, 7, 8, 9] : idx_type += info['run'].to_numpy() == str(i)
         elif type_dataset == 'full' : 
             idx_type = np.ones(len(info['run'].to_numpy())) == 1
+    elif 'Schirrmeister2017' in name_dataset : # Schirrmeister2017 
+        if   type_dataset == 'train': idx_type = info['run'].to_numpy() == '0train'
+        elif type_dataset == 'test' : idx_type = info['run'].to_numpy() == '1test'
     elif 'BI2014a'   in name_dataset or \
          'Weibo2014' in name_dataset or \
          'Cho2017'   in name_dataset or \

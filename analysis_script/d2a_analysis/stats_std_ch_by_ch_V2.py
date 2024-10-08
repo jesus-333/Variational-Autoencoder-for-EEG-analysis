@@ -12,11 +12,12 @@ import matplotlib.pyplot as plt
 import os
 
 from library.dataset import download
+from library.analysis import support
 from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = [1, 2, 3]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 plot_config = dict(
     use_TkAgg_backend = False,
@@ -29,8 +30,6 @@ plot_config = dict(
     max_std_multiplier_plot = 1.5,
     save_fig = True,
 )
-
-path_dataset_config = 'training_scripts/config/Schirrmeister2017/dataset.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -83,7 +82,7 @@ def plot_function(std_ch, ch_list, label, plot_config) :
     fig.colorbar(img, cax = cbar_ax, cmap = plot_config['cmap'])
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/Schirrmeister2017/stats_ch/std/"
+        path_save = "Saved Results/d2a_analysis/stats_ch/std/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'avg_per_trial_S{}_{}_V2.png'.format(subj, label), format = 'png')
         # fig.savefig(path_save + 'avg_per_trial_S{}.pdf'.format(subj), format = 'pdf')
@@ -98,11 +97,14 @@ for i in range(len(subj_list)) :
     subj = subj_list[i]
 
     # Get dataset
-    dataset_config = toml.load(path_dataset_config)
-    dataset_config['subjects_list'] = [subj]
+    dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_Schirrmeister2017(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_Schirrmeister2017(dataset_config, 'test')
+    train_dataset, _, test_dataset, _ = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
+    ch_list = train_dataset.ch_list
+    
+    # Get data (in numpy array)
+    train_data = train_dataset.data.numpy().squeeze()
+    test_data = test_dataset.data.numpy().squeeze()
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel

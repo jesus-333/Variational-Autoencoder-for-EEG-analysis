@@ -18,12 +18,12 @@ from library.config import config_dataset as cd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-# subj_list = [1]
+subj_list = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 plot_config = dict(
     use_TkAgg_backend = False,
-    figsize = (14, 8),
-    bins = 200,
+    figsize = (20, 12),
+    bins = 400,
     save_fig = True,
 )
 
@@ -85,10 +85,12 @@ for i in range(len(subj_list)) :
     axs[0].plot(std_ch_train.mean(axis = 1), color = 'black')
     axs[0].fill_between(np.arange(std_ch_train.shape[0]), std_ch_train.mean(axis = 1) - std_ch_train.std(axis = 1), std_ch_train.mean(axis = 1) + std_ch_train.std(axis = 1), color = 'black', alpha = 0.2)
     axs[0].set_title('Train data')
+    axs[0].set_xlim([0, std_ch_train.shape[0]])
 
     axs[1].plot(std_ch_test.mean(axis = 1), color = 'black')
     axs[1].fill_between(np.arange(std_ch_test.shape[0]), std_ch_test.mean(axis = 1) - std_ch_test.std(axis = 1), std_ch_test.mean(axis = 1) + std_ch_test.std(axis = 1), color = 'black', alpha = 0.2)
     axs[1].set_title('Test data')
+    axs[1].set_xlim([0, std_ch_test.shape[0]])
 
     for ax in axs:
         ax.set_xlabel('Trial number')

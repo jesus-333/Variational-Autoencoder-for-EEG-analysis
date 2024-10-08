@@ -22,7 +22,7 @@ from library import check_config
 # N.b. Per ora il percorso dei pesi è hardcoded
 tot_epoch_training = 20
 epoch = 10
-subj = 13 
+subj = 5 
 repetition = 1
 use_test_set = False
 
@@ -43,7 +43,7 @@ channel = 'F3'
 plot_config = dict(
     figsize_time = (16, 8),
     figsize_freq = (16, 8),
-    rescale_minmax = True,
+    rescale_minmax = False,
     fontsize = 18,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
