@@ -17,8 +17,12 @@ from library.config import config_dataset as cd
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-subj_list = np.arange(54)
-subj_list = [1]
+# Subject OK : 1, 5, 42
+# Subjects with problem : 2, 3, 4, 6, 7
+# All other subjects not tested (Total subjects 54)
+
+subj_list = np.arange(54) + 1
+subj_list = [6]
 
 plot_config = dict(
     use_TkAgg_backend = False,
@@ -36,7 +40,7 @@ if plot_config['use_TkAgg_backend']:
 
 for i in range(len(subj_list)) :
     # Get subject
-    subj = subj_list[i]
+    subj = int(subj_list[i])
 
     # Get dataset
     dataset_config = toml.load(path_dataset_config)
