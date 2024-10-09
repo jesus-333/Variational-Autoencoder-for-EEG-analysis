@@ -32,11 +32,11 @@ path_model_config = 'training_scripts/config/Ofner2017/model.toml'
 path_traing_config = 'training_scripts/config/Ofner2017/training.toml'
 
 if train_with_test_data : 
-    id_machine += 'TEST_DATA'
+    id_machine += '_TEST_DATA'
     notes = "Trained with test data"
 else:
-    id_machine += 'TRAIN_DATA'
-    notes = "Trained with test data"
+    id_machine += '_TRAIN_DATA'
+    notes = "Trained with train data"
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 for i in range(len(subj_list)):
