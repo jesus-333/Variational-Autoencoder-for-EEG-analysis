@@ -22,19 +22,20 @@ from library import check_config
 # N.b. Per ora il percorso dei pesi è hardcoded
 tot_epoch_training = 20
 epoch = 10
-subj = 5 
+subj = 6 
 repetition = 1
-use_test_set = False
+trained_with_test_data = False
+use_test_set_for_reconstruction = False
 
 t_min = 0
 t_max = 1.5
 
 compute_spectra_with_entire_signal = True
-nperseg = 256
+nperseg = 512
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
-plot_to_create = 5
+plot_to_create = 2
 
 n_trial = 252
 channel = 'F3'
@@ -64,13 +65,7 @@ xticks_time = None
 
 plt.rcParams.update({'font.size': plot_config['fontsize']})
 label_dict = {0 : 'rest', 1 : 'right_elbow_extension', 2 : 'right_elbow_flexion', 3 : 'right_hand_close', 4 : 'right_hand_open', 5 : 'right_pronation', 6 : 'right_supination'} # TODO CHECK
-# Label  get the value 0
-# Label  get the value 1
-# Label  get the value 2
-# Label  get the value 3
-# Label  get the value 4
-# Label  get the value 5
-# Label  get the value 6
+
 # Get subject data and model
 if 'dataset_config' in locals():
     if subj != dataset_config['subjects_list'][0] :
@@ -109,7 +104,7 @@ check_config. check_model_config_hvEEGNet(model_config)
 model_hv = hvEEGNet.hvEEGNet_shallow(model_config)
 
 # Decide if use the train or the test dataset
-if use_test_set : 
+if use_test_set_for_reconstruction  : 
     dataset = dataset_time.EEG_Dataset(test_data, test_labels, ch_list)
 else : 
     dataset = dataset_time.EEG_Dataset(train_data, train_labels, ch_list)
@@ -131,8 +126,10 @@ for n_plot in range(plot_to_create):
     label_name = label_dict[int(label)]
     
     # Load weight and reconstruction
-    path_weight = 'Saved Model/Ofner2017/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
-    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+    if trained_with_test_data : path_weights = 'Saved Model/Ofner2017/trained_with_TEST_data/'
+    else : path_weights = 'Saved Model/Ofner2017/train_with_TRAIN_data/'
+    path_weights += 'S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+    model_hv.load_state_dict(torch.load(path_weights, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
     # Select channel and time samples
@@ -207,14 +204,14 @@ for n_plot in range(plot_to_create):
     if plot_config['save_fig']:
         path_save = "Saved Results/Ofner2017/reconstruction/subj {}/".format(subj)
 
-        if use_test_set: path_save += '/test/'
+        if use_test_set_for_reconstruction : path_save += '/test/'
         else: path_save += '/train/'
 
         os.makedirs(path_save, exist_ok = True)
         # path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
         path_save += "s{}_trial_{}_{}_rep_{}_epoch_{}".format(subj, n_trial + 1, channel, repetition, epoch)
         
-        if use_test_set: path_save += '_test_set'
+        if use_test_set_for_reconstruction : path_save += '_test_set'
         else: path_save += '_train_set'
         
         if plot_config['rescale_minmax'] : path_save += '_minmax'
