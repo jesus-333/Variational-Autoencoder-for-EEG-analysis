@@ -112,14 +112,32 @@ def extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters : 
                     parameters_for_distribution[distribution][parameter] = []
                 
                 # Save parameter
-                parameters_for_distribution[distribution][parameter].append(list_of_distributions_fit_parameters[j][distribution]) 
+                parameters_for_distribution[distribution][parameter].append(list_of_distributions_fit_parameters[j][distribution][parameter]) 
 
             # Save error
             error_for_distribution[distribution].append(list_of_distributions_fit_error[j][distribution])
 
+    return parameters_for_distribution, error_for_distribution
 
+parameters_for_distribution_train, error_for_distribution_train = extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters_train, list_of_distributions_fit_error_train)
+parameters_for_distribution_test, error_for_distribution_test = extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters_test, list_of_distributions_fit_error_test)
 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Create a single matrix to copy
 
+def convert_parameters_into_single_matrix(parameters_for_distribution : list) :
+    parameters_matrix = []
+
+    for i in range(len(distributions_list)) :
+        distribution = distributions_list[i]
+        
+        for parameter in parameters_for_distribution[distribution].keys() :
+            parameters_matrix.append(parameters_for_distribution[distribution][parameter])
+
+    return np.asarray(parameters_matrix)
+
+parameters_matrix_train = convert_parameters_into_single_matrix(parameters_for_distribution_train)
+parameters_matrix_test  = convert_parameters_into_single_matrix(parameters_for_distribution_test)
 
 
 
