@@ -112,11 +112,15 @@ def extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters : 
                     parameters_for_distribution[distribution][parameter] = []
                 
                 # Save parameter
-                parameters_for_distribution[distribution][parameter].append(list_of_distributions_fit_parameters[j][distribution]) 
+                parameters_for_distribution[distribution][parameter].append(list_of_distributions_fit_parameters[j][distribution][parameter]) 
 
             # Save error
             error_for_distribution[distribution].append(list_of_distributions_fit_error[j][distribution])
 
+    return parameters_for_distribution, error_for_distribution
+
+parameters_for_distribution_train, error_for_distribution_train = extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters_train, list_of_distributions_fit_error_train)
+parameters_for_distribution_test, error_for_distribution_test = extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters_test, list_of_distributions_fit_error_test)
 
 
 
