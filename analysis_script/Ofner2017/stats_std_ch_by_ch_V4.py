@@ -29,7 +29,6 @@ def merge_two_dicts(x, y):
 
 # Get the list of all distributions
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-subj_list = [1, 2]
 
 # Variables to store the distributions error for each subject
 list_of_distributions_fit_error_train = []
@@ -79,8 +78,8 @@ for i in range(len(subj_list)) :
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
         # Save error
-        list_of_distributions_fit_error_train[-1] = fitter_object_train.df_errors['sumsquare_error'][0]
-        list_of_distributions_fit_error_test[-1]  = fitter_object_test.df_errors['sumsquare_error'][0]
+        list_of_distributions_fit_error_train[-1][distribution] = fitter_object_train.df_errors['sumsquare_error'][0]
+        list_of_distributions_fit_error_test[-1][distribution] = fitter_object_test.df_errors['sumsquare_error'][0]
 
         # Save parameters
         list_of_distributions_fit_parameters_train[-1] = merge_two_dicts(list_of_distributions_fit_parameters_train[-1], fitter_object_train.get_best())
