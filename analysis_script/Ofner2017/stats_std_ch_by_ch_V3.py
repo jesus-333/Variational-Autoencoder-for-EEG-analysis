@@ -1,5 +1,6 @@
 """
-Fit a distribution for the channel std values
+Fit all possible distributions inside scipy on all channel std values of all the subjects.
+Then it rank them based on fit error.
 """
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -14,9 +15,6 @@ import matplotlib.pyplot as plt
 from library.dataset import download
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-distributions = ["genhyperbolic", "burr12", "burr", "norminvgauss", "mielke", "johnsonsu", "fisk", "lognorm", "skewnorm", "beta", "gamma", "norm"]
-# distributions = None
 
 path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
 
@@ -42,12 +40,11 @@ def get_distribution_fit_postion(fitter_object : fitter.Fitter) :
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-# Get the list of all distributions (if not specified in the settings)
-if distributions is None :
-    distributions = []
-    all_distributions = [str(getattr(stats, d)) for d in dir(stats) if isinstance(getattr(stats, d), stats.rv_continuous)]
-    for dist in all_distributions :
-        distributions.append(dist.split(' ')[0].split('.')[-1].split('_')[0])
+# Get the list of all distributions
+distributions = []
+all_distributions = [str(getattr(stats, d)) for d in dir(stats) if isinstance(getattr(stats, d), stats.rv_continuous)]
+for dist in all_distributions :
+    distributions.append(dist.split(' ')[0].split('.')[-1].split('_')[0])
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 
@@ -132,7 +129,6 @@ for i in range(len(subj_list)) :
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Close plot created by summary
     plt.close()
-
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Compute the average position for each distribution
