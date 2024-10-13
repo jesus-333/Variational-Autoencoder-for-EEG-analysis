@@ -85,6 +85,37 @@ for i in range(len(subj_list)) :
         list_of_distributions_fit_parameters_train[-1] = merge_two_dicts(list_of_distributions_fit_parameters_train[-1], fitter_object_train.get_best())
         list_of_distributions_fit_parameters_test[-1]  = merge_two_dicts(list_of_distributions_fit_parameters_test[-1], fitter_object_test.get_best())
 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# Create list to copy
+
+def extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters : list, list_of_distributions_fit_error : list) :
+
+    parameters_for_distribution = dict()
+    error_for_distribution = dict()
+    
+    # Iterate over distribution
+    for i in range(len(distributions_list)) :
+        distribution = distributions_list[i]
+        
+        # For each distribution create the dict for parameters and the list for the error
+        parameters_for_distribution[distribution] = dict()
+        error_for_distribution[distribution] = []
+    
+        # Iterate over subjects
+        for j in range(len(subj_list)) :
+            subj = subj_list[j]
+            
+            # Iterate over parameters
+            for parameter in list_of_distributions_fit_parameters[j][distribution].keys() :
+                # Create the list for the parameters of each subject
+                if parameter not in parameters_for_distribution[distribution] :
+                    parameters_for_distribution[distribution][parameter] = []
+                
+                # Save parameter
+                parameters_for_distribution[distribution][parameter].append(list_of_distributions_fit_parameters[j][distribution]) 
+
+            # Save error
+            error_for_distribution[distribution].append(list_of_distributions_fit_error[j][distribution])
 
 
 
