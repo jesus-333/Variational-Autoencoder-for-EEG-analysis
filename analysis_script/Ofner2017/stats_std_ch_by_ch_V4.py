@@ -2,7 +2,7 @@
 Fit a specified list of distributions and save the results of the fit
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Import
 
 import toml
@@ -13,19 +13,19 @@ import matplotlib.pyplot as plt
 
 from library.dataset import download
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 distributions_list = ["genhyperbolic", "burr12", "burr", "norminvgauss", "mielke", "johnsonsu", "fisk", "lognorm", "skewnorm", "beta", "gamma", "norm"]
 path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def merge_two_dicts(x, y):
     z = x.copy()   # start with keys and values of x
     z.update(y)    # modifies z with keys and values of y
     return z
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Get the list of all distributions
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
