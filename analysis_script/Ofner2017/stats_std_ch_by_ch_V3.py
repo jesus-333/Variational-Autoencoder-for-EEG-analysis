@@ -2,7 +2,7 @@
 Fit a distribution for the channel std values
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Import
 
 import toml
@@ -15,12 +15,12 @@ from library.dataset import download
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-distributions = ["gamma", "lognorm", "beta", "burr", "norm"]
-distributions = None
+distributions = ["genhyperbolic", "burr12", "burr", "norminvgauss", "mielke", "johnsonsu", "fisk", "lognorm", "skewnorm", "beta", "gamma", "norm"]
+# distributions = None
 
 path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 def get_distribution_fit_postion(fitter_object : fitter.Fitter) :
     """
@@ -40,7 +40,7 @@ def get_distribution_fit_postion(fitter_object : fitter.Fitter) :
 
     return distributions_position_and_error
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 # Get the list of all distributions (if not specified in the settings)
 if distributions is None :
@@ -134,7 +134,7 @@ for i in range(len(subj_list)) :
     plt.close()
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Compute the average position for each distribution
 
 # Variables to store the average position for each distribution
@@ -158,7 +158,7 @@ idx_sorted_train = np.argsort(average_position_train)
 idx_sorted_test = np.argsort(average_position_test)
 idx_sorted_both = np.argsort(average_position_both)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Save the results (based on both version)
 
 str_to_save = "Distribution, Average position (train), Average position (test), Average position (both), Average error (train), Average error (test), Average error (both)\n"
