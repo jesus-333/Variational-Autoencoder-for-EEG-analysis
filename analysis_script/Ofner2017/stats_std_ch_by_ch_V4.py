@@ -123,18 +123,86 @@ parameters_for_distribution_train, error_for_distribution_train = extract_data_a
 parameters_for_distribution_test, error_for_distribution_test = extract_data_and_create_list_to_copy(list_of_distributions_fit_parameters_test, list_of_distributions_fit_error_test)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Create a single matrix to copy
+# Create a single matrix to copy (parameters)
 
 def convert_parameters_into_single_matrix(parameters_for_distribution : list) :
     parameters_matrix = []
 
     for i in range(len(distributions_list)) :
         distribution = distributions_list[i]
+        print(distribution)
         
         for parameter in parameters_for_distribution[distribution].keys() :
             parameters_matrix.append(parameters_for_distribution[distribution][parameter])
 
-    return np.asarray(parameters_matrix)
+    return np.asarray(parameters_matrix).T
 
 parameters_matrix_train = convert_parameters_into_single_matrix(parameters_for_distribution_train)
 parameters_matrix_test  = convert_parameters_into_single_matrix(parameters_for_distribution_test)
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a single matrix to copy (error)
+
+def convert_error_into_single_matrix(error_for_distribution : list) :
+    error_matrix = []
+
+    for i in range(len(distributions_list)) :
+        distribution = distributions_list[i]
+        print(distribution)
+        
+        error_matrix.append(error_for_distribution[distribution])
+
+    return np.asarray(error_matrix).T
+
+error_matrix_train = convert_error_into_single_matrix(error_for_distribution_train)
+error_matrix_test  = convert_error_into_single_matrix(error_for_distribution_test)
+
+
+#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Compute mean and variance for each distribution
+
+def get_mean_and_variance(list_of_distributions_fit_parameters) :
+    list_mean_for_distribution = dict()
+    list_var_for_distribution = dict()
+    
+    for distribution in distributions_list :
+        list_mean_for_distribution[distribution] = []
+        list_var_for_distribution[distribution] = []
+
+        for i in range(len(subj_list)):
+            subj = subj_list[i]
+            
+            if distribution == 'genhyperbolic' :
+                r = stats.genhyperbolic(**list_of_distributions_fit_parameters[i]['genhyperbolic'])
+            elif distribution == 'burr12':
+                r = stats.burr12(**list_of_distributions_fit_parameters[i]['burr12'])
+            elif distribution == 'burr':
+                r = stats.burr(**list_of_distributions_fit_parameters[i]['burr'])
+            elif distribution == 'norminvgauss':
+                r = stats.norminvgauss(**list_of_distributions_fit_parameters[i]['norminvgauss'])
+            elif distribution == 'mielke':
+                r = stats.mielke(**list_of_distributions_fit_parameters[i]['mielke'])
+            elif distribution == 'johnsonsu':
+                r = stats.johnsonsu(**list_of_distributions_fit_parameters[i]['johnsonsu'])
+            elif distribution == 'fisk':
+                r = stats.fisk(**list_of_distributions_fit_parameters[i]['fisk'])    
+            elif distribution == 'lognorm':
+                r = stats.lognorm(**list_of_distributions_fit_parameters[i]['lognorm'])
+            elif distribution == 'skewnorm':
+                r = stats.skewnorm(**list_of_distributions_fit_parameters[i]['skewnorm'])
+            elif distribution == 'mielke':
+                r = stats.mielke(**list_of_distributions_fit_parameters[i]['johnsonsu'])
+            elif distribution == 'beta':
+                r = stats.beta(**list_of_distributions_fit_parameters[i]['beta'])
+            elif distribution == 'gamma':
+                r = stats.gamma(**list_of_distributions_fit_parameters[i]['gamma'])    
+            elif distribution == 'norm':
+                r = stats.norm(**list_of_distributions_fit_parameters[i]['norm']) 
+            
+            list_mean_for_distribution[distribution].append(r.stats()[0])
+            list_var_for_distribution[distribution].append(r.stats()[1])
+    
+    return list_mean_for_distribution, list_var_for_distribution
+
+list_mean_for_distribution_train, list_var_for_distribution_train = get_mean_and_variance(list_of_distributions_fit_parameters_train)
+list_mean_for_distribution_test, list_var_for_distribution_test = get_mean_and_variance(list_of_distributions_fit_parameters_test)
