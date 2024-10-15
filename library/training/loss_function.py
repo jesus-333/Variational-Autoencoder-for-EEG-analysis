@@ -84,7 +84,13 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
         elif soft_DTW_type == 4 : # Soft-DTW divergence block-wise
             tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
         else :
-            raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
+            str_error = "soft_DTW_type must have one of the following values:\n"
+            str_error += "\t 1 (classical SDTW)"
+            str_error += "\t 1 (SDTW divergence)"
+            str_error += "\t 1 (Block SDTW)"
+            str_error += "\t 1 (Block-SDTW-Divergence)"
+            str_error += "Current values is {}".format(soft_DTW_type)
+            raise ValueError(str_error)
         
         recon_loss += tmp_recon_loss.mean()
 
@@ -240,7 +246,8 @@ class vEEGNet_loss():
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
             self.recon_loss_function = recon_loss_function
-        elif config['recon_loss_type'] == 1 or config['recon_loss_type'] == 2 or config['recon_loss_type'] == 3: # Soft-DTW or soft-DTW divergence
+        elif config['recon_loss_type'] == 1 or config['recon_loss_type'] == 2 or \
+             config['recon_loss_type'] == 3 or config['recon_loss_type'] == 4: # SDTW/SDTW divergence/Block-SDTW/Block-SDTW-Divergence
             gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
             use_cuda = True if config['device'] == 'cuda' else False
             config['soft_DTW_type'] = config['recon_loss_type']
@@ -284,7 +291,8 @@ class vEEGNet_loss():
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
-        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 or self.recon_loss_type == 3: # SDTW/SDTW-Divergence/Block-SDTW-Divergence
+        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 \
+            or self.recon_loss_type == 3 or self.recon_loss_type == 4: # SDTW/SDTW-Divergence/Block-SDTW/Block-SDTW-Divergence
             recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function, self.config)
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
