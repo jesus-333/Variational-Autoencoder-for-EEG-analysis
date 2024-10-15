@@ -129,8 +129,8 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
             block_loss = dtw_loss_function(x_block, x_r_block)
         elif soft_DTW_type == 4 : # SDTW divergence
             dtw_xy_block = dtw_loss_function(x_block, x_r_block)
-            dtw_xx_block = dtw_loss_function(x_block, x_r_block)
-            dtw_yy_block = dtw_loss_function(x_block, x_r_block)
+            dtw_xx_block = dtw_loss_function(x_block, x_block)
+            dtw_yy_block = dtw_loss_function(x_r_block, x_r_block)
             block_loss = dtw_xy_block - 0.5 * (dtw_xx_block + dtw_yy_block)
 
         tmp_recon_loss += block_loss
