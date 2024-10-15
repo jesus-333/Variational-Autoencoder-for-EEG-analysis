@@ -48,6 +48,7 @@ for i in range(len(subj_list)):
     # Dataset
     dataset_config = toml.load(path_dataset_config)
     dataset_config['subjects_list'] = [subj] 
+    dataset_config['seed_split'] = np.random.randint(0, 333)
     
     # Model and check model
     model_config = toml.load(path_model_config)

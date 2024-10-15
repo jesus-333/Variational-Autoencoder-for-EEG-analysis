@@ -80,7 +80,9 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)
             tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx + dtw_yy)
         elif soft_DTW_type == 3 : # Soft-DTW block-wise
-            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'])
+            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
+        elif soft_DTW_type == 4 : # Soft-DTW divergence block-wise
+            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
         else :
             raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
         
@@ -90,7 +92,7 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
 
     return recon_loss
 
-def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int):
+def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int, soft_DTW_type : int):
     """
     Instead of applying the dtw to the entire signal, this function applies it on block of size block_size.
 
@@ -98,6 +100,7 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
     @param x_r: (torch.tensor) Second input tensor of shape B x T x 1
     @param dtw_loss_function: (function) The dtw implementation to use. Actually during the training I use the one provided by https://github.com/Maghoumi/pytorch-softdtw-cuda. This parameter exist to allow the use of other implementation
     @param block_size: (int) Size of blocks into which to divide the signal.
+    @param soft_DTW_type: (int) Type of SDTW to use. 3 for standard SDTW and 4 for SDTW divergence
 
     @return recon_error: (torch.tensor) Tensor of shape B
     """
@@ -115,16 +118,15 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
         x_block = x[:, idx_1:idx_2, :]
         x_r_block = x_r[:, idx_1:idx_2, :]
         
-        # print("----------------------------------")
-        # print(x.shape)
-        # print(x_r.shape)
-        # print(x_block.shape)
-        # print(x_r_block.shape)
-        
         # Compute dtw for the block
-        block_loss = dtw_loss_function(x_block, x_r_block)
-        # print(block_loss)
-        # print(type(block_loss))
+        if soft_DTW_type == 3 : # Standard SDTW
+            block_loss = dtw_loss_function(x_block, x_r_block)
+        elif soft_DTW_type == 4 : # SDTW divergence
+            dtw_xy_block = dtw_loss_function(x_block, x_r_block)
+            dtw_xx_block = dtw_loss_function(x_block, x_r_block)
+            dtw_yy_block = dtw_loss_function(x_block, x_r_block)
+            block_loss = dtw_xy_block - 0.5 * (dtw_xx_block + dtw_yy_block)
+
         tmp_recon_loss += block_loss
         
         # End the cylce at the last block
@@ -282,7 +284,7 @@ class vEEGNet_loss():
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
-        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 or self.recon_loss_type == 3: # SDTW or SDTW-Divergene
+        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 or self.recon_loss_type == 3: # SDTW/SDTW-Divergence/Block-SDTW-Divergence
             recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function, self.config)
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")
