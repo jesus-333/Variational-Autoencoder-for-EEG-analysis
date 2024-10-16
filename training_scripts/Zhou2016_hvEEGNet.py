@@ -71,11 +71,11 @@ for i in range(len(subj_list)):
     
     # Download train and test data
     if train_with_test_data:
-        data_train, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'test')
-        data_test, labels_test, ch_list = download.get_Zhoug2016(dataset_config, 'train')
+        data_train, labels_train, ch_list = download.get_Zhou2016(dataset_config, 'test')
+        data_test, labels_test, ch_list = download.get_Zhou2016(dataset_config, 'train')
     else :
-        data_train, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
-        data_test, labels_test, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+        data_train, labels_train, ch_list = download.get_Zhou2016(dataset_config, 'train')
+        data_test, labels_test, ch_list = download.get_Zhou2016(dataset_config, 'test')
     
     # Add extra dimension, necessary to work with Conv2d layer
     data_train = np.expand_dims(data_train, 1)

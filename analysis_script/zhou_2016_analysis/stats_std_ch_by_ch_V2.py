@@ -98,8 +98,8 @@ for i in range(len(subj_list)) :
     dataset_config = toml.load(path_dataset_config)
     dataset_config['subjects_list'] = [subj]
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+    train_data, labels_train, ch_list = download.get_Zhou2016(dataset_config, 'train')
+    test_data, test_labels, ch_list = download.get_Zhou2016(dataset_config, 'test')
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel

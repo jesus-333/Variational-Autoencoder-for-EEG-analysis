@@ -79,9 +79,7 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
             dtw_xx = dtw_loss_function(x_ch, x_ch)
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)
             tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx + dtw_yy)
-        elif soft_DTW_type == 3 : # Soft-DTW block-wise
-            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
-        elif soft_DTW_type == 4 : # Soft-DTW divergence block-wise
+        elif soft_DTW_type == 3 or soft_DTW_type == 4: # Block-SDTW/Block-SDTW-Divergence
             tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
         else :
             str_error = "soft_DTW_type must have one of the following values:\n"

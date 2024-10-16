@@ -18,15 +18,17 @@ from library import check_config
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
-# N.b. Per ora il percorso dei pesi è hardcoded
-tot_epoch_training = 30
-epoch = 30
-subj = 2
+# N.b. Per ora il percorso dei pesi è in parte hardcoded
+tot_epoch_training = 80
+epoch = 1
+subj = 1
 repetition = 1
+train_with_test_data = False
+
 use_sdtw_divergence = True
 use_test_set = False
 
-t_min = 1
+t_min = 0
 t_max = 3
 
 compute_spectra_with_entire_signal = True
@@ -34,22 +36,23 @@ nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
-plot_to_create = 30
+plot_to_create = 3
 
 n_trial = 252
 channel = 'Cz'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
-    figsize_time = (14, 7),
-    figsize_freq = (14, 7),
+    figsize_time = (18, 12),
+    figsize_freq = (18, 12),
+    rescale_minmax = True,
     fontsize = 18,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
     color_original = 'black',
     color_reconstructed = 'red',
     add_title = False,
-    save_fig = True,
+    save_fig = False,
     # format_so_save = ['png', 'pdf', 'eps']
     format_so_save = ['png']
 )
@@ -86,7 +89,7 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
-    tmp_t = np.linspace(1, 5, x.shape[-1])
+    tmp_t = np.linspace(0, 5, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
     idx_ch = dataset.ch_list == channel
@@ -97,6 +100,11 @@ for n_plot in range(plot_to_create):
         path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
     else : 
         path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+
+    if train_with_test_data : 
+        path_weight = 'Saved Model/Zhou2016/train_with_TEST_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) 
+    else : 
+        path_weight = 'Saved Model/Zhou2016/train_with_TRAIN_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) 
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -117,6 +125,11 @@ for n_plot in range(plot_to_create):
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
+
+    # (OPTIONAL) 
+    if plot_config['rescale_minmax'] :
+        x_original_to_plot = (x_original_to_plot - x_original_to_plot.min()) / (x_original_to_plot.max() - x_original_to_plot.min())
+        x_r_to_plot = (x_r_to_plot - x_r_to_plot.min()) / (x_r_to_plot.max() - x_r_to_plot.min())
     
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
     
@@ -139,6 +152,10 @@ for n_plot in range(plot_to_create):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in frequency domain
+
+    if plot_config['rescale_minmax'] :
+        x_psd = (x_psd - x_psd.min()) / (x_psd.max() - x_psd.min())
+        x_r_psd = (x_r_psd - x_r_psd.min()) / (x_r_psd.max() - x_r_psd.min())
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
     ax_freq.plot(f, x_psd, label = 'original signal',
