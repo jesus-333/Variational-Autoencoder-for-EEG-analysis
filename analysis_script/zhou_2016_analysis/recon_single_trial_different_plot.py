@@ -34,7 +34,7 @@ nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
-plot_to_create = 30
+plot_to_create = 3
 
 n_trial = 252
 channel = 'Cz'
@@ -49,7 +49,7 @@ plot_config = dict(
     color_original = 'black',
     color_reconstructed = 'red',
     add_title = False,
-    save_fig = True,
+    save_fig = False,
     # format_so_save = ['png', 'pdf', 'eps']
     format_so_save = ['png']
 )
@@ -86,7 +86,7 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
-    tmp_t = np.linspace(1, 5, x.shape[-1])
+    tmp_t = np.linspace(0, 5, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]
     idx_ch = dataset.ch_list == channel
@@ -94,10 +94,16 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     if use_sdtw_divergence : 
-        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+        path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
     else : 
-        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
-    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+        path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+    
+    path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_BLOCK/model_20.pth'
+    path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV_BLOCK/model_20.pth'
+    # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV/model_20.pth'
+    # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW/model_20.pth'
+    
+    model_hv.load_state_dict(torch.load(path_weights, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
     # Select channel and time samples

@@ -20,7 +20,7 @@ from library import check_config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-subj_list = [1, 2, 3, 4]
+subj_list = [1]
 train_with_test_data = False
 
 id_machine = ''
@@ -37,6 +37,9 @@ if train_with_test_data :
 else:
     id_machine += '_TRAIN_DATA'
     notes = "Trained with train data"
+    
+name_training_run = "S1_SDTW_div"
+notes = "Test of the SDTW Divergence"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 for i in range(len(subj_list)):
@@ -59,10 +62,12 @@ for i in range(len(subj_list)):
     train_config['train_with_test_data'] = train_with_test_data
     if train_with_test_data : 
         train_config['train_iteration_per_subject_test_data'][str(subj)] += 1
-        train_config['name_training_run'] = 'S{}_{}_run_train_{}'.format(subj, id_machine, train_config['train_iteration_per_subject_test_data'][str(subj)])
+        if name_training_run is None : train_config['name_training_run'] = 'S{}_{}_run_train_{}'.format(subj, id_machine, train_config['train_iteration_per_subject_test_data'][str(subj)])
+        else : train_config['name_training_run'] = name_training_run
     else :
         train_config['train_iteration_per_subject_train_data'][str(subj)] += 1
-        train_config['name_training_run'] = 'S{}_{}_run_train_{}'.format(subj, id_machine, train_config['train_iteration_per_subject_train_data'][str(subj)])
+        if name_training_run is None : train_config['name_training_run'] = 'S{}_{}_run_train_{}'.format(subj, id_machine, train_config['train_iteration_per_subject_train_data'][str(subj)])
+        else : train_config['name_training_run'] = name_training_run
     train_config['debug'] = debug
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
