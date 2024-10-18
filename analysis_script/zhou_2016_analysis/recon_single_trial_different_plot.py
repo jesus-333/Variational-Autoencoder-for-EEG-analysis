@@ -18,15 +18,17 @@ from library import check_config
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
-# N.b. Per ora il percorso dei pesi è hardcoded
-tot_epoch_training = 30
-epoch = 30
-subj = 2
+# N.b. Per ora il percorso dei pesi è in parte hardcoded
+tot_epoch_training = 80
+epoch = 1
+subj = 1
 repetition = 1
+train_with_test_data = False
+
 use_sdtw_divergence = True
 use_test_set = False
 
-t_min = 1
+t_min = 0
 t_max = 3
 
 compute_spectra_with_entire_signal = True
@@ -41,8 +43,9 @@ channel = 'Cz'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
-    figsize_time = (14, 7),
-    figsize_freq = (14, 7),
+    figsize_time = (18, 12),
+    figsize_freq = (18, 12),
+    rescale_minmax = True,
     fontsize = 18,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
@@ -67,7 +70,7 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot'} # TODO CHECK
 # Get subject data and model
 dataset_config = toml.load('training_scripts/config/zhou2016/dataset.toml')
 dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-dataset_config['subjects_list'] = [subj] 
+dataset_config['subjects_list'] = [subj]
 model_config = toml.load('training_scripts/config/zhou2016/model.toml')
 check_config. check_model_config_hvEEGNet(model_config)
 train_dataset, _, test_dataset, model_hv = support.get_dataset_zhou2016_and_model(dataset_config, model_config, model_name = 'hvEEGNet_shallow')
@@ -83,7 +86,7 @@ for n_plot in range(plot_to_create):
         n_trial = np.random.randint(len(dataset))
         # repetition = np.random.randint(19) + 1
         channel = np.random.choice(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
-    
+
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
     tmp_t = np.linspace(0, 5, x.shape[-1])
@@ -91,41 +94,51 @@ for n_plot in range(plot_to_create):
     t = tmp_t[idx_t]
     idx_ch = dataset.ch_list == channel
     label_name = label_dict[int(label)]
-    
+
     # Load weight and reconstruction
-    if use_sdtw_divergence : 
+    if use_sdtw_divergence :
         path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
-    else : 
-        path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
-    
-    path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_BLOCK/model_20.pth'
-    path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV_BLOCK/model_20.pth'
+    else :
+        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+
+    if train_with_test_data :
+        path_weight = 'Saved Model/Zhou2016/train_with_TEST_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
+    else :
+        path_weight = 'Saved Model/Zhou2016/train_with_TRAIN_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
+
+    # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_BLOCK/model_20.pth'
+    # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV_BLOCK/model_20.pth'
     # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV/model_20.pth'
     # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW/model_20.pth'
-    
-    model_hv.load_state_dict(torch.load(path_weights, map_location = torch.device('cpu')))
+
+    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
-    
+
     # Select channel and time samples
     x_original_to_plot = x[0, idx_ch, idx_t]
     x_r_to_plot = x_r[idx_ch, idx_t]
-    
+
     if compute_spectra_with_entire_signal:
         x_original_for_psd = x[0, idx_ch, :].squeeze()
         x_r_for_psd = x_r[idx_ch, :].squeeze()
     else:
         x_original_for_psd = x_original_to_plot
         x_r_for_psd = x_r_to_plot
-    
+
     # Compute PSD
     f, x_psd = signal.welch(x_original_for_psd, fs = 250, nperseg = nperseg)
     f, x_r_psd = signal.welch(x_r_for_psd, fs = 250, nperseg = nperseg)
-    
+
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
-    
+
+    # (OPTIONAL)
+    if plot_config['rescale_minmax'] :
+        x_original_to_plot = (x_original_to_plot - x_original_to_plot.min()) / (x_original_to_plot.max() - x_original_to_plot.min())
+        x_r_to_plot = (x_r_to_plot - x_r_to_plot.min()) / (x_r_to_plot.max() - x_r_to_plot.min())
+
     fig_time, ax_time = plt.subplots(1, 1, figsize = plot_config['figsize_time'])
-    
+
     ax_time.plot(t, x_original_to_plot, label = 'original signal',
                  color = plot_config['color_original'], linewidth = plot_config['linewidth_original'])
     ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal',
@@ -139,12 +152,16 @@ for n_plot in range(plot_to_create):
     ax_time.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
 
     if plot_config['add_title']: ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj, channel, n_trial))
-    
+
     fig_time.tight_layout()
     fig_time.show()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in frequency domain
+
+    if plot_config['rescale_minmax'] :
+        x_psd = (x_psd - x_psd.min()) / (x_psd.max() - x_psd.min())
+        x_r_psd = (x_r_psd - x_r_psd.min()) / (x_r_psd.max() - x_r_psd.min())
 
     fig_freq, ax_freq = plt.subplots(1, 1, figsize = plot_config['figsize_freq'])
     ax_freq.plot(f, x_psd, label = 'original signal',
