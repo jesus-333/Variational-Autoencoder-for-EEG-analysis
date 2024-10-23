@@ -22,7 +22,7 @@ use_test_set = False
 
 block_size = 125
 
-trials_to_use = 20
+trials_to_use = 10
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Setup
@@ -40,10 +40,15 @@ train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset
 if use_test_set: dataset = test_dataset
 else: dataset = train_dataset
 
-# Matrix to save the results
-error_sdtw       = np.zeros((trials_to_use, len(dataset.ch_list)))
+# Matrix to save the results (SDTW)
+error_sdtw                      = np.zeros((trials_to_use, len(dataset.ch_list)))
+error_sdtw_norm_by_time_samples = np.zeros((trials_to_use, len(dataset.ch_list)))
+error_sdtw_norm_by_n_elements   = np.zeros((trials_to_use, len(dataset.ch_list)))
+
+# Matrix to save the results (SDTW block)
 error_sdtw_block = np.zeros((trials_to_use, len(dataset.ch_list)))
 error_sdtw_block_norm_by_block_number = np.zeros((trials_to_use, len(dataset.ch_list)))
+error_sdtw_block_norm_by_n_elements   = np.zeros((trials_to_use, len(dataset.ch_list)))
 
 T = train_dataset.data.shape[-1]
 if T % block_size == 0 : block_number = T / block_size 
@@ -77,9 +82,12 @@ for i in range(trials_to_use) :
         
         # Compute normal DTW
         tmp_recon_loss = dtw_loss_function(x_ch, x_r_ch)
-        error_sdtw[i,j] = tmp_recon_loss / T
+        error_sdtw[i,j] = tmp_recon_loss
+        error_sdtw_norm_by_time_samples[i,j] = tmp_recon_loss / T
+        error_sdtw_norm_by_n_elements[i, j] = tmp_recon_loss / (T * T)
 
         # Compute block DTW
-        tmp_recon_loss = loss_function.block_sdtw(x_ch, x_r_ch, dtw_loss_function, block_size, soft_DTW_type = 3, normalize_by_block_size = True)
+        tmp_recon_loss = loss_function.block_sdtw(x_ch, x_r_ch, dtw_loss_function, block_size, soft_DTW_type = 3, normalize_by_block_size = False)
         error_sdtw_block[i, j] = tmp_recon_loss
         error_sdtw_block_norm_by_block_number[i, j] = tmp_recon_loss / block_number
+        error_sdtw_block_norm_by_n_elements[i, j] = tmp_recon_loss / (block_size * T)
