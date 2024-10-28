@@ -6,10 +6,6 @@ Analysis of the reconstruction of the various layer of the hvEEGNet
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -20,6 +16,10 @@ from library.config import config_model as cm
 from library.dataset import preprocess as pp
 from library.training import train_generic
 from library.analysis import support
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Parameters
@@ -49,7 +49,7 @@ plot_config = dict(
     linewidth_reconstructed = 1.4,
     color_original = 'black',
     color_reconstructed = 'red',
-    save_fig = True,
+    save_fig = False,
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -108,14 +108,17 @@ for epoch in epoch_list:
     label  = label_dict[int(dataset[idx_trial][1])]
     x_plot, horizontal_axis_value = crop_signal(x.squeeze(), idx_ch, 2, 6, config['t_min'], config['t_max'])
 
+    # All latent spaec
     latent_space_to_ignore = [False, False, False]
     x_r_1 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore).squeeze()
     x_r_1_plot, horizontal_axis_value_r_1 = crop_signal(x_r_1, idx_ch, 2, 6, config['t_min'], config['t_max'])
 
+    # Middle and deep latent space
     latent_space_to_ignore = [True, False, False]
     x_r_2 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore).squeeze()
     x_r_2_plot, horizontal_axis_value_r_2 = crop_signal(x_r_2, idx_ch, 2, 6, config['t_min'], config['t_max'])
-
+    
+    # Only deep latent space
     latent_space_to_ignore = [True, True, False]
     x_r_3 = model_hv.h_vae.reconstruct_ignoring_latent_spaces(x.unsqueeze(0), latent_space_to_ignore).squeeze()
     x_r_3_plot, horizontal_axis_value_r_3 = crop_signal(x_r_3, idx_ch, 2, 6, config['t_min'], config['t_max'])
