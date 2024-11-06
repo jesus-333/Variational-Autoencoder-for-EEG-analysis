@@ -6,16 +6,16 @@ Compute inference time of hvEEGNet for various settings
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import torch
 import numpy as np
 import time
 
 from library.model import hvEEGNet
 from library.config import config_model as cm
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -84,5 +84,3 @@ for i in range(len(n_elements_list)) :
 
     if torch.cuda.is_available() and use_cuda:
         print("Inference time {} samples (cuda):\t {}s ± {}s".format(n_elements, time_average, time_std))
-    else :
-        print("Inference time {} samples (cpu) :\t {}s ± {}s".format(n_elements, time_average, time_std))

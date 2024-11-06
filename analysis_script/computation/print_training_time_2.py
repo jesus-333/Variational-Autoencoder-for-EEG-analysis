@@ -18,7 +18,8 @@ n_elements_dataset_list = [25, 50, 75, 100, 125, 150, 175, 200]
 batch_size_list = [2, 3, 5, 7, 8, 10, 12, 13, 15]
 
 plot_config = dict(
-    figsize = (15, 10),
+    figsize = (18, 16),
+    fontsize = 20,
     cmap = 'RdYlGn_r',
     # cmap = None,
     interpolation = 'bilinear',
@@ -41,6 +42,8 @@ for i in range(len(batch_size_list)) :
         path_file = path + 'n_elements_{}_batch_{}/time_list.npy'.format(n_elements_dataset, batch_size)
         time_list = np.load(path_file)
 
+        time_list = time_list[time_list < 120]
+
         # Compute average training time
         average_training_time_matrix[i, j] = np.mean(time_list)
 
@@ -56,15 +59,16 @@ fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 # Plot data
 im = ax.imshow(average_training_time_matrix,
                cmap = plot_config['cmap'], interpolation = plot_config['interpolation'],
+               vmin = 0, vmax = 110
                )
 
 # Add other information
-ax.set_xlabel('Number of elements in the dataset')
-ax.set_ylabel('Batch size')
+ax.set_xlabel('Number of elements in the dataset', fontsize = plot_config['fontsize'])
+ax.set_ylabel('Batch size', fontsize = plot_config['fontsize'])
 ax.set_xticks([-0.5], labels = [])
 ax.set_yticks([-0.5], labels = [])
-ax.set_xticks(np.arange(len(n_elements_dataset_list)) + 0.5, labels = n_elements_dataset_list, minor = True)
-ax.set_yticks(np.arange(len(batch_size_list)) + 0.5, labels = batch_size_list, minor = True)
+ax.set_xticks(np.arange(len(n_elements_dataset_list)) + 0.0, labels = n_elements_dataset_list, minor = True, fontsize = plot_config['fontsize'])
+ax.set_yticks(np.arange(len(batch_size_list)) + 0.0, labels = batch_size_list, minor = True, fontsize = plot_config['fontsize'])
 # ax.grid(True)
 
 # Add colorbar
@@ -79,3 +83,4 @@ if plot_config['save_fig'] :
     path_save = path + 'average_training_time'
     fig.savefig(path_save + '.png', format = 'png')
     fig.savefig(path_save + '.pdf', format = 'pdf')
+    fig.savefig(path_save + '.eps', format = 'eps')

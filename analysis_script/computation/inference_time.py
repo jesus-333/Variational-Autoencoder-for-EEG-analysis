@@ -6,16 +6,16 @@ Compute inference time of hvEEGNet for various settings
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import torch
 import numpy as np
 
 from library.analysis import support
 from library.config import config_dataset as cd
 import time
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
