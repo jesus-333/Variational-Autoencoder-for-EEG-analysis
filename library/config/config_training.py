@@ -63,6 +63,7 @@ def get_config_vEEGNet_training() -> dict:
         recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW, 2 = SDTW-Divergence)
         edge_samples_ignored = 0,           # Ignore this number of samples during the computation of the reconstructation loss
         average_channels = False,
+        average_time_samples = False,
         gamma_dtw = 1,                      # Hyperparameter of the SDTW. Control the steepness of the soft-min inside the SDTW. The closer to 0 the closer the soft-min approximate the real min
 
         # Support stuff (device, log frequency etc)

@@ -84,7 +84,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     # Add train and model config to wandb dict so they are saved and logged in wandb
     wandb_config = dict(
         train = train_config,
-        model = model_config
+        model = model_config,
     )
     
     # If not None add also the dataset_config 
@@ -120,11 +120,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     with wandb.init(project = train_config['project_name'], job_type = "train", config = wandb_config, notes = notes, name = name) as run:
         # Setup artifact to save model
         model_artifact_name = train_config['model_artifact_name'] + '_trained'
-        metadata = dict(
-            training_config = dict(train_config),
-            model_config = dict(model_config),
-            dataset_config = dict(dataset_config)
-        )
+        metadata = wandb_config
         model_artifact = wandb.Artifact(model_artifact_name, type = "model",
                                         description = "Trained {} model".format(train_config['model_artifact_name']),
                                         metadata = metadata)

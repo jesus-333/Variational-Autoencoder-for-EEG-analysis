@@ -56,8 +56,8 @@ def get_dataset_zhou2016_and_model(dataset_config, model_config, model_name):
     Get the dataset Zhou2016, as specified in dataset config and the hvEEGnet with the parameters to work with dataset 2016
     """
      
-    data_train, labels_train, ch_list = download.get_Zhoug2016(dataset_config, 'train')
-    data_test, labels_test, ch_list = download.get_Zhoug2016(dataset_config, 'test')
+    data_train, labels_train, ch_list = download.get_Zhou2016(dataset_config, 'train')
+    data_test, labels_test, ch_list = download.get_Zhou2016(dataset_config, 'test')
 
     # Add extra dimension, necessary to work with Conv2d layer
     data_train = np.expand_dims(data_train, 1)

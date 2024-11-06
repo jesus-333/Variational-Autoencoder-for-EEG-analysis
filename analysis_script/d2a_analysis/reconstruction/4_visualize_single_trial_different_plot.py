@@ -6,10 +6,6 @@ Visualize (in time of frequency domain) the reconstruction of a single channel o
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -17,6 +13,10 @@ import scipy.signal as signal
 
 from library.analysis import support
 from library.config import config_dataset as cd
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters

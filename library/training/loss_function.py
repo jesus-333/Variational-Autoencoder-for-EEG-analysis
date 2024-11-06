@@ -79,18 +79,25 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
             dtw_xx = dtw_loss_function(x_ch, x_ch)
             dtw_yy = dtw_loss_function(x_r_ch, x_r_ch)
             tmp_recon_loss = dtw_xy - 0.5 * (dtw_xx + dtw_yy)
-        elif soft_DTW_type == 3 : # Soft-DTW block-wise
-            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'])
+        elif soft_DTW_type == 3 or soft_DTW_type == 4: # Block-SDTW/Block-SDTW-Divergence
+            tmp_recon_loss = block_sdtw(x_ch, x_r_ch, dtw_loss_function, config['block_size'], soft_DTW_type)
         else :
-            raise ValueError("soft_DTW_type must have value 1 (classical soft-DTW) or 2 (soft-DTW divergence). Current value is {}".format(soft_DTW_type))
+            str_error = "soft_DTW_type must have one of the following values:\n"
+            str_error += "\t 1 (classical SDTW)"
+            str_error += "\t 1 (SDTW divergence)"
+            str_error += "\t 1 (Block SDTW)"
+            str_error += "\t 1 (Block-SDTW-Divergence)"
+            str_error += "Current values is {}".format(soft_DTW_type)
+            raise ValueError(str_error)
         
         recon_loss += tmp_recon_loss.mean()
 
-    if config['average_channels']: recon_loss /= x.shape[2]
+    if config['average_channels'] : recon_loss /= x.shape[2]
+    if config['average_time_samples'] : recon_loss /= x.shape[3]
 
     return recon_loss
 
-def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int):
+def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int, soft_DTW_type : int, normalize_by_block_size : bool = True):
     """
     Instead of applying the dtw to the entire signal, this function applies it on block of size block_size.
 
@@ -98,6 +105,7 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
     @param x_r: (torch.tensor) Second input tensor of shape B x T x 1
     @param dtw_loss_function: (function) The dtw implementation to use. Actually during the training I use the one provided by https://github.com/Maghoumi/pytorch-softdtw-cuda. This parameter exist to allow the use of other implementation
     @param block_size: (int) Size of blocks into which to divide the signal.
+    @param soft_DTW_type: (int) Type of SDTW to use. 3 for standard SDTW and 4 for SDTW divergence
 
     @return recon_error: (torch.tensor) Tensor of shape B
     """
@@ -115,16 +123,19 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
         x_block = x[:, idx_1:idx_2, :]
         x_r_block = x_r[:, idx_1:idx_2, :]
         
-        # print("----------------------------------")
-        # print(x.shape)
-        # print(x_r.shape)
-        # print(x_block.shape)
-        # print(x_r_block.shape)
-        
         # Compute dtw for the block
-        block_loss = dtw_loss_function(x_block, x_r_block)
-        # print(block_loss)
-        # print(type(block_loss))
+        if soft_DTW_type == 3 : # Standard SDTW
+            block_loss = dtw_loss_function(x_block, x_r_block)
+        elif soft_DTW_type == 4 : # SDTW divergence
+            dtw_xy_block = dtw_loss_function(x_block, x_r_block)
+            dtw_xx_block = dtw_loss_function(x_block, x_block)
+            dtw_yy_block = dtw_loss_function(x_r_block, x_r_block)
+            block_loss = dtw_xy_block - 0.5 * (dtw_xx_block + dtw_yy_block)
+        
+        # (Optional) Normalize by the number of samples in the block
+        if normalize_by_block_size : block_loss = block_loss / (idx_2 - idx_1)
+        
+        # Accumulate the loss for the various block
         tmp_recon_loss += block_loss
         
         # End the cylce at the last block
@@ -235,10 +246,19 @@ class vEEGNet_loss():
         Class that compute the loss function for the Variational autoencoder
         """
 
+        if 'average_channels' not in config :
+            config['average_channels'] = False
+            print('average_channels not specified in config set to False. Note that the parameter is important only if you use the soft DTW loss function')
+
+        if 'average_time_samples' not in config :
+            config['average_time_samples'] = False
+            print('average_time_samples not specified in config set to False. Note that the parameter is important only if you use the soft DTW loss function')
+
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
             self.recon_loss_function = recon_loss_function
-        elif config['recon_loss_type'] == 1 or config['recon_loss_type'] == 2 or config['recon_loss_type'] == 3: # Soft-DTW or soft-DTW divergence
+        elif config['recon_loss_type'] == 1 or config['recon_loss_type'] == 2 or \
+             config['recon_loss_type'] == 3 or config['recon_loss_type'] == 4: # SDTW/SDTW divergence/Block-SDTW/Block-SDTW-Divergence
             gamma_dtw = config['gamma_dtw'] if 'gamma_dtw' in config else 1
             use_cuda = True if config['device'] == 'cuda' else False
             config['soft_DTW_type'] = config['recon_loss_type']
@@ -282,7 +302,8 @@ class vEEGNet_loss():
         
         if self.recon_loss_type == 0: # Mean Squere Error (L2)
             recon_loss = self.recon_loss_function(x, x_r)
-        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 or self.recon_loss_type == 3: # SDTW or SDTW-Divergene
+        elif self.recon_loss_type == 1 or self.recon_loss_type == 2 \
+            or self.recon_loss_type == 3 or self.recon_loss_type == 4: # SDTW/SDTW-Divergence/Block-SDTW/Block-SDTW-Divergence
             recon_loss = compute_dtw_loss_along_channels(x, x_r, self.recon_loss_function, self.config)
         else:
             raise ValueError("Type of loss function for reconstruction not recognized (recon_loss_type has wrong value)")

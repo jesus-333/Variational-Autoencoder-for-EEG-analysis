@@ -354,7 +354,7 @@ def get_D2a_data(config, type_dataset):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Motor Imagery datasets
 
-def get_Zhoug2016(config : dict, type_dataset : str) :
+def get_Zhou2016(config : dict, type_dataset : str) :
     """
     Throuhg moabb, get the dataset preseneted by Zhou et al. 2016 (https://doi.org/10.1371/journal.pone.0162657)
 

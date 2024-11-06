@@ -2,8 +2,8 @@
 Fit a specified list of distributions and save the results of the fit
 """
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Import
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Import
 
 import toml
 from scipy import stats
@@ -11,12 +11,13 @@ import fitter
 import numpy as np
 import matplotlib.pyplot as plt
 
-from library.dataset import download
+from library.config import config_dataset as cd
+from library.analysis import support
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#%% Settings
 
 distributions_list = ["genhyperbolic", "burr12", "burr", "norminvgauss", "mielke", "johnsonsu", "fisk", "lognorm", "skewnorm", "beta", "gamma", "norm"]
-path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -25,10 +26,8 @@ def merge_two_dicts(x, y):
     z.update(y)    # modifies z with keys and values of y
     return z
 
-#%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Get the list of all distributions
-subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # Variables to store the distributions error for each subject
 list_of_distributions_fit_error_train = []
@@ -43,11 +42,13 @@ for i in range(len(subj_list)) :
     subj = subj_list[i]
 
     # Get dataset
-    dataset_config = toml.load(path_dataset_config)
+    dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['subjects_list'] = [subj]
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_Ofner2017(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_Ofner2017(dataset_config, 'test')
+    
+    train_dataset, _,  test_dataset, _ = support.get_dataset_and_model(dataset_config, 'hvEEGNet_shallow')
+    train_data = train_dataset.data
+    test_data  = test_dataset.data
     print("Subject : ", subj)
 
     # Create dict to save distribution parameters
@@ -189,8 +190,8 @@ def convert_parameters_into_single_matrix(parameters_for_distribution : list, li
 
     return np.asarray(parameters_matrix).T
 
-parameters_matrix_train = convert_parameters_into_single_matrix(parameters_for_distribution_train)
-parameters_matrix_test  = convert_parameters_into_single_matrix(parameters_for_distribution_test)
+parameters_matrix_train = convert_parameters_into_single_matrix(parameters_for_distribution_train, list_mean_for_distribution_train, list_var_for_distribution_train)
+parameters_matrix_test  = convert_parameters_into_single_matrix(parameters_for_distribution_test, list_mean_for_distribution_test, list_var_for_distribution_test)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create a single matrix to copy (error)
