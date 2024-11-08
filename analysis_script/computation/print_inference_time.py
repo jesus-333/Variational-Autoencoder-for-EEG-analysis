@@ -20,7 +20,7 @@ from library.config import config_training as ct
 C_list = [8, 22, 64, 128]
 T_list = (np.arange(20) + 1) * 50
 loss_type_list = [0, 1, 2, 3, 4]
-loss_type_list = [0, 1, 3, 4]
+loss_type_list = [0, 1]
 
 # Other parameters
 use_cuda = False
@@ -55,14 +55,18 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
             C = plot_config['C_list'][j]
 
             # Plot the results
-            ax.errorbar(plot_config['T_list'], avg_matrix[i, j, :], yerr = std_matrix[i, j, :], 
-                        label = "C = {}, loss = {}".format(C, loss_str),
-                        )
+            # ax.errorbar(plot_config['T_list'], avg_matrix[i, j, :], yerr = std_matrix[i, j, :], 
+            #             label = "C = {}, loss = {}".format(C, loss_str),
+            #             )
+
+            ax.plot(plot_config['T_list'], avg_matrix[i, j, :], label = "C = {}, loss = {}".format(C, loss_str))
+            # ax.fill_between(plot_config['T_list'], avg_matrix[i, j, :] - std_matrix[i, j, :], avg_matrix[i, j, :] + std_matrix[i, j, :], alpha = 0.3)
     
     # Plot straight line for reference
-    ax.plot(plot_config['T_list'], plot_config['T_list'] / 250, 'k--', label = "Reference (0.1 s)")
+    # ax.plot(plot_config['T_list'], plot_config['T_list'] / 250, 'k--', label = "Reference (0.1 s)")
 
     # Other plot settings
+    ax.set_xlim([plot_config['T_list'][0], plot_config['T_list'][-1]])
     ax.set_xlabel("Number of time samples (T)", fontsize = plot_config['fontsize'])
     ax.set_ylabel("Inference time (s)", fontsize = plot_config['fontsize'])
     ax.legend(fontsize = plot_config['fontsize'])
