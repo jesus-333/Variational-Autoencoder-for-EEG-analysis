@@ -17,15 +17,15 @@ from library.config import config_training as ct
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Settings
 
-C_list = [8, 22, 64, 128]
+C_list = [8, 22, 64]
 T_list = (np.arange(20) + 1) * 50
 loss_type_list = [0, 1, 2, 3, 4]
 loss_type_list = [0, 1]
 
 # Other parameters
 use_cuda = False
+pc_name = "Raspberry"
 pc_name = "CPU_pc_unipd"
-
 
 plot_config = dict(
     figsize = (16, 12),
@@ -37,6 +37,14 @@ plot_config = dict(
     # extension_list = ['png', 'pdf', 'eps']
     extension_list = ['png']
 )
+
+loss_to_string_dict = {
+    0 : 'SDTW_rust',
+    1 : 'SDTW_standard',
+    2 : 'SDTW_divergence',
+    3 : 'SDTW_block',
+    4 : 'SDTW_block_divergence'
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Plot function
@@ -63,7 +71,7 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
             # ax.fill_between(plot_config['T_list'], avg_matrix[i, j, :] - std_matrix[i, j, :], avg_matrix[i, j, :] + std_matrix[i, j, :], alpha = 0.3)
     
     # Plot straight line for reference
-    # ax.plot(plot_config['T_list'], plot_config['T_list'] / 250, 'k--', label = "Reference (0.1 s)")
+    ax.plot(plot_config['T_list'], plot_config['T_list'] / 250, 'k--', label = "Reference (0.1 s)")
 
     # Other plot settings
     ax.set_xlim([plot_config['T_list'][0], plot_config['T_list'][-1]])
@@ -81,13 +89,6 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Load the results
 
-loss_to_string_dict = {
-    0 : 'SDTW_rust',
-    1 : 'SDTW_standard',
-    2 : 'SDTW_divergence',
-    3 : 'SDTW_block',
-    4 : 'SDTW_block_divergence'
-}
 plot_config['loss_to_string_dict'] = loss_to_string_dict
 
 # Variables to store the results
@@ -118,16 +119,31 @@ for i in range(len(loss_type_list)) :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Plot the results
     
-fig_only_inference, ax_only_inference = create_plot(inference_avg, inference_std, plot_config, "Inference time")
+# fig_only_inference, ax_only_inference = create_plot(inference_avg, inference_std, plot_config, "Inference time")
 fig_inference_and_loss, ax_inference_and_loss = create_plot(inference_and_loss_avg, inference_and_loss_std, plot_config, "Inference time and loss computation time")
 
 if plot_config['save_fig'] :
-    fig_list = [fig_only_inference, fig_inference_and_loss]
+    # fig_list = [fig_only_inference, fig_inference_and_loss]
+    fig_list = [fig_inference_and_loss]
     path_save = path + 'average_inference_time'
 
     for fig in fig_list :
         for extension in plot_config['extension_list'] :
             fig.savefig(path_save + '.' + extension, format = extension)
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# For some PC compute the differce between standard and rust version
+
+pc_name_list = ["CPU_pc_unipd"]
+
+if pc_name in pc_name_list :
+    if 0 in loss_type_list and 1 in loss_type_list :
+        inference_and_loss_avg_rust = inference_and_loss_avg[0, :, :]
+        inference_and_loss_avg_standard = inference_and_loss_avg[1, :, :]
+
+        print("Rust version is executed in {}% of the time of the standard version".format(np.mean(inference_and_loss_avg_rust) / np.mean(inference_and_loss_avg_standard) * 100))
 
 
 

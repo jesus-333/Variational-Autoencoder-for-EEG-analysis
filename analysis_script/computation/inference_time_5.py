@@ -126,5 +126,5 @@ for i in range(len(C_list)) : # Loop over the number of channels
             np.save(path_save + '_time_list_inference_and_loss.npy', time_list_inference_and_loss)
 
             # Save matrix in text format
-            np.save(path_save + '_time_list_inference.txt', time_list_inference)
-            np.save(path_save + '_time_list_inference_and_loss.txt', time_list_inference_and_loss)
+            # np.save(path_save + '_time_list_inference.txt', time_list_inference)
+            # np.save(path_save + '_time_list_inference_and_loss.txt', time_list_inference_and_loss)
