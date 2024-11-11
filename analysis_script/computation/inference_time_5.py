@@ -27,9 +27,8 @@ from library.config import config_model as cm
 from library.config import config_training as ct
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 # Values of C and T
-C_list = [8, 22, 64, 128]
+C_list = [8, 22, 64]
 T_list = (np.arange(40) + 1) * 50
 T_list = (np.arange(20) + 1) * 50
 
@@ -39,18 +38,20 @@ T_list = (np.arange(20) + 1) * 50
 # 2 : use the Soft-DTW divergence (implemented in the library)
 # 3 : use the Block version of the Soft-DTW (implemented in the library)
 # 4 : use the Block version of the Soft-DTW divergence (implemented in the library)
-loss_type_to_use = 1
+loss_type_to_use = 3
 
 # Other parameters
-use_cuda = False
+use_cuda = True
 n_average = 10
-pc_name = "CPU_pc_unipd"
+pc_name = "CUDA_Colab"
 save_results = True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 if loss_type_to_use == 0 and not import_soft_dtw_rust :
     raise ValueError("The Rust implementation of the soft-DTW is not available. Please install the package from https://pypi.org/project/soft-dtw-rust/")
+
+device = 'cuda' if torch.cuda.is_available() and use_cuda else 'cpu'
 
 def repeat_inference(x, model, n_average : int, recon_loss_type : int) :
     time_list_inference = []
@@ -61,6 +62,7 @@ def repeat_inference(x, model, n_average : int, recon_loss_type : int) :
         train_config['device'] = 'cpu'
         train_config['gamma_dtw'] = 0.1
         train_config['recon_loss_type'] = recon_loss_type
+        train_config['device'] = device
         if recon_loss_type == 3 or recon_loss_type == 4 : train_config['block_size'] = 100
         loss_function_function = loss_function.hvEEGNet_loss(train_config)
 
@@ -105,10 +107,11 @@ for i in range(len(C_list)) : # Loop over the number of channels
         model_config['input_size'] = (1, 1, C, T)
         model_config['use_classifier'] = False
         model_hv = hvEEGNet.hvEEGNet_shallow(model_config)
+        model_hv.to(device)
         model_hv.eval()
         
         # Create synthetic data
-        x = torch.rand(1, 1, C, T)
+        x = torch.rand(1, 1, C, T).to(device)
         
         # Compute inference time
         time_list_inference, time_list_inference_and_loss = repeat_inference(x, model_hv, n_average, loss_type_to_use)
@@ -117,9 +120,9 @@ for i in range(len(C_list)) : # Loop over the number of channels
             loss_type_str = 'SDTW_rust' if loss_type_to_use == 0 else 'SDTW_standard' if loss_type_to_use == 1 else 'SDTW_divergence' if loss_type_to_use == 2 else 'SDTW_block' if loss_type_to_use == 3 else 'SDTW_block_divergence'
 
             # Create the path if it does not exist
-            path_save = 'Saved Results/computation time/inference_time/{}/'.format(pc_name)
+            path_save = 'Saved_results/computation time/inference_time/{}/'.format(pc_name)
             os.makedirs(path_save, exist_ok = True)
-            path_save = 'Saved Results/computation time/inference_time/{}/C_{}_T_{}_{}'.format(pc_name, C, T, loss_type_str)
+            path_save = 'Saved_results/computation time/inference_time/{}/C_{}_T_{}_{}'.format(pc_name, C, T, loss_type_str)
 
             # Save matrix in npy format
             np.save(path_save + '_time_list_inference.npy', time_list_inference)

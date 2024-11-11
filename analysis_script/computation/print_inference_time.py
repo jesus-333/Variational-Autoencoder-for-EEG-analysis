@@ -20,12 +20,13 @@ from library.config import config_training as ct
 C_list = [8, 22, 64]
 T_list = (np.arange(20) + 1) * 50
 loss_type_list = [0, 1, 2, 3, 4]
-loss_type_list = [0, 1]
+loss_type_list = [3, 4]
 
 # Other parameters
 use_cuda = False
 pc_name = "Raspberry"
 pc_name = "CPU_pc_unipd"
+# pc_name = "CPU_Colab"
 
 plot_config = dict(
     figsize = (16, 12),
@@ -136,17 +137,14 @@ if plot_config['save_fig'] :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # For some PC compute the differce between standard and rust version
 
-pc_name_list = ["CPU_pc_unipd"]
+pc_name_list = ["CPU_pc_unipd", "CPU_Colab"]
 
 if pc_name in pc_name_list :
     if 0 in loss_type_list and 1 in loss_type_list :
         inference_and_loss_avg_rust = inference_and_loss_avg[0, :, :]
         inference_and_loss_avg_standard = inference_and_loss_avg[1, :, :]
 
-        print("Rust version is executed in {}% of the time of the standard version".format(np.mean(inference_and_loss_avg_rust) / np.mean(inference_and_loss_avg_standard) * 100))
-
-
-
+        print("Rust version is executed in {}% of the time of the standard version".format(np.mean(inference_and_loss_avg_rust / inference_and_loss_avg_standard) * 100))
 
 
 
