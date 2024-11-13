@@ -11,16 +11,16 @@ Created on Fri Sep  1 10:03:59 2023
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 
 from library.config import config_dataset as cd
 from library.analysis import support
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -38,7 +38,7 @@ plot_config = dict(
     capsize = 3,
     alpha = 0.25,
     color = 'black',
-    save_fig = True
+    save_fig = False
 )
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -50,6 +50,11 @@ for subj in subj_list:
     # Get the data
     dataset_config = cd.get_moabb_dataset_config([subj])
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
+
+    # dataset_config['filter_data'] = True
+    # dataset_config['filter_type'] = 3
+    # dataset_config['notch_freq'] = 10
+
     train_dataset, validation_dataset, test_dataset , model_hv = support.get_dataset_and_model(dataset_config, model_name = 'hvEEGNet_shallow')
 
     if use_test_set:

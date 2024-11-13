@@ -155,14 +155,20 @@ class vEEGNet(nn.Module):
         return input_neurons, encoder_ouput_shape
 
     def check_model_config(self, config : dict):
+        if 'print_var' not in config : config['print_var'] = True
+
         # Check type encoder
-        if config["type_encoder"] == 0: print("EEGNet encoder selected")
-        elif config["type_encoder"] == 1: print("MBEEGNet encoder selected")
+        if config["type_encoder"] == 0: 
+            if config['print_var'] : print("EEGNet encoder selected")
+        elif config["type_encoder"] == 1: 
+            if config['print_var'] : print("MBEEGNet encoder selected") 
         else: raise ValueError("type_encoder must be 0 (EEGNET) or 1 (MBEEGNet)")
 
         # Check type decoder 
-        if config["type_decoder"] == 0: print("Upsample decoder selected")
-        elif config["type_decoder"] == 1: print("Transpose decoder selected")
+        if config["type_decoder"] == 0: 
+            if config['print_var'] : print("Upsample decoder selected")
+        elif config["type_decoder"] == 1: 
+            if config['print_var'] : print("Transpose decoder selected")
         else: raise ValueError("type_decoder must be 0 (Upsample) or 1 (Transpose)")
 
     def classify(self, x, return_as_index = True):
