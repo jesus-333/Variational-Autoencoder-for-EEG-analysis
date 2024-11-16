@@ -8,7 +8,6 @@ Save the results in npy and txt files.
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Imports
 
-
 import torch
 import time
 import numpy as np
@@ -29,8 +28,10 @@ from library.config import config_training as ct
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Values of C and T
 C_list = [8, 22, 64]
+C_list = [2, 4, 8, 16, 32]
 T_list = (np.arange(40) + 1) * 50
 T_list = (np.arange(20) + 1) * 50
+T_list = [1000]
 
 # Specify the loss type to use
 # 0 : use the Rust implementation of the soft-DTW
@@ -41,10 +42,10 @@ T_list = (np.arange(20) + 1) * 50
 loss_type_to_use = 3
 
 # Other parameters
-use_cuda = True
+use_cuda = False
 n_average = 10
-pc_name = "CUDA_Colab"
-save_results = True
+pc_name = "CUDA_WSL"
+save_results = False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -92,8 +93,8 @@ def repeat_inference(x, model, n_average : int, recon_loss_type : int) :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Compute the average inference time
 
-time_average_list = []
-time_std_list = []
+time_average_matrix = np.zeros((len(C_list), len(T_list)))
+time_std_matrix = np.zeros((len(C_list), len(T_list)))
 
 for i in range(len(C_list)) : # Loop over the number of channels
     C = C_list[i]
@@ -115,6 +116,9 @@ for i in range(len(C_list)) : # Loop over the number of channels
         
         # Compute inference time
         time_list_inference, time_list_inference_and_loss = repeat_inference(x, model_hv, n_average, loss_type_to_use)
+
+        time_average_matrix[i, j] = np.mean(time_list_inference_and_loss)
+        time_std_matrix[i, j] = np.std(time_list_inference_and_loss)
 
         if save_results :
             loss_type_str = 'SDTW_rust' if loss_type_to_use == 0 else 'SDTW_standard' if loss_type_to_use == 1 else 'SDTW_divergence' if loss_type_to_use == 2 else 'SDTW_block' if loss_type_to_use == 3 else 'SDTW_block_divergence'

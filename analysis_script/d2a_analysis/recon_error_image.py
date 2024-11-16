@@ -15,20 +15,20 @@ import os
 
 invert_column_and_row = True # If true the image will be row = channels and columns = trials. If false keeps row = trials and columns = channels
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-subj_list = [5]
+subj_list = [2]
 
 plot_config = dict(
-    figsize = (32, 12),
+    figsize = (20, 12),
     min_value = 0,
-    max_value = 75,
+    max_value = 65,
     dynamic_max_value = False,
     n_time_std_max_value = 3,
     fontsize = 20,
     # colormap = 'RdYlGn_r',
     colormap = 'Reds',
-    add_title = True,
+    add_title = False,
     add_colorbar = True,
-    single_figure = True,
+    single_figure = False,
     save_fig = True,
 )
 
@@ -136,6 +136,7 @@ for subj in subj_list:
         path_save += 'image_recon_error_S{}'.format(subj)
 
         if plot_config['single_figure'] :
+            fig.tight_layout()
             fig.savefig(path_save + ".png", format = 'png')
             fig.savefig(path_save + ".pdf", format = 'pdf')
         else :

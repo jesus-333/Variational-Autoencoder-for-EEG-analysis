@@ -43,16 +43,16 @@ channel = 'Cz'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
-    figsize_time = (18, 12),
-    figsize_freq = (18, 12),
+    figsize_time = (18, 10),
+    figsize_freq = (18, 10),
     rescale_minmax = True,
-    fontsize = 18,
+    fontsize = 20,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
     color_original = 'black',
     color_reconstructed = 'red',
     add_title = False,
-    save_fig = False,
+    save_fig = True,
     # format_so_save = ['png', 'pdf', 'eps']
     format_so_save = ['png']
 )
@@ -99,19 +99,19 @@ for n_plot in range(plot_to_create):
     if use_sdtw_divergence :
         path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}_divergence/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
     else :
-        path_weight = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
+        path_weights = 'Saved Model/Zhou2016/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch) # TODO Eventulmente da modificare in futuro
 
     if train_with_test_data :
-        path_weight = 'Saved Model/Zhou2016/train_with_TEST_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
+        path_weights = 'Saved Model/Zhou2016/train_with_TEST_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
     else :
-        path_weight = 'Saved Model/Zhou2016/train_with_TRAIN_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
+        path_weights = 'Saved Model/Zhou2016/train_with_TRAIN_data/S{}_{}_epochs_rep_{}/model_{}.pth'.format(subj, tot_epoch_training, repetition, epoch)
 
     # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_BLOCK/model_20.pth'
     # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV_BLOCK/model_20.pth'
     # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW_DIV/model_20.pth'
-    # path_weights = 'Saved Model/Zhou2016/Experiment_SDTW/model_20.pth'
+    path_weights = 'Saved Model/Zhou2016/S1_20_epochs_block_SDTW/model_20.pth'
 
-    model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+    model_hv.load_state_dict(torch.load(path_weights, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
 
     # Select channel and time samples
@@ -186,8 +186,8 @@ for n_plot in range(plot_to_create):
     if plot_config['save_fig']:
         path_save = "Saved Results/zhou2016/reconstruction/subj {}/".format(subj)
 
-        if use_test_set: path_save += '/test/'
-        else: path_save += '/train/'
+        if use_test_set: path_save += 'test/'
+        else: path_save += 'train/'
 
         os.makedirs(path_save, exist_ok = True)
         # path_save += "subj_{}_trial_{}_ch_{}_rep_{}_epoch_{}_label_{}".format(subj, n_trial + 1, channel, repetition, epoch, label_name)
