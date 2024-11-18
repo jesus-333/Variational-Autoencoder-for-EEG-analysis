@@ -6,10 +6,6 @@ Similar to inference_time_3.py but the soft dtw is computed through the soft-dtw
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import torch
 import numpy as np
 import time
@@ -18,6 +14,10 @@ import soft_dtw_rust
 from library.model import hvEEGNet
 from library.config import config_model as cm
 from library.config import config_training as ct
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

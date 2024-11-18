@@ -11,6 +11,7 @@ recon_loss_type = 3
 block_size = 128
 edge_samples_ignored = 0
 average_channels = false
+average_time_samples = false
 gamma_dtw = 1
 device = "cuda"
 epoch_to_save_model = 1

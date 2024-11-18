@@ -15,9 +15,10 @@ def get_moabb_dataset_config(subjects_list = [1,2,3,4,5,6,7,8,9], use_stft_repre
     dataset_config = dict(
         # Frequency filtering settings
         filter_data = False,    # If True filter the data
-        filter_type = 0,        # 0 Bandpass, 1 lowpass, 2 highpass (used only if filter_data is True)
+        filter_type = 0,        # 0 Bandpass, 1 lowpass, 2 highpass, 3 notch (used only if filter_data is True)(Note that for now the notch work only for the d2a dataset)
         fmin = 0.5,             # Used in bandpass and highpass (used only if filter_data is True)
         fmax = 50,              # Used in bandpass and lowpass (used only if filter_data is True)
+        notch_freq = 50,        # Used only if filter_type is 3,
         filter_method = 'iir',  # Filter settings (used only if filter_data is True)
         iir_params = dict(ftype = 'cheby2', order = 20, rs = 30), # Filter settings (used only if filter_data is True and filter_method is iir)
 

@@ -6,10 +6,6 @@ Visualize (in time of frequency domain) the reconstruction of a single channel o
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -18,28 +14,32 @@ import scipy.signal as signal
 from library.analysis import support
 from library.config import config_dataset as cd
 
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
+
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parameters
 
 tot_epoch_training = 80
 epoch = 80
-subj_for_weights = 2
-subj_for_data = 2
+subj_for_weights = 3
+subj_for_data = 3
 use_test_set = True
 
 t_min = 2
-t_max = 4
+t_max = 3
 
 compute_spectra_with_entire_signal = True
 nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = False
-plot_to_create = 20
+plot_to_create = 10
 
-repetition = 7
-n_trial = 49 
-channel = 'C6'
+repetition = 1
+n_trial = 0 
+channel = 'C3'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
@@ -47,17 +47,18 @@ channel = 'C6'
 
 plot_config = dict(
     use_TkAgg_backend = True,
-    rescale_minmax = False,
-    figsize_time = (10, 5),
-    figsize_freq = (10, 5),
+    rescale_minmax = True,
+    figsize_time = (16, 10),
+    figsize_freq = (16, 10),
     fontsize = 18,
     linewidth_original = 1.5,
     linewidth_reconstructed = 1.5,
     color_original = 'black',
     color_reconstructed = 'red',
     add_title = False,
-    save_fig = True,
-    format_so_save = ['png', 'pdf', 'eps']
+    save_fig = False,
+    # format_so_save = ['png', 'pdf', 'eps']
+    format_so_save = ['png']
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -113,6 +114,7 @@ for n_plot in range(plot_to_create):
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj_for_weights, repetition, epoch)
     # path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
+    # path_weight = 'Saved Model/hvEEGNet_d2a_MSE/S8/model_40.pth' # TODO remember remove
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -147,7 +149,7 @@ for n_plot in range(plot_to_create):
                  color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'], alpha = 0.7)
     ax_time.set_xlabel("Time [s]", fontsize = plot_config['fontsize'])
     ax_time.set_ylabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
-    ax_time.legend()
+    ax_time.legend(fontsize = plot_config['fontsize'])
     if xticks_time is not None: ax_time.set_xticks(xticks_time)
     ax_time.set_xlim([t_min, t_max])
     ax_time.grid(True)
@@ -155,9 +157,9 @@ for n_plot in range(plot_to_create):
     
     if plot_config['add_title'] : 
         if subj_for_weights == subj_for_data :
-            ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj_for_data, channel, n_trial))
+            ax_time.set_title('S{} - Ch. {} - Trial {}'.format(subj_for_data, channel, n_trial), fontsize = plot_config['fontsize'])
         else :
-            ax_time.set_title('S{} - Ch. {} - Trial {} - Weights of S{}'.format(subj_for_data, channel, n_trial, subj_for_weights))
+            ax_time.set_title('S{} - Ch. {} - Trial {} - Weights of S{}'.format(subj_for_data, channel, n_trial, subj_for_weights), fontsize = plot_config['fontsize'])
     
     fig_time.tight_layout()
     fig_time.show()
@@ -178,7 +180,7 @@ for n_plot in range(plot_to_create):
     ax_freq.set_xlabel("Frequency [Hz]", fontsize = plot_config['fontsize'])
     ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]", fontsize = plot_config['fontsize'])
     ax_freq.set_xlim([0, 80])
-    # ax_freq.legend()
+    ax_freq.legend(fontsize = plot_config['fontsize'])
     ax_freq.grid(True)
     ax_freq.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
 

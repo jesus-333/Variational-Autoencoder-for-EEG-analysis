@@ -6,10 +6,6 @@ Similar to inference_time_2.py but also compute the DTW between original and rec
 import sys
 import os
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent_directory = os.path.dirname(current)
-sys.path.insert(0, parent_directory)
-
 import torch
 import numpy as np
 import time
@@ -18,6 +14,10 @@ from library.model import hvEEGNet
 from library.training import loss_function
 from library.config import config_model as cm
 from library.config import config_training as ct
+
+current = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current)
+sys.path.insert(0, parent_directory)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -60,9 +60,11 @@ def get_config_vEEGNet_training() -> dict:
         alpha = 1,                          # Multiplier of the reconstruction error
         beta = 1,                           # Multiplier of the KL
         gamma = 1,                          # Multiplier of the classification error (if you also use a classifier). It's completely independent from the gamma_dtw, they simply share a similar name.
-        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW, 2 = SDTW-Divergence)
+        recon_loss_type = 1,                # Loss function for the reconstruction (0 = L2, 1 = SDTW, 2 = SDTW-Divergence, 3 = Block-SDTW, 4 = Block-SDTW divergence)
+        block_size = 128,                   # Used only if recon_loss_type is 3 or 4
         edge_samples_ignored = 0,           # Ignore this number of samples during the computation of the reconstructation loss
         average_channels = False,
+        average_time_samples = False,
         gamma_dtw = 1,                      # Hyperparameter of the SDTW. Control the steepness of the soft-min inside the SDTW. The closer to 0 the closer the soft-min approximate the real min
 
         # Support stuff (device, log frequency etc)

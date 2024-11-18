@@ -254,7 +254,7 @@ def filter_RawArray(raw_array_mne, config):
         raw_array_mne.filter(l_freq = config['fmin'], h_freq = None,
                              method = filter_method, iir_params = iir_params)
     if config['filter_type'] == 3: # Notch Filter
-        raw_array_mne.filter(freqs = config['notch_freq'],
+        raw_array_mne.notch_filter(freqs = config['notch_freq'],
                              method = filter_method, iir_params = iir_params)
     return raw_array_mne
 

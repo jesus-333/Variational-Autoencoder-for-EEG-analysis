@@ -92,11 +92,12 @@ def compute_dtw_loss_along_channels(x : torch.tensor, x_r : torch.tensor, dtw_lo
         
         recon_loss += tmp_recon_loss.mean()
 
-    if config['average_channels']: recon_loss /= x.shape[2]
+    if config['average_channels'] : recon_loss /= x.shape[2]
+    if config['average_time_samples'] : recon_loss /= x.shape[3]
 
     return recon_loss
 
-def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int, soft_DTW_type : int):
+def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_size : int, soft_DTW_type : int, normalize_by_block_size : bool = True):
     """
     Instead of applying the dtw to the entire signal, this function applies it on block of size block_size.
 
@@ -130,7 +131,11 @@ def block_sdtw(x : torch.tensor, x_r : torch.tensor, dtw_loss_function, block_si
             dtw_xx_block = dtw_loss_function(x_block, x_block)
             dtw_yy_block = dtw_loss_function(x_r_block, x_r_block)
             block_loss = dtw_xy_block - 0.5 * (dtw_xx_block + dtw_yy_block)
-
+        
+        # (Optional) Normalize by the number of samples in the block
+        if normalize_by_block_size : block_loss = block_loss / (idx_2 - idx_1)
+        
+        # Accumulate the loss for the various block
         tmp_recon_loss += block_loss
         
         # End the cylce at the last block
@@ -240,6 +245,14 @@ class vEEGNet_loss():
         """
         Class that compute the loss function for the Variational autoencoder
         """
+
+        if 'average_channels' not in config :
+            config['average_channels'] = False
+            print('average_channels not specified in config set to False. Note that the parameter is important only if you use the soft DTW loss function')
+
+        if 'average_time_samples' not in config :
+            config['average_time_samples'] = False
+            print('average_time_samples not specified in config set to False. Note that the parameter is important only if you use the soft DTW loss function')
 
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
