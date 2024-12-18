@@ -18,13 +18,14 @@ from library.config import config_training as ct
 # Settings
 
 C_list = [8, 22, 64]
-T_list = (np.arange(20) + 1) * 50
+T_list = (np.arange(19) + 2) * 50
 loss_type_list = [0, 1, 2, 3, 4]
 loss_type_list = [1]
 
 # Other parameters
 use_cuda = False
 pc_name = "Raspberry"
+pc_name = "Raspberry_PI_4"
 # pc_name = "CPU_pc_unipd"
 # pc_name = "CPU_Colab"
 
@@ -34,10 +35,11 @@ plot_config = dict(
     linewidth = 2,
     C_list = C_list,
     T_list = T_list,
-    loss_type_list = loss_type_list,
-    use_log_scale = False,
     use_seconds_for_x_axis = True,
     fs = 250,
+    y_axis_lim = 6,
+    loss_type_list = loss_type_list,
+    use_log_scale = False,
     save_fig = True,
     # extension_list = ['png', 'pdf', 'eps']
     extension_list = ['png']
@@ -59,7 +61,7 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
     fig, ax = plt.subplots(1, 1, figsize = plot_config['figsize'])
 
     if plot_config['use_seconds_for_x_axis'] :
-        plot_config['T_list'] = plot_config['T_list'] / plot_config['fs']
+        plot_config['T_list'] = np.array(plot_config['T_list']) / plot_config['fs']
 
     # Loop over the loss types
     for i in range(len(plot_config['loss_type_list'])) :
@@ -86,11 +88,14 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
 
     # Other plot settings
     ax.set_xlim([plot_config['T_list'][0], plot_config['T_list'][-1]])
+    if plot_config['y_axis_lim'] : 
+        ax.set_ylim([0, plot_config['y_axis_lim']])
     if plot_config['use_seconds_for_x_axis'] :
-        ax.set_xlabel("Seconds [s]", fontsize = plot_config['fontsize'])
+        ax.set_xlabel("Trial Length [s]", fontsize = plot_config['fontsize'])
     else :
         ax.set_xlabel("Number of time samples (T)", fontsize = plot_config['fontsize'])
-    ax.set_ylabel("Inference time (s)", fontsize = plot_config['fontsize'])
+    ax.set_ylabel("Inference time [s]", fontsize = plot_config['fontsize'])
+    ax.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
     ax.legend(fontsize = plot_config['fontsize'])
     ax.set_title(title, fontsize = plot_config['fontsize'])
     ax.tick_params(axis = 'both', which = 'major', labelsize = plot_config['fontsize'])
