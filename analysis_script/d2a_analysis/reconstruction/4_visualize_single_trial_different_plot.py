@@ -24,7 +24,7 @@ sys.path.insert(0, parent_directory)
 tot_epoch_training = 80
 epoch = 80
 subj_for_weights = 3
-subj_for_data = 3
+subj_for_data = 9
 use_test_set = True
 
 t_min = 2
@@ -34,8 +34,8 @@ compute_spectra_with_entire_signal = True
 nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = False
-plot_to_create = 10
+rand_trial_sample = True
+plot_to_create = 5
 
 repetition = 1
 n_trial = 0 
@@ -46,7 +46,7 @@ channel = 'C3'
     
 
 plot_config = dict(
-    use_TkAgg_backend = True,
+    use_TkAgg_backend = False,
     rescale_minmax = True,
     figsize_time = (16, 10),
     figsize_freq = (16, 10),
@@ -115,6 +115,7 @@ for n_plot in range(plot_to_create):
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj_for_weights, repetition, epoch)
     # path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
     # path_weight = 'Saved Model/hvEEGNet_d2a_MSE/S8/model_40.pth' # TODO remember remove
+    # path_weight = 'Saved Model/d2a_federated/S2_S5_5 rounds_10_epochs/model_round_5.pth'
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -148,7 +149,10 @@ for n_plot in range(plot_to_create):
     ax_time.plot(t, x_r_to_plot, label = 'reconstructed signal',
                  color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'], alpha = 0.7)
     ax_time.set_xlabel("Time [s]", fontsize = plot_config['fontsize'])
-    ax_time.set_ylabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
+    if plot_config['rescale_minmax'] :
+        ax_time.set_ylabel(r"Normalized amplitude", fontsize = plot_config['fontsize'])
+    else :
+        ax_time.set_ylabel(r"Amplitude [$\mu$V]", fontsize = plot_config['fontsize'])
     ax_time.legend(fontsize = plot_config['fontsize'])
     if xticks_time is not None: ax_time.set_xticks(xticks_time)
     ax_time.set_xlim([t_min, t_max])
@@ -178,7 +182,10 @@ for n_plot in range(plot_to_create):
                  color = plot_config['color_reconstructed'], linewidth = plot_config['linewidth_reconstructed'])
 
     ax_freq.set_xlabel("Frequency [Hz]", fontsize = plot_config['fontsize'])
-    ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]", fontsize = plot_config['fontsize'])
+    if plot_config['rescale_minmax'] :
+        ax_time.set_ylabel(r"Normalized amplitude", fontsize = plot_config['fontsize'])
+    else :
+        ax_freq.set_ylabel(r"PSD [$\mu V^2/Hz$]", fontsize = plot_config['fontsize'])
     ax_freq.set_xlim([0, 80])
     ax_freq.legend(fontsize = plot_config['fontsize'])
     ax_freq.grid(True)

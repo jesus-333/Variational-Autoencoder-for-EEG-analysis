@@ -18,15 +18,16 @@ from library.config import config_dataset as cd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 subj_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+subj_list = [2]
 
 plot_config = dict(
     use_TkAgg_backend = False,
-    figsize = (22, 16),
-    fontsize = 20,
+    figsize = (26, 16),
+    fontsize = 22,
     cmap = 'Reds',
     aspect = 'auto',
     height_ratios = [3, 1],
-    max_std_multiplier_cmap = 2,
+    max_std_multiplier_cmap = 0.5,
     max_std_multiplier_plot = 1.5,
     save_fig = True,
 )
@@ -39,6 +40,7 @@ def plot_function(std_ch, ch_list, label, plot_config) :
     fig, axs = plt.subplots(2, 1, figsize = plot_config['figsize'], height_ratios = plot_config['height_ratios'])
     
     # Plot the data
+    print(average_std.max() * plot_config['max_std_multiplier_cmap'])
     img = axs[0].imshow(std_ch.T, 
                   cmap = plot_config['cmap'], aspect = plot_config['aspect'],
                   vmin = 0, vmax = average_std.max() * plot_config['max_std_multiplier_cmap']
@@ -50,6 +52,8 @@ def plot_function(std_ch, ch_list, label, plot_config) :
     # Aesthetic stuff axs[0] (std image)
     axs[0].set_yticks(np.arange(len(ch_list)) - 0.5)
     axs[0].set_yticks(np.arange(len(ch_list)), minor = True)
+    xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48
+    axs[0].set_xticks(xticks - 0.5, labels = xticks)
     axs[0].set_xticklabels([])
     axs[0].set_yticklabels([])
     axs[0].set_yticklabels(ch_list, minor = True, fontsize = plot_config['fontsize'] - 5)
@@ -57,14 +61,15 @@ def plot_function(std_ch, ch_list, label, plot_config) :
 
     # Aesthetic stuff axs[1] (std plot)
     axs[1].set_ylim([0, average_std.max() * plot_config['max_std_multiplier_plot']])
+    xticks = np.asarray([0, 1, 2, 3, 4, 5, 6]) * 48
+    axs[1].set_xticks(xticks - 0.5, labels = xticks)
     axs[1].set_xlabel('Trial number', fontsize = plot_config['fontsize'])
     axs[1].set_ylabel('Std value', fontsize = plot_config['fontsize'])
     axs[1].tick_params(axis = 'both', which = 'major', labelsize = plot_config['fontsize'])
-    
 
     # Aesthetic stuff both axs 
     for ax in axs:
-        ax.set_xlim(0, std_ch_train.shape[0])
+        ax.set_xlim(0, std_ch_train.shape[0] - 0.5)
         ax.grid(True)
     
     # Other stuff
@@ -114,6 +119,6 @@ for i in range(len(subj_list)) :
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    plot_function(std_ch_train, ch_list, 'Train', plot_config)
+    # plot_function(std_ch_train, ch_list, 'Train', plot_config)
     plot_function(std_ch_test, ch_list, 'Test', plot_config)
 
