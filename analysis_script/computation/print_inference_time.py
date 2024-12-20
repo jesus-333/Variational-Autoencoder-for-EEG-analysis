@@ -30,8 +30,9 @@ pc_name = "Raspberry_PI_4"
 # pc_name = "CPU_Colab"
 
 plot_config = dict(
-    figsize = (16, 12),
-    fontsize = 16,
+    figsize = (16, 10),
+    fontsize = 20,
+    linewidth = 2,
     C_list = C_list,
     T_list = T_list,
     use_seconds_for_x_axis = True,
@@ -39,8 +40,9 @@ plot_config = dict(
     y_axis_lim = 8,
     loss_type_list = loss_type_list,
     save_fig = True,
-    extension_list = ['png', 'pdf', 'eps']
-    # extension_list = ['png']
+    use_log_scale = False,
+    # extension_list = ['png', 'pdf', 'eps']
+    extension_list = ['png']
 )
 
 loss_to_string_dict = {
@@ -75,14 +77,16 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
             #             label = "C = {}, loss = {}".format(C, loss_str),
             #             )
 
-            ax.plot(plot_config['T_list'], avg_matrix[i, j, :], label = "C = {}, loss = {}".format(C, loss_str))
+            ax.plot(plot_config['T_list'], avg_matrix[i, j, :], 
+                    label = "C = {}, loss = {}".format(C, loss_str), linewidth = plot_config['linewidth']
+                    )
             # ax.fill_between(plot_config['T_list'], avg_matrix[i, j, :] - std_matrix[i, j, :], avg_matrix[i, j, :] + std_matrix[i, j, :], alpha = 0.3)
     
     # Plot straight line for reference
     if plot_config['use_seconds_for_x_axis'] :
-        ax.plot(plot_config['T_list'], plot_config['T_list'], 'k--', label = "Real time computation boundary")
+        ax.plot(plot_config['T_list'], plot_config['T_list'] / plot_config['fs'], 'k--', label = "Real time computation boundary")
     else :
-        ax.plot(plot_config['T_list'], plot_config['T_list'] / plot_config['fs'], 'k--', label = "Reference (0.1 s)")
+        ax.plot(plot_config['T_list'], plot_config['T_list'], 'k--', label = "Real time computation boundary")
 
     # Other plot settings
     ax.set_xlim([plot_config['T_list'][0], plot_config['T_list'][-1]])
@@ -96,7 +100,14 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
     ax.tick_params(axis = 'both', labelsize = plot_config['fontsize'])
     ax.legend(fontsize = plot_config['fontsize'])
     ax.set_title(title, fontsize = plot_config['fontsize'])
+    ax.tick_params(axis = 'both', which = 'major', labelsize = plot_config['fontsize'])
+    if plot_config['use_log_scale'] : ax.set_yscale('log')
     ax.grid(True)
+
+    if pc_name == 'Raspberry' :
+        min_xlim = 100 if not plot_config['use_seconds_for_x_axis'] else 100 / 250
+        ax.set_xlim([min_xlim, plot_config['T_list'][-1]])
+        ax.set_ylim([-0.1, 10])
 
     fig.tight_layout()
     fig.show()
@@ -137,7 +148,7 @@ for i in range(len(loss_type_list)) :
 # Plot the results
     
 # fig_only_inference, ax_only_inference = create_plot(inference_avg, inference_std, plot_config, "Inference time")
-fig_inference_and_loss, ax_inference_and_loss = create_plot(inference_and_loss_avg, inference_and_loss_std, plot_config, "Inference time and loss computation time")
+fig_inference_and_loss, ax_inference_and_loss = create_plot(inference_and_loss_avg, inference_and_loss_std, plot_config, "Inference and loss time")
 
 if plot_config['save_fig'] :
     # fig_list = [fig_only_inference, fig_inference_and_loss]
@@ -147,8 +158,6 @@ if plot_config['save_fig'] :
     for fig in fig_list :
         for extension in plot_config['extension_list'] :
             fig.savefig(path_save + '.' + extension, format = extension)
-
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # For some PC compute the differce between standard and rust version

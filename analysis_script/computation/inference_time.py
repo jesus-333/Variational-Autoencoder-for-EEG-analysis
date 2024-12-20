@@ -68,4 +68,4 @@ if torch.cuda.is_available():
     print("Inference time 1   samples (gpu):\t {}s ± {}s".format(time_1, std_1))
     print("Inference time 10  samples (gpu):\t {}s ± {}s".format(time_10, std_10))
     print("Inference time 100 samples (gpu):\t {}s ± {}s".format(time_100, std_100))
-    print("Inference time all samples (gpu):\t {}s ± {}s".format(time_all, std_all))
+

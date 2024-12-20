@@ -19,7 +19,7 @@ from library.training import soft_dtw_cuda
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-batch_size_list = [1, 2, 4]
+batch_size_list = [1]
 t_size_list = np.arange(10, 110, 10) * 10
 
 repetitions = 5
