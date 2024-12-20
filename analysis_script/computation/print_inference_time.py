@@ -20,7 +20,7 @@ from library.config import config_training as ct
 C_list = [8, 22, 64]
 T_list = (np.arange(19) + 2) * 50
 loss_type_list = [0, 1, 2, 3, 4]
-loss_type_list = [1]
+loss_type_list = [4]
 
 # Other parameters
 use_cuda = False
@@ -36,11 +36,11 @@ plot_config = dict(
     T_list = T_list,
     use_seconds_for_x_axis = True,
     fs = 250,
-    y_axis_lim = 6,
+    y_axis_lim = 8,
     loss_type_list = loss_type_list,
-    save_fig = False,
-    # extension_list = ['png', 'pdf', 'eps']
-    extension_list = ['png']
+    save_fig = True,
+    extension_list = ['png', 'pdf', 'eps']
+    # extension_list = ['png']
 )
 
 loss_to_string_dict = {
@@ -79,11 +79,14 @@ def create_plot(avg_matrix : np.array, std_matrix : np.array, plot_config : dict
             # ax.fill_between(plot_config['T_list'], avg_matrix[i, j, :] - std_matrix[i, j, :], avg_matrix[i, j, :] + std_matrix[i, j, :], alpha = 0.3)
     
     # Plot straight line for reference
-    ax.plot(plot_config['T_list'], plot_config['T_list'] / 250, 'k--', label = "Reference (0.1 s)")
+    if plot_config['use_seconds_for_x_axis'] :
+        ax.plot(plot_config['T_list'], plot_config['T_list'], 'k--', label = "Real time computation boundary")
+    else :
+        ax.plot(plot_config['T_list'], plot_config['T_list'] / plot_config['fs'], 'k--', label = "Reference (0.1 s)")
 
     # Other plot settings
     ax.set_xlim([plot_config['T_list'][0], plot_config['T_list'][-1]])
-    if plot_config['y_axis_lim'] : 
+    if 'y_axis_lim' in plot_config : 
         ax.set_ylim([0, plot_config['y_axis_lim']])
     if plot_config['use_seconds_for_x_axis'] :
         ax.set_xlabel("Trial Length [s]", fontsize = plot_config['fontsize'])
