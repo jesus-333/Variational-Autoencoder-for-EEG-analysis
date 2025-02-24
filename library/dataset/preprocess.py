@@ -17,6 +17,7 @@ except:
 
 import numpy as np
 from scipy import signal
+import scipy.io as sio
 
 import moabb.datasets as mb
 
@@ -215,6 +216,47 @@ def get_dataset_TUAR(config : dict):
     validation_dataset  = ds_time.EEG_Dataset(data_validation, labels_validation, ch_list, config['normalize'])
 
     return train_dataset, validation_dataset, test_dataset
+
+def get_dataset_SEED(path_filename : str, trials_length_in_seconds : int) :
+    """
+    Given the path of a mat file of the SEED dataset divide it in trials.
+    The data are downloaded from https://cloud.bcmi.sjtu.edu.cn/sharing/IekOFnTsK (you require registration)
+    This function is written for the data in the folder SEED_EEG/Preprocessed_EEG/
+    The files are mat files and each file contains several recording of shape C x T, with T in the order of 40000 samples (200Hz sampling frequency).
+    This function take all recording inside a file, divide them in trials of specified length and create a single tensor with all the trials,
+    i.e. from the various matrices of shape C x T inside the mat file this function return a single matrix of shape N x 1 x C x T',
+    with T' the trail length specified by the user and N the number of trials (which depends on the length of the trials)
+
+    N.b. the sampling frequency (and other technical info) are reported here https://bcmi.sjtu.edu.cn/~seed/seed.html
+    """
+
+    sampling_freq = 200
+    
+    # Load mat file
+    # This file is a dictionary where most elements is a recording in the shape C x T
+    # Only 3 elements are not recording. This 3 elements are informations contained in the mat file format.
+    data = sio.loadmat(path_filename)
+    
+    # Save recording in list, apart
+    recording_list = []
+    for key in data :
+        if '__' not in key : # Used to exclude the the mat format info
+            recording_list.append(data[key])
+    
+    # Variables used during the division of the data in trials
+    trials_length_in_samples = sampling_freq * trials_length_in_seconds
+    trials_list = []
+
+    # Divide data in trials
+    for data_matrix in recording_list :
+        n_trials = data_matrix.shape[1] //  trials_length_in_samples
+
+        for i in range(n_trials) :
+            data_single_trial = data_matrix[:, (i * trials_length_in_samples):((i + 1) *  trials_length_in_samples)]
+            trials_list.append(data_single_trial)
+    
+    # Convert to numpy array and return data
+    return np.asarray(trials_list)
         
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Test preprocess function

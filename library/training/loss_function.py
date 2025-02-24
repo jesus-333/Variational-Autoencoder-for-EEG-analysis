@@ -253,6 +253,7 @@ class vEEGNet_loss():
         if 'average_time_samples' not in config :
             config['average_time_samples'] = False
             print('average_time_samples not specified in config set to False. Note that the parameter is important only if you use the soft DTW loss function')
+            print('If the parameter is set to true the value of Soft DTW is diveded by the number of samples in the signal')
 
         # Reconstruction loss
         if config['recon_loss_type'] == 0: # L2 loss
