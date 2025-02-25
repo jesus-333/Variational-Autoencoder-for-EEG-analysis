@@ -257,6 +257,41 @@ def get_dataset_SEED(path_filename : str, trials_length_in_seconds : int) :
     
     # Convert to numpy array and return data
     return np.asarray(trials_list)
+
+def get_dataset_SEED_split_in_train_test_validation(path_filename : str, trials_length_in_seconds : int, percentage_split_train_test : int, percentage_split_train_validation : int = -1, random_seed : int = 42) :
+    """
+    Load the SEED data contained in the mat file specified by path_filename. For more info about the SEED data check the description of get_dataset_SEED()
+    Once loaded the data it is divided into train, test and validation.
+    First the data is divided between train and test based on the variables percentage_split_train_test, i.e. the fraction specified by percentage_split_train_test will be assigned to the trainining set and 1 - percentage_split_train_test will be assigned to the test set
+    If percentage_split_train_validation has a valid value, i.e. between 0 and 1 then the train data will be also divided between data actually used for training and data used for validation. 
+    The percentage of training data is specified by percentage_split_train_validation, while 1 - percentage_split_train_validation will be assigned to validation.
+
+    The return order of the data will be data_train, data_test, data_validation
+    """
+    
+    # Check input
+    if percentage_split_train_test <=0 or percentage_split_train_test >= 1 :
+        raise ValueError("Invalid percentage for split train/test. Value must be between 0 and 1. Current value is {}".format(percentage_split_train_test))
+
+    if percentage_split_train_validation <=0 or percentage_split_train_validation  >= 1 :
+        print("percentage_split_train_validation not specified or with invalid value. The validation set will be empty")
+
+    # Get data
+    data = get_dataset_SEED(path_filename, trials_length_in_seconds)
+    data = np.expand_dims(data, 1)
+    
+    # Train/test division
+    idx_train, idx_test = sf.get_idx_to_split_data(data.shape[0], percentage_split_train_test, random_seed)
+    data_train, data_test = data[idx_train], data[idx_test]
+
+    # Train/validation division
+    if percentage_split_train_validation <=0 or percentage_split_train_validation  >= 1 :
+        idx_train, idx_validation = sf.get_idx_to_split_data(data_train.shape[0], percentage_split_train_validation, random_seed)
+        data_train, data_validation = data_train[idx_train],  data_train[idx_test]
+    else :
+        data_validation = []
+
+    return data_train, data_test, data_validation
         
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Test preprocess function
