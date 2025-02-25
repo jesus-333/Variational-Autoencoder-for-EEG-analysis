@@ -11,13 +11,14 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import os
 
-from library.dataset import download
-from library.config import config_dataset as cd
+from library.dataset import  preprocess
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+subj_list = [2, 3]
 subj_list = np.arange(15) + 1
-subj_list = [6]
+file_path = 'data/SEED/'
+trials_length_in_seconds = 4
 
 plot_config = dict(
     use_TkAgg_backend = False,
@@ -31,7 +32,7 @@ plot_config = dict(
     save_fig = True,
 )
 
-path_dataset_config = 'training_scripts/config/Ofner2017/dataset.toml'
+path_dataset_config = 'training_scripts/config/SEED/dataset.toml'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -84,7 +85,7 @@ def plot_function(std_ch, ch_list, label, plot_config) :
     fig.colorbar(img, cax = cbar_ax, cmap = plot_config['cmap'])
 
     if plot_config['save_fig']:
-        path_save = "Saved Results/Ofner2017/stats_ch/std/"
+        path_save = "Saved Results/SEED/stats_ch/std/v2/"
         os.makedirs(path_save, exist_ok = True)
         fig.savefig(path_save + 'avg_per_trial_S{}_{}_V2.png'.format(subj, label), format = 'png')
         # fig.savefig(path_save + 'avg_per_trial_S{}.pdf'.format(subj), format = 'pdf')
@@ -98,12 +99,26 @@ for i in range(len(subj_list)) :
     # Get subject
     subj = int(subj_list[i])
 
-    # Get dataset
-    dataset_config = toml.load(path_dataset_config)
-    dataset_config['subjects_list'] = [subj]
-    dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    train_data, labels_train, ch_list = download.get_Ofner2017(dataset_config, 'train')
-    test_data, test_labels, ch_list = download.get_Ofner2017(dataset_config, 'test')
+    # Get all the file for a single subject
+    filename_list = []
+    list_files = os.listdir(file_path)
+    for file in list_files :
+        if '_' in file :
+            file_id = int(file.split('_')[0])
+            if file_id == subj : filename_list.append(file_path + file)
+        else :
+            continue
+
+    # Get subject data and model
+    dataset_config = toml.load('training_scripts/config/SEED/dataset.toml')
+    train_data, test_data, _ = preprocess.get_dataset_SEED_split_in_train_test_validation(filename_list[0], trials_length_in_seconds,
+                                                                                          dataset_config['percentage_split_train_test'], dataset_config['percentage_split_train_validation']
+                                                                                          )
+    
+    # Get data (in numpy array)
+    train_data = train_data.squeeze()
+    test_data = test_data.squeeze()
+    ch_list = np.arange(62)
     
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     # Compute the std for each channel
