@@ -6,6 +6,7 @@
 *.pth
 *.npy
 *.pickle
+*.DS_Store
 .venv
 !examples/
 !examples/example_trained_weigths.pth
