@@ -20,7 +20,8 @@ notes = "Nothing in particular to report"
 debug = True
 
 file_path = 'data/SEED/'
-subj_id = 2
+subj_id = 8
+# Training da fare : S4, S5, S8
 
 sampling_freq = 200          # Defined in the link with dataset description
 trials_length_in_seconds = 4 # Decided by us
@@ -54,8 +55,8 @@ check_config.check_model_config_hvEEGNet(model_config)
 # Training
 train_config = toml.load(path_traing_config)
 train_config['device'] = device
-# train_config['train_iteration_per_subject'][str(filename)] += 1
-# train_config['name_training_run'] = '{}_{}_run_train_{}'.format(filename, id_machine, train_config['train_iteration_per_subject'][str(filename)])
+train_config['train_iteration_per_subject'][str(subj_id)] += 1
+train_config['name_training_run'] = 'S{}_{}_run_train_{}'.format(subj_id, id_machine, train_config['train_iteration_per_subject'][str(subj_id)])
 train_config['debug'] = debug
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

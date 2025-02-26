@@ -20,9 +20,10 @@ from library import check_config
 # Parameters
 
 # N.b. Per ora il percorso dei pesi è hardcoded
-epoch = 26
-subj_id = 3
-file_path = 'data/SEED/'
+epoch = 'BEST'
+subj_id = 8
+data_file_path = 'data/SEED/'
+weight_file_path = 'Saved Model/SEED/subj_{}_bsdtw/'.format(subj_id)
 use_test_set = False
 
 trials_length_in_seconds = 4
@@ -34,7 +35,7 @@ nperseg = 200
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
-plot_to_create = 22
+plot_to_create = 55
 
 repetition = 5
 n_trial = 252
@@ -67,11 +68,11 @@ label_dict = {0 : 'left', 1 : 'right', 2 : 'foot'} # TODO CHECK
 
 # Get all the file for a single subject
 filename_list = []
-list_files = os.listdir(file_path)
+list_files = os.listdir(data_file_path)
 for file in list_files :
     if '_' in file :
         file_id = int(file.split('_')[0])
-        if file_id == subj_id : filename_list.append(file_path + file)
+        if file_id == subj_id : filename_list.append(data_file_path + file)
     else :
         continue
 
@@ -116,6 +117,7 @@ for n_plot in range(plot_to_create):
     
     # Load weight and reconstruction
     path_weight = 'Saved Model/SEED/subj_{}/model_{}.pth'.format(subj_id, epoch) # TODO Eventulmente da modificare in futuro
+    path_weight = weight_file_path + 'model_{}.pth'.format(epoch)
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     

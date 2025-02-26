@@ -1,13 +1,14 @@
-batch_size = 10
+batch_size = 15
 lr = 0.01
-epochs = 10
+epochs = 40
 use_scheduler = true
 lr_decay_rate = 0.999
 optimizer_weight_decay = 0.01
 alpha = 1
 beta = 1
 gamma = 1
-recon_loss_type = 2
+recon_loss_type = 3
+block_size = 100
 edge_samples_ignored = 0
 average_channels = false
 gamma_dtw = 1
@@ -26,7 +27,5 @@ notes = ""
 debug = false
 
 [train_iteration_per_subject]
-NO_NOTCH_train8 = 0
-NOTCH_train8 = 0
-NO_NOTCH_suffle6 = 0
-NOTCH_suffle6 = 0
+3 = 1
+8 = 1
