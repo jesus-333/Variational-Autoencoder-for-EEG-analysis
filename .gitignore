@@ -10,6 +10,7 @@
 .venv
 !examples/
 !examples/example_trained_weigths.pth
+!examples/*.pth
 data/
 TMP_Folder/
 TMP Test/tmp_data/
