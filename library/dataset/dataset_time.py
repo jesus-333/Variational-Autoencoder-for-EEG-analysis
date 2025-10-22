@@ -11,13 +11,6 @@ Function to the creation the PyTorch dataset with EEG data in format channels x 
 import torch
 from torch.utils.data import Dataset
 
-"""
-%load_ext autoreload
-%autoreload 2
-
-import dataset as ds
-"""
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% PyTorch Dataset
 
@@ -26,7 +19,7 @@ class EEG_Dataset(Dataset):
     def __init__(self, data, labels, ch_list, normalize = -1):
         """
         data = data used for the dataset. Must have shape [Trials x 1 x channels x time samples]
-        Note that if you use normale EEG data depth dimension (the second axis) has value 1.
+        Note that if you use EEG data depth dimension (the second axis) has value 1.
         """
 
         if len(data.shape) != 4 or data.shape[1] != 1 :
@@ -54,7 +47,7 @@ class EEG_Dataset(Dataset):
 
     def minmax_normalize_all_dataset(self, a, b):
         """
-        Normalize the entire dataset between a and b.
+        Normalize the entire dataset between the value a and the value b.
         """
         self.data = ((self.data - self.data.min()) / (self.data.max() - self.data.min())) * (b - a) + a
 
@@ -88,5 +81,69 @@ class EEG_Dataset(Dataset):
             normalize_trial = ((tmp_trial - tmp_trial.min()) / (tmp_trial.max() - tmp_trial.min())) * (b - a) + a
             
             self.data[i, 0, :] = normalize_trial
+
+class EEG_Dataset_ChWi(Dataset):
+
+    def __init__(self, data, labels = None, ch_list : list = None, norm_type : int = -1):
+        """
+        Dataset used for the ChWi autoencoder. All EEG signals are saved independently from the trial.
+        This means that an EEG matrix of shape B x C x T will be saved as a matrix of shape (B * C) x 1 x T
+        The dimension of size 1 is used for the depth map of 1d convolution.
+
+        @param data: data used for the dataset. Must have shape [Trials x C x T] with C = channels and T = time samples
+        """
+
+        # Get data
+        if 'torch' in str(type(data)) :
+            self.data = data.float()
+        else :
+            self.data = torch.from_numpy(data).float()
+
+        # Reshape matrix
+        self.data = self.data.reshape(-1, 1, self.data.shape[2])
+
+        # (OPTIONAL) Normalize the data
+        if norm_type > 0 : self.__normalize(norm_type)
+
+        # Saved labels
+        if labels is None :
+            # If no labels is passed an array of ones is created. This is only used to keep dataset consistent with training functions
+            self.labels = torch.ones(self.data.shape[0])
+        else :
+            if 'torch' in str(type(data)) :
+                self.labels = labels.long()
+            else :
+                self.labels = torch.from_numpy(labels).long()
+
+        # Saved channels
+        self.ch_list = ch_list
+
+        # Used to return only data. False by default. It can be set to True after dataset creation in the code.
+        self.return_only_data = False
+        
+    def __getitem__(self, idx : int):
+        if self.return_only_data :
+            return self.data[idx]
+        else :
+            return self.data[idx], self.labels[idx]
+    
+    def __len__(self) -> int :
+        return self.data.shape[0]
+
+    def __normalize(self, norm_type : int) :
+        """
+        Normalize every EEG signal. The type of normalization is decided by the norm_type parameter.
+
+        @param norm_type : (int) Decide the type of normalization. 1 = Minmax (everything between 0 and 1). 2 = Standardization (mean 0 and std 1)
+        """
+        for i in range(self.data.shape[0]) :
+            tmp_eeg = self.data[i, 0]
+
+            if norm_type == 1 : # Minmax
+                self.data[i, 0] = (tmp_eeg - tmp_eeg.min()) / (tmp_eeg.max() - tmp_eeg.min())
+            elif norm_type == 2 : # Standardization
+                self.data[i, 0] = (tmp_eeg - tmp_eeg.mean()) / tmp_eeg.std()
+            else :
+                raise ValueError("norm_type must have values 1 (minmax), 2 (standardization). Current value is {}".format(norm_type))
 
 #%% End file

@@ -5,7 +5,7 @@
 Script with the function to train the various network and save the results with the wandb framework
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 # Python library
@@ -21,14 +21,7 @@ from ..config import config_model as cm
 from ..config import config_dataset as cd
 from ..config import config_training as ct
 
-"""
-%load_ext autoreload
-%autoreload 2
-
-import sys
-"""
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict, model_config : dict):
     """
@@ -36,7 +29,8 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
     """
 
     notes = train_config['notes']
-    name = train_config['name_training_run'] if 'name' in train_config else None
+    name = train_config['name_training_run'] if 'name_training_run' in train_config else None
+    train_config['wandb_training'] = True
 
     wandb_config = dict(
         dataset = dataset_config,
@@ -59,7 +53,8 @@ def train_wandb_V1(model_name : str, dataset_config : dict, train_config : dict,
         run.log_artifact(model_artifact)
 
         return model
-
+      
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, train_dataset, validation_dataset, dataset_config : dict = None):
     """
@@ -80,14 +75,16 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
 
     notes = train_config['notes'] if 'notes' in train_config else 'No notes in train_config'
     name = train_config['name_training_run'] if 'name_training_run' in train_config else None
-    
+    train_config['wandb_training'] = True
+
     # Add train and model config to wandb dict so they are saved and logged in wandb
     wandb_config = dict(
         train = train_config,
         model = model_config,
+        name = name,
     )
     
-    # If not None add also the dataset_config 
+    # If not None add also the dataset_config
     if dataset_config is not None : wandb_config['dataset'] = dataset_config
     
     # Create dataloader
@@ -101,7 +98,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model = train_generic.get_untrained_model(model_name, model_config)
     
-    # TOOD add proper finetuning
+    # TODO add proper finetuning
     # path_weight = 'Saved Model/hvEEGNet_d2a_block/S3_block_250/model_50.pth'
     # model.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
 
@@ -222,7 +219,7 @@ def main_hvEEGNet_shallow(dataset_config, train_config, model_config):
     
     return model
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def get_config_dict_for_classifier_v1(subj : int, path_weight_hvEEGNet : str):
     dataset_config, _, hvEEGNet_config = get_config_dict_for_hvEEGNet_shallow([subj])
@@ -232,10 +229,9 @@ def get_config_dict_for_classifier_v1(subj : int, path_weight_hvEEGNet : str):
     train_config['wandb_training'] = True
     train_config['model_artifact_name'] = 'classifier'
 
-
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if __name__ == '__main__':
     pass
     # model = main_EEGNet_classifier()
+

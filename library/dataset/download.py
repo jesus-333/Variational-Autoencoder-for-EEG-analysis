@@ -13,16 +13,8 @@ import os
 
 import moabb.datasets as mb
 import moabb.paradigms as mp
-from . import support_function as sf
 from ..config import config_dataset as cd
 from .. import check_config
-
-"""
-%load_ext autoreload
-%autoreload 2
-
-import download
-"""
 
 #%% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Download and automatic segmentation (moabb)
@@ -39,7 +31,7 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
 
     if config['resample_data']: paradigm.resample = config['resample_freq']
 
-    if config['filter_data']: 
+    if config['filter_data']:
         paradigm.fmin = config['fmin']
         paradigm.fmax = config['fmax']
     else:
@@ -53,7 +45,7 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
     if config['trial_start'] > 0 and config['trial_end'] > config['trial_start'] :
         paradigm.tmin = config['trial_start']
         paradigm.tmax = config['trial_end']
-    else : 
+    else :
         print("Invalid values or not specified for trial_start and trials_end in the config. Used default values provided by moabb.")
 
     # Get the raw data
@@ -65,10 +57,10 @@ def get_moabb_data_automatic(dataset, paradigm, config : dict, type_dataset : st
     raw_labels = raw_labels[idx_type]
 
     # Select channels and convert labels
-    labels = convert_label(raw_labels, use_BCI_D2a_label = False) 
+    labels = convert_label(raw_labels, use_BCI_D2a_label = False)
     
     # Get channels list
-    ch_list = get_dataset_channels(dataset) 
+    ch_list = get_dataset_channels(dataset)
 
     return data, labels, ch_list
 
@@ -79,11 +71,11 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
 
     @param dataset : dataset object, from MOABB library
     @param info : (dict) Dictionary obtained from paradig.get_data()
-    @param type_dataset : (str) String that specify which type of data obtain, i.e. train, test or full. 
+    @param type_dataset : (str) String that specify which type of data obtain, i.e. train, test, or full.
 
     Note on type_dataset : Some dataset have not a division between train and test. For now if you specified train or test this function simply divides the dataset in two, with the first half as train data and the second as test data.
                            If you set type_dataset = full, ONLY FOR THIS DATASET, it will return the entire dataset.
-    Dataset without a diviosn in train/test : Weibo2014, Cho2017, BI2014a
+    Dataset without a division in train/test : Weibo2014, Cho2017, BI2014a
 
     @return idx_type : (numpy array) Array of boolean that specified which trails are for train or test
     """
@@ -97,7 +89,7 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
         # This list contains the id of each run for each trial
         run_of_each_trials = info['run'].to_numpy()
         
-        # Note that a certain point the id used to to distinguish between run of type 0 and 1 was changed.
+        # Note that a certain point the id used to distinguish between run of type 0 and 1 was changed.
         # To keep compatibility with each possible version of moabb I check which id is used
         if type_dataset == 'train':
             if '0' in run_of_each_trials : idx_type = run_of_each_trials == '0'
@@ -111,7 +103,7 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
         # This list contains the id of each run for each trial
         session_of_each_trials = info['session'].to_numpy()
         
-        # Note that a certain point the id used to to distinguish between run of type 0 and 1 was changed.
+        # Note that a certain point the id used to distinguish between run of type 0 and 1 was changed.
         # To keep compatibility with each possible version of moabb I check which id is used
         if type_dataset == 'train':
             if '0' in session_of_each_trials : idx_type = session_of_each_trials == '0'
@@ -120,7 +112,7 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
         elif type_dataset == 'test':
             if '1' in session_of_each_trials : idx_type = session_of_each_trials == '1'
             elif 'session_1' in session_of_each_trials : idx_type = session_of_each_trials == 'session_1'
-    elif 'Ofner2017' in name_dataset : # Ofner2017 
+    elif 'Ofner2017' in name_dataset : # Ofner2017
         # In the Ofner2017 dataset for each subject there are 10 sessions of recording (with idx from 0 to 9)
         # I take the first 5 sessions as training data and the other 5 as test data
         # If I set type_dataset = full it will return all the sessions
@@ -129,15 +121,15 @@ def get_idx_train_or_test(dataset, info : dict, type_dataset : str) :
             for i in [0, 1, 2, 3, 4] : idx_type += info['run'].to_numpy() == str(i)
         elif type_dataset == 'test':
             for i in [5, 6, 7, 8, 9] : idx_type += info['run'].to_numpy() == str(i)
-        elif type_dataset == 'full' : 
+        elif type_dataset == 'full' :
             idx_type = np.ones(len(info['run'].to_numpy())) == 1
-    elif 'Schirrmeister2017' in name_dataset : # Schirrmeister2017 
+    elif 'Schirrmeister2017' in name_dataset : # Schirrmeister2017
         if   type_dataset == 'train': idx_type = info['run'].to_numpy() == '0train'
         elif type_dataset == 'test' : idx_type = info['run'].to_numpy() == '1test'
     elif 'BI2014a'   in name_dataset or \
          'Weibo2014' in name_dataset or \
          'Cho2017'   in name_dataset or \
-         'GrosseWentrup2009' in name_dataset : 
+         'GrosseWentrup2009' in name_dataset :
 
         # In these datasets train and test are not indicated. So for now I take half of the dataset for training and the other half for test
         # If I pass the full option it return the entire dataset
@@ -172,9 +164,16 @@ def get_moabb_data_handmade(dataset, config, type_dataset):
         raw_data = raw_dataset[subject]
         
         # For each subject the data are divided in train and test. Here I extract train or test data
-        if type_dataset == 'train' : raw_data = raw_data['0train']
-        elif type_dataset == 'test' : raw_data = raw_data['1test']
-        else : raise ValueError("type_dataset must have value train or test")
+        # Note that the two cases of the if return the same data. Simply, after an update of moabb the name used to save them changed.
+        # Due to inconsistent behavior I kept the code to handle both version.
+        if 'session_T' in raw_data :
+            if type_dataset == 'train': raw_data = raw_data['session_T']
+            elif type_dataset == 'test': raw_data = raw_data['session_E']
+            else: raise ValueError("type_dataset must have value train or test")
+        elif '0train' in raw_data :
+            if type_dataset == 'train': raw_data = raw_data['0train']
+            elif type_dataset == 'test': raw_data = raw_data['1test']
+            else: raise ValueError("type_dataset must have value train or test")
 
         trials_matrix, labels, ch_list = get_trial_handmade(raw_data, config)
 
@@ -312,15 +311,32 @@ def get_D2a_data(config, type_dataset):
     check_config.check_config_dataset(config)
     mne.set_log_level(False)
     
-    # Select the dataset
-    dataset = mb.BNCI2014_001()
+    # Get dataset 2a. 
+    # Note that moabb changed the name of the dataset removing the underscore (or adding it) after a certain version.
+    # Since I found an inconsistent behavior I try to get the data with both of them.
+    try :
+        dataset = mb.BNCI2014_001()
+        fail_get_dataset_method_1 = False
+    except :
+        fail_get_dataset_method_1 = True
+    
+    if fail_get_dataset_method_1 :
+        try :
+            dataset = mb.BNCI2014001()
+            fail_get_dataset_method_2 = False
+        except :
+            fail_get_dataset_method_2 = True
+    
+    # Check if both download methods of the dataset failed
+    if fail_get_dataset_method_1 and fail_get_dataset_method_2 :
+        raise ValueError("There is some problem with BNCI2014_001 or BNCI2014001 inside moabb")
 
     # Select the paradigm (i.e. the object to download the dataset)
     paradigm = mp.MotorImagery()
 
     # Get the data
     if config['use_moabb_segmentation']:
-        # Note that for some reasons the automatic division of the dataset by the moabb created  281 trials, insted of 288.
+        # Note that for some reasons the automatic division of the dataset by the moabb created  281 trials, instead of 288.
 
         raw_data, raw_labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
         
@@ -356,13 +372,13 @@ def get_D2a_data(config, type_dataset):
 
 def get_Zhou2016(config : dict, type_dataset : str) :
     """
-    Throuhg moabb, get the dataset preseneted by Zhou et al. 2016 (https://doi.org/10.1371/journal.pone.0162657)
+    Through  moabb, get the dataset presented by Zhou et al. 2016 (https://doi.org/10.1371/journal.pone.0162657)
 
     @param config : (dict) Dictionary with the config for the dataset
     @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
 
     @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
-    @retunr label : ...
+    @return label : ...
     @return ch_list : (list) List with the name of the channels
     """
     check_config.check_config_dataset(config)
@@ -384,13 +400,13 @@ def get_Zhou2016(config : dict, type_dataset : str) :
 
 def get_Weibo2014(config : dict, type_dataset : str) :
     """
-    Throuhg moabb, get the dataset preseneted by ....
+    Through moabb, get the dataset presented by ...
 
     @param config : (dict) Dictionary with the config for the dataset
     @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
 
     @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
-    @retunr label : ...
+    @return label : ...
     @return ch_list : (list) List with the name of the channels
     """
     
@@ -398,7 +414,7 @@ def get_Weibo2014(config : dict, type_dataset : str) :
     dataset = mb.Weibo2014()
     paradigm = mp.MotorImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     # The last 3 channels (VEO, HEO, STIMO14) are excluded from the data by the paradigm so I remove them from the channels list
@@ -415,7 +431,7 @@ def get_Cho2017(config : dict, type_dataset : str) :
     dataset = mb.Cho2017()
     paradigm = mp.LeftRightImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     # Remove the last 5 channels, automatically removed from the data by the paradigm (EMG1, EMG2, EMG3, EMG4, Stim)
@@ -425,14 +441,14 @@ def get_Cho2017(config : dict, type_dataset : str) :
 
 def get_Ofner2017(config : dict, type_dataset : str) :
     """
-    Get the dataset presented by 
+    Get the dataset presented by ...
     """
 
     # Select the dataset and paradigm (i.e. the object to download the dataset)
     dataset = mb.Ofner2017()
     paradigm = mp.MotorImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     # Rescale data (The original data are in the range 10^6-10^7)
@@ -445,28 +461,28 @@ def get_Ofner2017(config : dict, type_dataset : str) :
 
 def get_GrosseWentrup2009(config : dict, type_dataset : str) :
     """
-    Get the dataset presented by 
+    Get the dataset presented by ...
     """
 
     # Select the dataset and paradigm (i.e. the object to download the dataset)
     dataset = mb.GrosseWentrup2009()
     paradigm = mp.LeftRightImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     return data, labels.squeeze(), ch_list
 
 def get_Lee2019_MI(config : dict, type_dataset : str) :
     """
-    Get the dataset presented by 
+    Get the dataset presented by ...
     """
 
     # Select the dataset and paradigm (i.e. the object to download the dataset)
     dataset = mb.Lee2019_MI()
     paradigm = mp.LeftRightImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     # Remove the last 5 channels, automatically removed from the data by the paradigm (EMG1, EMG2, EMG3, EMG4, STI 014)
@@ -476,32 +492,32 @@ def get_Lee2019_MI(config : dict, type_dataset : str) :
 
 def get_Schirrmeister2017(config : dict, type_dataset : str) :
     """
-    Get the dataset presented by 
+    Get the dataset presented by ...
     """
 
     # Select the dataset and paradigm (i.e. the object to download the dataset)
     dataset = mb.Schirrmeister2017()
     paradigm = mp.MotorImagery()
     
-    # Get data, labels and channels list
+    # Get data, labels, and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
 
     ch_list = ch_list
 
     return data, labels.squeeze(), ch_list
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # P300 Datasets
 
 def get_BI2014a(config : dict, type_dataset : str) :
     """
-    Throuhg moabb, get the dataset preseneted by Huebner et al. 2018 (https://doi.org/10.1109/MCI.2018.2807039)
+    Through moabb, get the dataset presented by Huebner et al. 2018 (https://doi.org/10.1109/MCI.2018.2807039)
 
     @param config : (dict) Dictionary with the config for the dataset
     @param type_dataset : (str) String that must have values train or test. Specify if returning the training or test data
 
     @return data : (numpy array) Numpy array with shape N x C x T, with N = n. of trials, C = n. of channels, T = n. of time samples.
-    @retunr label : ...
+    @return label : ...
     @return ch_list : (list) List with the name of the channels
     """
     # Select the dataset and paradigm (i.e. the object to download the dataset)
@@ -510,7 +526,7 @@ def get_BI2014a(config : dict, type_dataset : str) :
     
     # Get data, labels and channels list
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
-    ch_list = ch_list[0:-1] 
+    ch_list = ch_list[0:-1]
 
     return data, labels.squeeze(), ch_list
 

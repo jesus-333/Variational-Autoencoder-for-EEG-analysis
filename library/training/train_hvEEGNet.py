@@ -2,29 +2,17 @@
 @author: Alberto Zancanaro (Jesus)
 @organization: University of Padua (Italy)
 
-Train function of the hierarchical vEEGnet
+Train function of the hierarchical vEEGnet (hvEEGNet)
 """
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Imports
 
 # Python library
 import torch
 import pprint
 
-# Config files
-from ..config import config_model as cm
-from ..config import config_dataset as cd
-from ..config import config_training as ct
-    
-"""
-%load_ext autoreload
-%autoreload 2
-
-import sys
-"""
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #%% Epochs function
 
 def train_epoch(model, loss_function, optimizer, train_loader, train_config, log_dict = None):
@@ -54,8 +42,8 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
             predict_label = None
         
         # Loss evaluation
-        batch_train_loss = loss_function.compute_loss(x, x_r, 
-                                                     mu_list, log_var_list, 
+        batch_train_loss = loss_function.compute_loss(x, x_r,
+                                                     mu_list, log_var_list,
                                                      delta_mu_list, delta_log_var_list,
                                                      predict_label, true_label)
     
@@ -72,17 +60,15 @@ def train_epoch(model, loss_function, optimizer, train_loader, train_config, log
     # Compute final loss
     train_loss = train_loss / len(train_loader.sampler)
     recon_loss = recon_loss / len(train_loader.sampler)
-    kl_loss = kl_loss / len(train_loader.sampler)
+    kl_loss    = kl_loss / len(train_loader.sampler)
     if train_config['use_classifier']: clf_loss /= len(train_loader.sampler)
 
     if log_dict is not None:
-        log_dict['train_loss'] = float(train_loss)
+        log_dict['train_loss']       = float(train_loss)
         log_dict['train_loss_recon'] = float(recon_loss)
-        log_dict['train_loss_kl'] = float(kl_loss)
-        # for i in range(len(train_loss[3])):
-        #     kl_loss = train_loss[3][i]
-        #     log_dict['train_loss_recon_{}'.format(i+1)] = kl_loss
-        if train_config['use_classifier']:  log_dict['train_loss_clf'] = float(clf_loss)
+        log_dict['train_kl_loss']    = float(kl_loss)
+
+        if train_config['use_classifier']: log_dict['train_loss_clf'] = float(clf_loss)
         print("TRAIN LOSS")
         pprint.pprint(log_dict)
     
@@ -132,9 +118,9 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
     if train_config['use_classifier']: clf_loss /= len(validation_loader.sampler)
     
     if log_dict is not None:
-        log_dict['validation_loss'] = float(validation_loss)
+        log_dict['validation_loss']       = float(validation_loss)
         log_dict['validation_loss_recon'] = float(recon_loss)
-        log_dict['validation_kl_loss'] = float(kl_loss)
+        log_dict['validation_kl_loss']    = float(kl_loss)
         # for i in range(len(validation_loss[3])):
         #     kl_loss = validation_loss[3][i]
         #     log_dict['validation_loss_recon_{}'.format(i+1)] = validation_loss
@@ -143,6 +129,6 @@ def validation_epoch(model, loss_function, validation_loader, train_config, log_
         pprint.pprint(log_dict)
     
     return validation_loss
-
+  
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
