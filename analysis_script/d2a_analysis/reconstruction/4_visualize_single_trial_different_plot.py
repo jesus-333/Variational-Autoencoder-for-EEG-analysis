@@ -24,22 +24,26 @@ sys.path.insert(0, parent_directory)
 tot_epoch_training = 80
 epoch = 80
 subj_for_weights = 3
-subj_for_data = 9
+subj_for_data = 1
 use_test_set = True
 
-t_min = 2
-t_max = 3
+t_min = 2.25
+t_max = 3.25
 
 compute_spectra_with_entire_signal = True
 nperseg = 500
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
-rand_trial_sample = True
-plot_to_create = 5
+rand_trial_sample = False
+plot_to_create = 15
 
-repetition = 1
-n_trial = 0 
-channel = 'C3'
+repetition = 15
+n_trial = 221
+channel = 'C4'
+
+# Trail usato per paper block SDTW
+# n_trial = 17
+# channel = 'C3'
 # channel = np.random.choice(['Fz', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'C5', 'C3', 'C1', 'Cz',
 #        'C2', 'C4', 'C6', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'P1', 'Pz',
 #        'P2', 'POz'])
@@ -56,9 +60,9 @@ plot_config = dict(
     color_original = 'black',
     color_reconstructed = 'red',
     add_title = False,
-    save_fig = False,
-    # format_so_save = ['png', 'pdf', 'eps']
-    format_so_save = ['png']
+    save_fig = True,
+    format_so_save = ['png', 'pdf', 'eps']
+    # format_so_save = ['png']
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -114,8 +118,9 @@ for n_plot in range(plot_to_create):
     # Load weight and reconstruction
     path_weight = 'Saved Model/repetition_hvEEGNet_{}/subj {}/rep {}/model_{}.pth'.format(tot_epoch_training, subj_for_weights, repetition, epoch)
     # path_weight = 'Saved Model/test_SDTW_divergence/S{}/model_{}.pth'.format(subj,epoch) # TODO remember remove
-    # path_weight = 'Saved Model/hvEEGNet_d2a_MSE/S8/model_40.pth' # TODO remember remove
+    path_weight = 'Saved Model/hvEEGNet_d2a_MSE/S8/model_40.pth' # TODO remember remove
     # path_weight = 'Saved Model/d2a_federated/S2_S5_5 rounds_10_epochs/model_round_5.pth'
+    path_weight = 'Saved Model/hvEEGNet_d2a_block/S3_block_250/model_92.pth'
     model_hv.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
     x_r = model_hv.reconstruct(x.unsqueeze(0)).squeeze()
     
@@ -137,7 +142,7 @@ for n_plot in range(plot_to_create):
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Plot in time domain
 
-    # (OPTIONAL) 
+    # (OPTIONAL)
     if plot_config['rescale_minmax'] :
         x_original_to_plot = (x_original_to_plot - x_original_to_plot.min()) / (x_original_to_plot.max() - x_original_to_plot.min())
         x_r_to_plot = (x_r_to_plot - x_r_to_plot.min()) / (x_r_to_plot.max() - x_r_to_plot.min())

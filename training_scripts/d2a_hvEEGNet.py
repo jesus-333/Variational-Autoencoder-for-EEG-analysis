@@ -15,10 +15,9 @@ from library import check_config
 from library.dataset import preprocess as pp
 from library.training import wandb_training as wt
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-subj = 7
+subj = 3
 
 # Path of config files
 path_dataset_config = 'training_scripts/config/d2a/dataset.toml'

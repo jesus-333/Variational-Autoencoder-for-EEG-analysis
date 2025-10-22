@@ -31,7 +31,7 @@ path_dataset_config = 'training_scripts/config/zhou2016/dataset.toml'
 path_model_config = 'training_scripts/config/zhou2016/model.toml'
 path_traing_config = 'training_scripts/config/zhou2016/training.toml'
 
-if train_with_test_data : 
+if train_with_test_data :
     id_machine += '_TEST_DATA'
     notes = "Trained with test data"
 else:

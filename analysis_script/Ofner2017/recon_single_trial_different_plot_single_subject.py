@@ -22,9 +22,9 @@ from library import check_config
 # N.b. Per ora il percorso dei pesi è hardcoded
 tot_epoch_training = 20
 epoch = 10
-subj = 6 
+subj = 6
 repetition = 1
-trained_with_test_data = False
+trained_with_test_data = True
 use_test_set_for_reconstruction = False
 
 t_min = 0
@@ -35,10 +35,10 @@ nperseg = 512
 
 # If rand_trial_sample == True the trial to plot are selected randomly below
 rand_trial_sample = True
-plot_to_create = 2
+plot_to_create = 4
 
-n_trial = 252
-channel = 'F3'
+n_trial = 168
+channel = 'Cz'
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
@@ -52,11 +52,13 @@ plot_config = dict(
     color_reconstructed = 'red',
     add_title = True,
     save_fig = True,
-    # format_so_save = ['png', 'pdf', 'eps']
-    format_so_save = ['png']
+    format_so_save = ['png', 'pdf', 'eps']
+    # format_so_save = ['png']
 )
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+if torch.cuda.is_available() : device = torch.device("cuda")
+elif torch.backends.mps.is_available() : device = torch.device("mps")
+else : device = torch.device("cpu")
 
 xticks_time = None
 # xticks_time = [2, 3, 4, 5, 6]
@@ -79,7 +81,7 @@ print("Load data : ", load_data)
 if load_data:
     dataset_config = toml.load('training_scripts/config/Ofner2017/dataset.toml')
     dataset_config['percentage_split_train_validation'] = -1 # Avoid the creation of the validation dataset
-    dataset_config['subjects_list'] = [subj] 
+    dataset_config['subjects_list'] = [subj]
     
     train_data, train_labels, ch_list = download.get_Ofner2017(dataset_config, 'train')
     test_data, test_labels, ch_list = download.get_Ofner2017(dataset_config, 'test')
@@ -99,17 +101,17 @@ if dataset_config['resample_data'] == False :
 
 model_config = toml.load('training_scripts/config/Ofner2017/model.toml')
 model_config['encoder_config']['C'] = train_data.shape[2]
-model_config['encoder_config']['T'] = train_data.shape[3] 
+model_config['encoder_config']['T'] = train_data.shape[3]
 check_config. check_model_config_hvEEGNet(model_config)
 model_hv = hvEEGNet.hvEEGNet_shallow(model_config)
 
 # Decide if use the train or the test dataset
-if use_test_set_for_reconstruction  : 
+if use_test_set_for_reconstruction  :
     dataset = dataset_time.EEG_Dataset(test_data, test_labels, ch_list)
-else : 
+else :
     dataset = dataset_time.EEG_Dataset(train_data, train_labels, ch_list)
 
-for n_plot in range(plot_to_create):
+for n_plot in range(plot_to_create) :
 
     np.random.seed(None)
     if rand_trial_sample:
@@ -119,6 +121,7 @@ for n_plot in range(plot_to_create):
     
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
+    x *= 1e6
     tmp_t = np.linspace(0, 3, x.shape[-1])
     idx_t = np.logical_and(tmp_t >= t_min, tmp_t <= t_max)
     t = tmp_t[idx_t]

@@ -40,6 +40,7 @@ plot_to_create = 3
 
 n_trial = 252
 channel = 'Cz'
+ch_list = ['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz', 'CP4', 'O1', 'Oz', 'O2']
 # channel = np.random(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
 
 plot_config = dict(
@@ -53,8 +54,8 @@ plot_config = dict(
     color_reconstructed = 'red',
     add_title = False,
     save_fig = True,
-    # format_so_save = ['png', 'pdf', 'eps']
-    format_so_save = ['png']
+    format_so_save = ['png', 'pdf', 'eps']
+    # format_so_save = ['png']
 )
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -85,7 +86,7 @@ for n_plot in range(plot_to_create):
     if rand_trial_sample:
         n_trial = np.random.randint(len(dataset))
         # repetition = np.random.randint(19) + 1
-        channel = np.random.choice(['Fp1', 'Fp2', 'FC3', 'FCz', 'FC4', 'C3', 'Cz', 'C4', 'CP3', 'CPz','CP4', 'O1', 'Oz', 'O2'])
+        channel = np.random.choice(ch_list)
 
     # Get trial and create vector for time and channel
     x, label = dataset[n_trial]
