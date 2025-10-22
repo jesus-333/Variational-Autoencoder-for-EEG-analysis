@@ -34,6 +34,8 @@ def get_dataset_and_model(dataset_config, model_name):
     if model_name == 'hvEEGNet_shallow':
         # hierarchical vEEGNet
         model_config = cm.get_config_hierarchical_vEEGNet(C, T, type_decoder = 0, parameters_map_type = 0)
+        # model_config['encoder_config']['filter_1'] = 4
+        # model_config['encoder_config']['filter_2'] = 8
     elif model_name == 'vEEGNet':
         # classic vEEGNet
         model_config = cm.get_config_vEEGNet(C, T, hidden_space = -1, type_decoder = 0, type_encoder = 0)

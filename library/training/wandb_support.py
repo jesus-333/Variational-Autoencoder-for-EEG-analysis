@@ -47,7 +47,6 @@ def download_artifacts_Ofner2017(version_list : list) :
             # Change folder name
             os.rename(artifact_dir, os.path.join(os.path.dirname(artifact_dir), name_training_run))
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Function related to load classification metrics
 

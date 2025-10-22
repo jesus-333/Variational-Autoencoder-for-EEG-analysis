@@ -84,7 +84,7 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
 
     def aggregate_fit(self, server_round: int, results, failures) :
         """
-        aggregate the results from the results from the clients and upload the results in wandb
+        Aggregate the results from the clients and upload the results in wandb
         """
 
         self.count_rounds += 1
@@ -96,7 +96,7 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
 
             # Convert `Parameters` to `List[np.ndarray]`
             model_weights = flwr.common.parameters_to_ndarrays(aggregated_parameters) 
-            self.model_weights  = model_weights
+            self.model_weights = model_weights
 
             # Save weights
             save_path = self.save_model_weights()
@@ -169,9 +169,13 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
         Save the model after a training round in the path specified in server_config['path_to_save_model']
         """
         # Create folder specified in the path
-        os.makedirs(self.server_config['path_to_save_model'], exist_ok = True)
+        self.server_config['path_to_save_model']
 
         # Convert `List[np.ndarray]` to PyTorch`state_dict`
+        # This block of code is added because the model is called inside the aggregate_fit method.
+        # In that function the weights are returned as a flower Parameter object and then converted to a list of ndarray.
+        # I convert the list of ndarray to a state_dict and then load the state_dict in the model.
+        # Then I used the classical pytorch code to save the model.
         params_dict = zip(self.model.state_dict().keys(), self.model_weights)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.model.load_state_dict(state_dict, strict=True)
@@ -184,9 +188,9 @@ class FedAvg_with_wandb(flwr.server.strategy.FedAvg):
 
     def extract_metric_from_log_dict(self, log_dict : dict, metric_name : str) :
         """
-        Since at the time of writing flower not allow to save entire array/list inside the log dict I have to save each epoch separately, i.e. with a different enty in the dictionary.
+        Since (at the time of writing) flower does not allow to save entire array/list inside the log dict I have to save each epoch separately, i.e. with a different entry in the dictionary.
         With this method I will merge all the entry for a specific key in a list. 
-        The list is then returned as numpy array
+        The list is then returned as numpy array.
         """
         
         training_epochs = np.arange(log_dict['epochs']) + 1

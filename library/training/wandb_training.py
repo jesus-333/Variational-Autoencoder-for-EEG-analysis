@@ -100,6 +100,11 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     # Create model
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model = train_generic.get_untrained_model(model_name, model_config)
+    
+    # TOOD add proper finetuning
+    # path_weight = 'Saved Model/hvEEGNet_d2a_block/S3_block_250/model_50.pth'
+    # model.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))
+
     model.to(train_config['device'])
 
     # Declare loss function

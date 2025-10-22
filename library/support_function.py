@@ -13,12 +13,19 @@ import numpy as np
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-def get_idx_to_split_data(n_elements : int, percentage_split : float, seed = -1):
+def get_idx_to_split_data(n_elements : int, percentage_split : float, seed : int = None):
     """
-    Get to list of indices to split an array of data.
+    Given a number of elements (n_elements) create an array with number from 0 to n_elements - 1 and split it (randomly) in two lists.
+    The size of the two list is determined by the percentage_split parameter. The first list will be have size x = int(percentage_split * n_elements) while the second will have size y = n_elements - x
+    The procedure can be "deterministic" if the seed parameter is passed to the function.
     """
+    
+    # Check input parameter
+    if n_elements <= 1 : raise ValueError("n_elements must be greater than 1. Current value is {}".format(n_elements))
+    if percentage_split <= 0 or percentage_split >= 1 : raise ValueError("percentage_split must be between 0 and 1. Current value is {}".format(percentage_split))
+
     # Use of the seed for reproducibility
-    np.random.seed(seed)
+    if seed is not None : np.random.seed(seed)
 
     # Create idx vector
     idx = np.random.permutation(n_elements)

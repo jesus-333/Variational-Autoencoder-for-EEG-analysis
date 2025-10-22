@@ -376,8 +376,9 @@ def get_Zhou2016(config : dict, type_dataset : str) :
     data, labels, ch_list = get_moabb_data_automatic(dataset, paradigm, config, type_dataset)
     
     # Note that Zhou2016 has 14 channels but the first 2 are for electro-oculogram (VEOU, VEOUL) and thus are excluded
+    # Also the last channel (STIM) is excluded
     # From the data this 2 channel are automatically removed by the paradigm.get_data() function
-    ch_list = ch_list[2:] 
+    ch_list = ch_list[2:-1]
 
     return data, labels.squeeze(), ch_list
 
@@ -438,7 +439,7 @@ def get_Ofner2017(config : dict, type_dataset : str) :
     data = data * (10 ** -6)
 
     # Remove from the channels list that the paradigm automatically removed
-    ch_list = ch_list[0:-35]
+    ch_list = ch_list[0:-36]
 
     return data, labels.squeeze(), ch_list
 
