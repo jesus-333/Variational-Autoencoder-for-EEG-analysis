@@ -9,7 +9,6 @@ Implementation of EEGNet model using PyTorch
 #%% Imports
 
 import torch
-from torch import nn
 
 from . import support_function
 from ..import check_config
@@ -17,7 +16,7 @@ from ..import check_config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #%% Network declaration
 
-class EEGNet(nn.Module):
+class EEGNet(torch.torch.nn.Module):
     
     def __init__(self, config : dict):
         """
@@ -50,28 +49,28 @@ class EEGNet(nn.Module):
         # Convolutional section
         
         # Block 1 - Temporal filters
-        self.temporal_filter = nn.Sequential(
-            nn.Conv2d(depth_first_layer, config['filter_1'], kernel_size = config['c_kernel_1'], 
+        self.temporal_filter = torch.nn.Sequential(
+            torch.nn.Conv2d(depth_first_layer, config['filter_1'], kernel_size = config['c_kernel_1'], 
                       padding = 'same', bias = use_bias),
-            nn.BatchNorm2d(config['filter_1']),
+            torch.nn.BatchNorm2d(config['filter_1']),
         )
         
         # Block 1 - Spatial filters
-        self.spatial_filter = nn.Sequential(
-            nn.Conv2d(config['filter_1'], config['filter_1'] * D, kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
-            nn.BatchNorm2d(config['filter_1'] * D),
+        self.spatial_filter = torch.nn.Sequential(
+            torch.nn.Conv2d(config['filter_1'], config['filter_1'] * D, kernel_size = config['c_kernel_2'], groups = config['filter_1'], bias = use_bias),
+            torch.nn.BatchNorm2d(config['filter_1'] * D),
             activation,
-            nn.AvgPool2d(config['p_kernel_1']) if config['p_kernel_1'] is not None else nn.Identity(),
+            torch.nn.AvgPool2d(config['p_kernel_1']) if config['p_kernel_1'] is not None else torch.nn.Identity(),
             dropout
         )
 
         # Block 2
-        self.separable_convolution = nn.Sequential(
-            nn.Conv2d(config['filter_1'] * D, config['filter_1'] * D, kernel_size = config['c_kernel_3'], groups = config['filter_1'] * D, padding = 'same', bias = use_bias),
-            nn.Conv2d(config['filter_1'] * D, config['filter_2'], kernel_size = (1, 1), groups = 1, bias = use_bias),
-            nn.BatchNorm2d(config['filter_2']),
+        self.separable_convolution = torch.nn.Sequential(
+            torch.nn.Conv2d(config['filter_1'] * D, config['filter_1'] * D, kernel_size = config['c_kernel_3'], groups = config['filter_1'] * D, padding = 'same', bias = use_bias),
+            torch.nn.Conv2d(config['filter_1'] * D, config['filter_2'], kernel_size = (1, 1), groups = 1, bias = use_bias),
+            torch.nn.BatchNorm2d(config['filter_2']),
             activation,
-            nn.AvgPool2d(config['p_kernel_2']) if config['p_kernel_2'] is not None else nn.Identity(),
+            torch.nn.AvgPool2d(config['p_kernel_2']) if config['p_kernel_2'] is not None else torch.nn.Identity(),
             dropout
         )
         
@@ -133,7 +132,7 @@ class EEGNet(nn.Module):
         print("\t(OPTIONAL) Flatten :\t\t", x.flatten(1).shape, "\n")
 
 
-class EEGNet_Classifier(nn.Module):
+class EEGNet_Classifier(torch.nn.Module):
 
     def __init__(self, config : dict):
         super().__init__()
@@ -144,9 +143,9 @@ class EEGNet_Classifier(nn.Module):
         self.eegnet = EEGNet(config)
         
         input_neurons = self.compute_number_of_neurons(config['input_size'])
-        self.classifier = nn.Sequential(
-            nn.Linear(input_neurons, config['n_classes']),
-            nn.LogSoftmax(dim = 1)
+        self.classifier = torch.nn.Sequential(
+            torch.nn.Linear(input_neurons, config['n_classes']),
+            torch.nn.LogSoftmax(dim = 1)
         )
 
                 

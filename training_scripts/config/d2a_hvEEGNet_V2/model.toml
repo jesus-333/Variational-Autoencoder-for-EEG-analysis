@@ -1,0 +1,33 @@
+hidden_space = 1   				# Note that this parameter is not important since it is necessary for the creation of a complete STANDARD vEEGNet but after the creation we will use the single modules and not the entire network
+type_encoder = 0   				# Ignore. (0 -> EEGNet, 1 -> MBEEGNet (to check implementation)).
+type_decoder = 0        		# Decide if use upsample (0) or transpose convolution (1) to increase the size of the data inside the decoder. Keep the value to 0.
+type_vae = 0                       # 0 = normal VAE, 1 = conditional VAE (not implemented). Keep to 0
+n_classes = 4                      # Used if there is a classifier. Ignore for hierarchical VAE.
+use_h_in_decoder = false           # Ignore.
+use_activation_in_sampling = false # Ignore.
+sampling_activation = 'elu'        # Ignore.
+convert_logvar_to_var = false      # Ignore.
+hidden_space_dimension_list = [512, 512, 512]   # Important only if parameters_map_type = 1. Ignore otherwise.
+parameters_map_type = 1			   # 0 convolution, 1 feed forward, 2 feedforward with LoRA
+rank = 16                          # Used only if parameters_map_type == 3. In this case this is the value of rank of the two matrix used in the LoRA layer (that replace the standard feed forward operation)
+use_spectral_norm = true           # If True and parameters_map_type is equal to 2, it applies spectral normalization to feedforward layers.
+use_classifier = false             # Ignore. If True add a classifier to hvEEGNet.
+input_size = [1, 1, 22, 512]	   # Size of the 4D tensor that the model received in input. Usually I compute it directly inside the training script and then update the dictionary
+
+[encoder_config]
+c_kernel_1 = [ 1, 128]
+c_kernel_2 = [ 22, 1]
+c_kernel_3 = [ 1, 32]
+filter_1 = 8
+filter_2 = 22
+p_kernel_1 = -1
+p_kernel_2 = -1
+C = 22
+T = 512
+D = 2
+activation = "elu"
+use_bias = false
+prob_dropout = 0.5
+use_dropout_2d = true
+flatten_output = false
+print_var = false

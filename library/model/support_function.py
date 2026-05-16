@@ -172,6 +172,8 @@ class sample_layer(nn.Module):
             # print(input_shape)
             n_neurons_output = input_shape[1] * input_shape[2] * input_shape[3]
 
+            self.input_shape = list(input_shape)
+
             if self.parameters_map_type == 1 : # Feedforward layer
                 # Map from encoder output to latent space
                 self.parameters_map = map_to_distribution_parameters_with_vector(hidden_space_dimension = hidden_space_dimension,
@@ -285,6 +287,25 @@ def create_head(config : dict) :
     return q_head, k_head, v_head
 
 def compute_attention_values(q : torch.Tensor, k : torch.Tensor, v : torch.Tensor, normalize_qk : bool) -> torch.Tensor :
+    """
+    Compute the attention values given the query, key and value arrays.
+
+    Parameters
+    ----------
+    q : torch.Tensor
+        Query array of shape B x C x Dq
+    k : torch.Tensor
+        Key array of shape B x Dk x C
+    v : torch.Tensor
+        Value array of shape B x C x Dv
+    normalize_qk : bool
+        If True, the score is divided by sqrt(Dq) before applying the softmax.
+
+    Returns
+    -------
+    z : torch.Tensor
+        Attention values of shape B x C x Dv
+    """
     # Transpose k arrays
     k = torch.permute(k, (0, 2, 1))
     
