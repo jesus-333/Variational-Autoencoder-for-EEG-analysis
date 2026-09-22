@@ -35,8 +35,7 @@ If you use this repository cite [[3]][hvEEGNet_SSRNN]
  
   - [[1]][vEEGNet_ver1] Zancanaro, A., Zoppis, I., Manzoni, S., & Cisotto, G. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG. In Proceedings of the 9th International Conference on Information and Communication Technologies for Ageing Well and e-Health, ICT4AWE 2023, Prague, Czech Republic, April 22-24, 2023 (Vol. 2023, pp. 245-252). Science and Technology Publications.
   - [[2]][vEEGNet_ver2_preprint] Zancanaro, A., Cisotto, G. Zoppis, I., & Manzoni, S. (2023). vEEGNet: A New Deep Learning Model to Classify and Generate EEG., vEEGNet: learning latent representations to reconstruct EEG raw data via variational autoencoders (under review) ([preprint][vEEGNet_ver2_preprint] on ResearchGate)
-  - [[3]][hvEEGNet_SSRNN]  Cisotto, Giulia and Zancanaro, Alberto and Zoppis, Italo and Manzoni, Sara, HvEEGNet: A New Deep Learning Model for High-Fidelity EEG Reconstruction. Available at SSRN: https://ssrn.com/abstract=4725025 or http://dx.doi.org/10.2139/ssrn.4725025
- (under review) ([preprint][hvEEGNet_SSRNN] on SSRN)
+  - [[3]][hvEEGNet_paper]  Cisotto G, Zancanaro A, Zoppis IF and Manzoni SL (2024) hvEEGNet: a novel deep learning model for high-fidelity EEG reconstruction. Front. Neuroinform. 18:1459970. doi: 10.3389/fninf.2024.1459970 (if you need it there is also an old [preprint][hvEEGNet_SSRNN] on SSRN)
   
 </details>
 
@@ -44,3 +43,4 @@ If you use this repository cite [[3]][hvEEGNet_SSRNN]
 [vEEGNet_ver2_preprint]: https://www.researchgate.net/publication/375867809_vEEGNet_learning_latent_representations_to_reconstruct_EEG_raw_data_via_variational_autoencoders
 [hvEEGNet_preprint_researchgate]: https://www.researchgate.net/publication/375868326_hvEEGNet_exploiting_hierarchical_VAEs_on_EEG_data_for_neuroscience_applications
 [hvEEGNet_SSRNN]: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4725025
+[hvEEGNet_paper]: https://www.frontiersin.org/journals/neuroinformatics/articles/10.3389/fninf.2024.1459970/
