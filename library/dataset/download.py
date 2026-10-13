@@ -227,7 +227,7 @@ def get_trial_handmade(raw_data, config):
         trials_matrix_list.append(trials_matrix_actual_run)
         label_list.append(raw_labels)
         
-        # Compute the total number of trials 
+        # Compute the total number of trials
         n_trials += len(raw_labels)
     
     # Convert list in numpy array
@@ -311,7 +311,7 @@ def get_D2a_data(config, type_dataset):
     check_config.check_config_dataset(config)
     mne.set_log_level(False)
     
-    # Get dataset 2a. 
+    # Get dataset 2a.
     # Note that moabb changed the name of the dataset removing the underscore (or adding it) after a certain version.
     # Since I found an inconsistent behavior I try to get the data with both of them.
     try :
@@ -607,7 +607,13 @@ def get_dataset_channels(dataset):
     """
 
     if 'BNCI2014_001' in str(type(dataset)) : # Dataset 2a BCI Competition IV
-        raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
+        # Old version
+        # raw_data = dataset.get_data(subjects = [1])[1]['0train']['run_0']
+
+        # New version
+        raw_data = dataset.get_data(subjects = [1])[1]['0train']['0']
+        
+        # Get channels name
         ch_list = raw_data.ch_names
     elif 'RawEDF' in str(type(dataset)) :
         ch_list = dataset.ch_names

@@ -37,6 +37,7 @@ from ..model import EEGNet
 from ..model import MBEEGNet
 from ..model import vEEGNet
 from ..model import hvEEGNet
+from ..model import hvEEGNet_V2
 from ..model import classifier
 from ..model import ChWi
 
@@ -229,6 +230,8 @@ def get_untrained_model(model_name : str, model_config : dict):
         return vEEGNet.vEEGNet(model_config)
     elif model_name == 'hvEEGNet_shallow':
         return hvEEGNet.hvEEGNet_shallow(model_config)
+    elif model_name == 'hvEEGNet_V2':
+        return hvEEGNet_V2.hvEEGNet_V2(model_config)
     elif model_name == 'classifier_v1':
         return classifier.classifier_model_v1(model_config)
     elif model_name == 'ChWi_autoencoder':
@@ -242,6 +245,8 @@ def get_loss_function(model_name, config = None):
     elif model_name == 'vEEGNet':
         return loss_function.vEEGNet_loss(config)
     elif model_name == 'hvEEGNet_shallow':
+        return loss_function.hvEEGNet_loss(config)
+    elif model_name == 'hvEEGNet_V2':
         return loss_function.hvEEGNet_loss(config)
     elif model_name == 'classifier_v1':
         return torch.nn.NLLLoss()
@@ -258,6 +263,8 @@ def get_train_and_validation_function(model):
     elif 'vEEGNet.vEEGNet' in str(type(model)):
         return train_vEEGNet.train_epoch, train_vEEGNet.validation_epoch
     elif 'hvEEGNet.hvEEGNet_shallow' in str(type(model)):
+        return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
+    elif 'hvEEGNet_V2.hvEEGNet_V2' in str(type(model)):
         return train_hvEEGNet.train_epoch, train_hvEEGNet.validation_epoch
     elif 'classifier' in str(type(model)):
         return train_classifier.train_epoch, train_classifier.validation_epoch

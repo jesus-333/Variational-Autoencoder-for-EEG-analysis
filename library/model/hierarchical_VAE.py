@@ -31,7 +31,7 @@ class hVAE(nn.Module):
         self.decoder = hVAE_decoder(decoder_cell_list, config)
 
     def forward(self, x : torch.tensor, h : torch.tensor = None):
-        # Encoder 
+        # Encoder
         z, mu, log_var, encoder_cell_outputs = self.encoder(x)
         
         # Decoder
@@ -208,16 +208,18 @@ class hVAE_decoder(nn.Module):
             x = self.decoder[i](x)
             
             # Sampling section
-            # Note that in the last layer (i.e. the output I don't need to create a laten space and sampling from it... I'm only interested in the final results)
-            if i != len(self.decoder) -1:
+            # Note that in the last layer (i.e. the output I don't need to create a latent space and sampling from it... I'm only interested in the final results)
+            if i != len(self.decoder) - 1 :
                 # Sample from the distribution and save the results
                 z, mu, log_var = self.sample_layers_z[i](x)
                 mu_list.append(mu)
                 log_var_list.append(log_var)
-                
+
                 # This section is used only during the training
                 if encoder_cell_output is not None and torch.sum(encoder_cell_output[-2 - i]) != 0:
+                    print(f"{i} x : {torch.sum(x.isnan())} encoder_cell_output[-2 - i] : {torch.sum(encoder_cell_output[-2 - i].isnan())}")
                     _, delta_mu, delta_log_var = self.sample_layers_z_given_x[i](self.features_combination_z[i](x, encoder_cell_output[-2 - i]))
+                    print(f"{i} delta_mu : {torch.sum(delta_mu.isnan())} delta_log_var : {torch.sum(delta_log_var.isnan())}")
                     # Note that the encoder_cell_output has ALL the output of the decoder, including the last (deepest) layer that is also the input of the decoder
                     # Due to the way the loop is structured I don't want the element corresponding to -1-i but the element corresponding to -2-i
                     # E.g if i = 0 I don't want - 1 - i = - 1 = last element of encoder_cell_output (Because encoder_cell_output[-1] is the input of the encoder but x is already pass through a decoder cell)
@@ -229,6 +231,7 @@ class hVAE_decoder(nn.Module):
 
                     # "Correct" the normal distribution (section 3.2 NVAE paper)
                     z = self.sample_layers_z_given_x[i].reparametrize(mu + delta_mu, log_var + delta_log_var, return_as_tensor = True)
+                    print(f"{i} z after correction : {torch.sum(z.isnan())}\n")
                 
                     # Save the parameters
                     delta_mu_list.append(delta_mu)
@@ -261,7 +264,7 @@ class hVAE_decoder(nn.Module):
                 # And Sample layer (layer that sample from the hidden space)
 
                 if i > 0:
-                    # Nota that in the deepest layer the output of the encoder IS the input of the encoder
+                    # Note that in the deepest layer the output of the encoder IS the input of the encoder
                     # So there isn't necessity of combine anything
 
                     # Create and save the module

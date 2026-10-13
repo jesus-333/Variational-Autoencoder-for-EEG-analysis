@@ -60,14 +60,26 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     """
     Train a model with the data provided by the user and log everything on wandb.
 
-    @param model_name: string with the name of the model.
-    @param train_config: dictionary with all the hyperparameter for the training. Check the README_training for more info.
-    @param model_config: dictionary with all the parameter to use in the creation of the model. Check README_model for more info.
-    @param train_dataset : dataset with the training data. Must by implemented with the class EEG_dataset inside library.dataset_time
-    @param validation_dataset : dataset with the validation data. Must by implemented with the class EEG_dataset inside library.dataset_time
-    @param dataset_config : (dict) Dictionary with all the parameters used for the data preprocess and dataset creation. Not used during the training but if passed it is logged in wandb. Default to None
+    Parameters
+    ----------
 
-    @return: the trained model.
+    model_name : str
+        String with the name of the model to train. It must be one of the model implemented in the library. Check the README_model for more info.
+    train_config : dict
+        Dictionary with all the hyperparameter for the training. Check the README_training for more info.
+    model_config : dict
+        Dictionary with all the parameter to use in the creation of the model. Check README_model for more info.
+    train_dataset : dataset
+        dataset with the training data. Must by implemented with the class EEG_dataset inside library.dataset_time
+    validation_dataset : dataset
+        dataset with the validation data. Must by implemented with the class EEG_dataset inside library.dataset_time
+    dataset_config : dict, optional
+        Dictionary with all the parameters used for the data preprocess and dataset creation. Not used during the training but if passed it is logged in wandb. Default to None
+
+    Returns
+    -------
+    model : torch.nn.Module
+        The trained model.
     """
     
     if 'hvEEGNet' in model_name : check_config.check_model_config_hvEEGNet(model_config)
@@ -97,7 +109,7 @@ def train_wandb_V2(model_name : str, train_config : dict, model_config : dict, t
     # Create model
     model_config['input_size'] = train_dataset[0][0].unsqueeze(0).shape
     model = train_generic.get_untrained_model(model_name, model_config)
-    
+
     # TODO add proper finetuning
     # path_weight = 'Saved Model/hvEEGNet_d2a_block/S3_block_250/model_50.pth'
     # model.load_state_dict(torch.load(path_weight, map_location = torch.device('cpu')))

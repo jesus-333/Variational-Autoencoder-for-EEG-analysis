@@ -222,6 +222,8 @@ class sample_layer(nn.Module):
         else:
             raise ValueError("config['parameters_map_type'] must have value 0 (convolution-matrix) or 1 (Feedforward-vector) or 2 (Feedforward-vector with LoRA)")
 
+        print(f"\t x : {torch.isnan(x).any()}, mean : {torch.isnan(mean).any()}, log_var : {torch.isnan(log_var).any()}")
+
         return x, mean, log_var
 
     def reparametrize(self, mu : torch.tensor, log_var : torch.tensor, return_as_tensor : bool = False) -> torch.tensor:
@@ -234,14 +236,25 @@ class sample_layer(nn.Module):
 
         @return z : (torch.tensor) Sample from the latent space.
         """
-
+            
         z = reparametrize(mu, log_var)
 
-        if return_as_tensor and (self.parameters_map_type == 1 or self.parameters_map_type == 2) :
-            return self.ff_layer(z).reshape(self.input_shape)
-        else :
-            return z
+        # if return_as_tensor and (self.parameters_map_type == 1 or self.parameters_map_type == 2) :
+        #     return self.ff_layer(z).reshape(self.input_shape)
+        # else :
+        #     return z
 
+        print(f"\t z before ff_layer : {torch.isnan(z).any()}")
+        if return_as_tensor and (self.parameters_map_type == 1 or self.parameters_map_type == 2) : 
+            z = self.ff_layer(z).reshape(self.input_shape)
+
+        print(f"\t z after ff_layer : {torch.isnan(z).any()}")
+        if torch.isnan(z).any() :
+            print(f"\t z : {z}")
+            print(f"\t ff_layer weight : {self.ff_layer[0].weight}")
+            print(f"\t ff_layer bias : {self.ff_layer[0].bias}")
+
+        return z
 
 def reparametrize(mu : torch.tensor, log_var : torch.tensor) -> torch.tensor:
     """
@@ -257,6 +270,8 @@ def reparametrize(mu : torch.tensor, log_var : torch.tensor) -> torch.tensor:
 
     eps = torch.randn_like(sigma)
     eps = eps.type_as(mu) # Used to move output to cuda when using GPU training
+    
+    print(f"\t mu : {torch.isnan(mu).any()}, sigma : {torch.isnan(sigma).any()}, eps : {torch.isnan(eps).any()}")
 
     return mu + sigma * eps
 

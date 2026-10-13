@@ -124,7 +124,7 @@ def compute_ERS_single_channels(stft_channel, idx_rest):
 def get_dataset_d2a(config : dict):
     # Get the original train and test data
     data_train, labels_train, ch_list = download.get_D2a_data(config, 'train')
-    data_test, labels_test, ch_list = download.get_D2a_data(config, 'test')
+    data_test , labels_test , ch_list = download.get_D2a_data(config, 'test')
     config['channels_list'] = ch_list
 
     # Add dimension for the depth map

@@ -17,10 +17,12 @@ from . import EEGNet, hierarchical_VAE
 
 class hvEEGNet_V2(torch.torch.nn.Module):
     
-    def __init__(self, config : dict, n_cells : int):
+    def __init__(self, config : dict):
         """
         """
         super().__init__()
+
+        n_cells = config['n_cells']
         
         # Create lists of cells for the encoder and decoder
         encoder_cell_list = [EEGNet_cell(config['encoder_config']) for _ in range(n_cells)]
